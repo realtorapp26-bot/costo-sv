@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Costo SV — sitemap.xml (BORRADOR — BLOQUEADO hasta definir el dominio).
+     %%SITE_URL%% se resuelve en el despliegue; predeploy-check.mjs falla si sigue pendiente.
+     admin.html queda EXCLUIDO a propósito (herramienta interna, noindex). -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>%%SITE_URL%%/index.html</loc><priority>1.0</priority></url>
+  <url><loc>%%SITE_URL%%/vender.html</loc><priority>0.8</priority></url>
+  <url><loc>%%SITE_URL%%/comprar.html</loc><priority>0.8</priority></url>
+  <url><loc>%%SITE_URL%%/invertir.html</loc><priority>0.8</priority></url>
+  <url><loc>%%SITE_URL%%/propiedades.html</loc><priority>0.8</priority></url>
+  <url><loc>%%SITE_URL%%/menajes.html</loc><priority>0.7</priority></url>
+  <url><loc>%%SITE_URL%%/costo-vida.html</loc><priority>0.9</priority></url>
+  <url><loc>%%SITE_URL%%/sobre-mi.html</loc><priority>0.6</priority></url>
+  <url><loc>%%SITE_URL%%/contacto.html</loc><priority>0.7</priority></url>
+</urlset>

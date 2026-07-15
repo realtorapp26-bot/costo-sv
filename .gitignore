@@ -1,0 +1,25 @@
+# Costo SV — .gitignore
+
+# Entorno / secretos (hoy no hay; se excluyen por seguridad)
+.env
+.env.*
+*.key
+*.pem
+
+# Dependencias (por si se agrega tooling con Node)
+node_modules/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*~
+
+# Logs / temporales
+*.log
+*.tmp
