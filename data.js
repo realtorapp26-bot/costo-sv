@@ -43,7 +43,7 @@ window.costData = {
             { id: "e4", name: "Cerveza local en el supermercado (0.5 l)", price: "$1.50" }
         ],
         "Economía": [
-            { id: "ec1", name: "Salario mínimo mensual neto (Después de impuestos)", price: "$365.00" }
+            { id: "ec1", name: "Salario mínimo mensual (comercio/servicios, bruto — MTPS jun 2025)", price: "$408.80" }
         ]
     },
     "Santa Tecla": {
@@ -59,7 +59,7 @@ window.costData = {
             { id: "t1", name: "1 galón de gasolina regular", price: "$4.15" }
         ],
         "Economía": [
-            { id: "ec1", name: "Salario mínimo mensual neto", price: "$365.00" }
+            { id: "ec1", name: "Salario mínimo mensual (comercio/servicios, bruto — MTPS jun 2025)", price: "$408.80" }
         ]
     },
     "Santa Ana": {

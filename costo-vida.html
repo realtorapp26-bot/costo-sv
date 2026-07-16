@@ -4,25 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Costo de Vida en El Salvador | Walter Guerrero RE/MAX</title>
-    <meta name="description" content="Calcula y compara el costo de vida actual en El Salvador. Datos reales de la canasta básica y asesoría para tu nueva vida.">
+    <meta name="description" content="Compara el costo de vida en El Salvador con datos oficiales de la canasta básica (ONEC/BCR) y valores orientativos, más asesoría para tu nueva vida.">
     <!-- SEO-META:START (generado por build-seo.mjs — no editar a mano) -->
     <link rel="canonical" href="%%SITE_URL%%/costo-vida.html">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Walter Guerrero · RE/MAX El Salvador">
     <meta property="og:locale" content="es_SV">
     <meta property="og:title" content="Costo de Vida en El Salvador | Walter Guerrero RE/MAX">
-    <meta property="og:description" content="Calcula y compara el costo de vida actual en El Salvador. Datos reales de la canasta básica y asesoría para tu nueva vida.">
+    <meta property="og:description" content="Compara el costo de vida en El Salvador con datos oficiales de la canasta básica (ONEC/BCR) y valores orientativos, más asesoría para tu nueva vida.">
     <meta property="og:url" content="%%SITE_URL%%/costo-vida.html">
     <meta property="og:image" content="%%SITE_URL%%/assets/walter-guerrero-retocada.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Costo de Vida en El Salvador | Walter Guerrero RE/MAX">
-    <meta name="twitter:description" content="Calcula y compara el costo de vida actual en El Salvador. Datos reales de la canasta básica y asesoría para tu nueva vida.">
+    <meta name="twitter:description" content="Compara el costo de vida en El Salvador con datos oficiales de la canasta básica (ONEC/BCR) y valores orientativos, más asesoría para tu nueva vida.">
     <meta name="twitter:image" content="%%SITE_URL%%/assets/walter-guerrero-retocada.png">
     <meta name="theme-color" content="#0f172a">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="favicon.svg">
     <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"%%SITE_URL%%/#website","url":"%%SITE_URL%%/","name":"Walter Guerrero · RE/MAX El Salvador","inLanguage":"es","publisher":{"@id":"%%SITE_URL%%/#agent"}},{"@type":"RealEstateAgent","@id":"%%SITE_URL%%/#agent","name":"Walter Guerrero — RE/MAX El Salvador","url":"%%SITE_URL%%/","image":"%%SITE_URL%%/assets/walter-guerrero-retocada.png","telephone":"+503 7038-4194","email":"walter.guerrero@remax.com.sv","areaServed":"El Salvador","employee":{"@type":"Person","name":"Walter Guerrero","jobTitle":"Agente Inmobiliario","worksFor":"RE/MAX El Salvador"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Inicio","item":"%%SITE_URL%%/index.html"},{"@type":"ListItem","position":2,"name":"Costo de Vida","item":"%%SITE_URL%%/costo-vida.html"}]}]}</script>
     <!-- SEO-META:END -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -51,7 +54,7 @@
     <section class="landing-header" style="background-color: var(--primary);">
         <div class="container">
             <h1>Costo de Vida Simplificado (2026)</h1>
-            <p class="section-subtitle" style="color: white; margin-bottom: 0;">Los números reales y oficiales para que planifiques tu retorno o retiro en El Salvador sin sorpresas financieras.</p>
+            <p class="section-subtitle" style="color: white; margin-bottom: 0;">Cifras oficiales (con su fuente) y valores orientativos para planificar tu retorno o retiro en El Salvador. Los datos referenciales varían según zona y estilo de vida.</p>
         </div>
     </section>
 
@@ -60,26 +63,32 @@
             
             <div class="costo-summary">
                 <div class="costo-stat">
-                    <h4>Salario Mínimo (Referencia)</h4>
+                    <h4>Salario Mínimo</h4>
                     <div class="val" style="color: #2563eb;">$408.80</div>
-                    <p style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">Sector comercio/servicios</p>
+                    <p style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">Oficial · MTPS · comercio, servicios e industria (jun 2025)</p>
                 </div>
                 <div class="costo-stat">
                     <h4>Canasta Básica Urbana</h4>
-                    <div class="val" style="color: #d97706;">$252.66</div>
-                    <p style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">Alimentación promedio mes</p>
+                    <div class="val" style="color: #d97706;" data-canasta="urbana">$258.22</div>
+                    <p style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">Oficial · ONEC/BCR · mayo 2026</p>
                 </div>
                 <div class="costo-stat">
                     <h4>Canasta Básica Rural</h4>
-                    <div class="val" style="color: #10b981;">$183.52</div>
-                    <p style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">Alimentación promedio mes</p>
+                    <div class="val" style="color: #10b981;" data-canasta="rural">$185.51</div>
+                    <p style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">Oficial · ONEC/BCR · mayo 2026</p>
                 </div>
             </div>
+            <p style="text-align:center; font-size:0.8rem; color:#94a3b8; max-width:820px; margin:14px auto 0;">
+                <strong>Fuentes:</strong> Salario mínimo — Ministerio de Trabajo (MTPS), Decreto N.º 11, vigente desde jun 2025 (hay tarifas distintas por sector).
+                Canasta Básica Alimentaria — <a href="https://onec.bcr.gob.sv/ipc_consulta/" target="_blank" rel="noopener" style="color:#64748b; text-decoration:underline;">ONEC/BCR</a>, mayo 2026.
+                La CBA es el costo del <em>requerimiento alimentario</em> definido por la institución, no el costo total de vida.
+                Última verificación: 2026-07-15.
+            </p>
 
             <!-- Desglose Detallado -->
             <div style="margin-top: 60px; margin-bottom: 80px;">
                 <h3 style="text-align: center; font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 10px;">Desglose de Costos Promedio</h3>
-                <p style="text-align: center; color: var(--text-light); margin-bottom: 40px;">Valores de mercado aproximados (Actualizado a 2024-2026)</p>
+                <p style="text-align: center; color: var(--text-light); margin-bottom: 40px;">Valores orientativos de mercado (no oficiales) — varían según zona y estilo de vida.</p>
                 
                 <div class="detail-grid">
                     <!-- Módulo: Vivienda y Alquiler -->
@@ -127,7 +136,7 @@
 
                 <div style="display: flex; gap: 20px; align-items: center; justify-content: center; margin-bottom: 30px; flex-wrap: wrap;">
                     <div style="flex: 1; max-width: 300px;">
-                        <label style="display: block; font-weight: 500; margin-bottom: 8px;">Tu presupuesto mensual proyectado ($):</label>
+                        <label for="ingreso-mensual" style="display: block; font-weight: 500; margin-bottom: 8px;">Tu presupuesto mensual proyectado ($):</label>
                         <input type="number" id="ingreso-mensual" class="form-control" value="1000" style="font-size: 1.5rem; font-weight: 700;">
                     </div>
                 </div>
@@ -135,11 +144,11 @@
                 <div style="display: flex; justify-content: space-around; background: #f8fafc; padding: 25px; border-radius: 12px; margin-bottom: 30px; flex-wrap: wrap; text-align: center; gap: 20px;">
                     <div>
                         <div style="font-size: 2.5rem; font-weight: 800; color: #d97706;" id="resultado-urbana">25%</div>
-                        <div style="font-size: 0.95rem; font-weight: 600;">Ocupado por Canasta Urbana ($252.66)</div>
+                        <div style="font-size: 0.95rem; font-weight: 600;">Ocupado por Canasta Urbana (<span data-canasta-label="urbana">$258.22</span>)</div>
                     </div>
                     <div>
                         <div style="font-size: 2.5rem; font-weight: 800; color: #10b981;" id="resultado-rural">18%</div>
-                        <div style="font-size: 0.95rem; font-weight: 600;">Ocupado por Canasta Rural ($183.52)</div>
+                        <div style="font-size: 0.95rem; font-weight: 600;">Ocupado por Canasta Rural (<span data-canasta-label="rural">$185.51</span>)</div>
                     </div>
                 </div>
 
@@ -240,8 +249,13 @@
             const resUrbana = document.getElementById('resultado-urbana');
             const resRural = document.getElementById('resultado-rural');
             
-            const VALOR_URBANA = 252.66;
-            const VALOR_RURAL = 183.52;
+            // Fuente única: los valores oficiales del resumen (data-canasta), no duplicados aquí.
+            const num = el => parseFloat((el?.textContent || '').replace(/[^0-9.]/g, '')) || 0;
+            const VALOR_URBANA = num(document.querySelector('[data-canasta="urbana"]'));
+            const VALOR_RURAL  = num(document.querySelector('[data-canasta="rural"]'));
+            // Sincroniza las etiquetas de la calculadora con la misma fuente.
+            document.querySelectorAll('[data-canasta-label="urbana"]').forEach(e => e.textContent = '$' + VALOR_URBANA.toFixed(2));
+            document.querySelectorAll('[data-canasta-label="rural"]').forEach(e => e.textContent = '$' + VALOR_RURAL.toFixed(2));
 
             function calcularPorcentajes() {
                 const ingresoMs = parseFloat(inputIngreso.value);
