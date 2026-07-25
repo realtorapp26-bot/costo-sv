@@ -397,7 +397,8 @@
         function extraerFotosDeTexto(texto) {
             const regex = /https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|webp)(?:\?[^\s"'<>]*)?/gi;
             const encontradas = texto.match(regex) || [];
-            return [...new Set(encontradas)];
+            const excluir = /logo|favicon|icon|avatar|userfiles|\/photos\/[^/]*-min\.|agent|profile/i;
+            return [...new Set(encontradas)].filter(u => !excluir.test(u));
         }
 
         function extraerLinkDeTexto(texto) {
