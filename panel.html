@@ -244,6 +244,19 @@
                     <button class="btn-action btn-primary" onclick="agregarPropiedad()">⬆️ Subir a la web</button>
                 </div>
 
+                <div id="comparar-textos" style="display:none; margin-top:20px; display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+                    <div style="border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px;">
+                        <div style="font-weight:700; font-size:0.75rem; color:var(--text-light); text-transform:uppercase; margin-bottom:10px;">Original</div>
+                        <div id="cmp-original" style="font-size:0.9rem; line-height:1.5; margin-bottom:12px; white-space:pre-wrap;"></div>
+                        <button class="btn-action btn-secondary" style="font-size:0.8rem; padding:6px 14px;" onclick="usarTexto('original')">Usar este ↓</button>
+                    </div>
+                    <div style="border:1px solid var(--gold); border-radius:var(--radius-sm); padding:16px;">
+                        <div style="font-weight:700; font-size:0.75rem; color:var(--gold); text-transform:uppercase; margin-bottom:10px;">✨ Mejorado con IA</div>
+                        <div id="cmp-mejorado" style="font-size:0.9rem; line-height:1.5; margin-bottom:12px; white-space:pre-wrap;"></div>
+                        <button class="btn-action btn-primary" style="font-size:0.8rem; padding:6px 14px;" onclick="usarTexto('mejorado')">Usar este ↓</button>
+                    </div>
+                </div>
+
                 <div class="copy-preview" id="copy-preview">
                     <span class="mini-tag">Vista previa — así saldría publicado</span>
                     <div id="cp-fotos" style="display:flex; gap:8px; margin:10px 0; flex-wrap:wrap;"></div>
@@ -384,7 +397,13 @@
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'No se pudo generar el copy');
-                mostrarPreview(titulo, precio, data.copy);
+
+                const original = payload.descripcion_original || `${titulo}. ${precio}.`;
+                document.getElementById('cmp-original').textContent = original;
+                document.getElementById('cmp-mejorado').textContent = data.copy;
+                document.getElementById('comparar-textos').style.display = 'grid';
+                document.getElementById('comparar-textos').scrollIntoView({ behavior: 'smooth', block: 'center' });
+
                 cargarUsoIA();
             } catch (ex) {
                 alert(ex.message);
@@ -392,6 +411,15 @@
                 btn.textContent = '✨ Mejorar con IA';
                 btn.disabled = false;
             }
+        }
+
+        function usarTexto(cual) {
+            const titulo = document.getElementById('f-titulo').value.trim() || 'Propiedad sin título';
+            const precio = document.getElementById('f-precio').value.trim() || 'Precio a consultar';
+            const texto = cual === 'original'
+                ? document.getElementById('cmp-original').textContent
+                : document.getElementById('cmp-mejorado').textContent;
+            mostrarPreview(titulo, precio, texto);
         }
 
         function extraerFotosDeTexto(texto) {
