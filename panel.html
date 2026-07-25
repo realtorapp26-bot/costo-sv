@@ -101,6 +101,47 @@
             background: var(--gold); color: var(--primary); border: none; border-radius: var(--radius-sm);
             padding: 10px 20px; font-weight: 700; cursor: pointer;
         }
+
+        @keyframes cmpFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        #comparar-textos { animation: cmpFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1); position: relative; }
+        .cmp-card {
+            border-radius: var(--radius-md); padding: 22px; position: relative; transition: var(--transition);
+        }
+        .cmp-card:hover { transform: translateY(-2px); }
+        .cmp-card.cmp-original { background: var(--bg-main); border: 1px solid var(--border); }
+        .cmp-card.cmp-ia {
+            background: linear-gradient(160deg, #fffdf5 0%, var(--gold-light) 150%);
+            border: 1px solid var(--gold); box-shadow: var(--shadow-gold);
+        }
+        .cmp-label {
+            display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.72rem;
+            text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px;
+        }
+        .cmp-label.cmp-label-original { color: var(--text-light); }
+        .cmp-label.cmp-label-ia { color: #a7822f; }
+        .cmp-text {
+            font-size: 0.92rem; line-height: 1.6; color: var(--text-main); white-space: pre-wrap;
+            min-height: 60px; margin-bottom: 16px;
+        }
+        .cmp-vs {
+            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            width: 34px; height: 34px; border-radius: 50%; background: var(--primary); color: white;
+            display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700;
+            box-shadow: var(--shadow-md); z-index: 2;
+        }
+        @media (max-width: 700px) { .cmp-vs { display: none; } }
+        .btn-usar {
+            width: 100%; border: none; border-radius: var(--radius-sm); padding: 11px; font-weight: 700;
+            cursor: pointer; font-size: 0.85rem; transition: var(--transition); display: flex; align-items: center;
+            justify-content: center; gap: 6px;
+        }
+        .btn-usar.btn-usar-original { background: white; color: var(--text-main); border: 1px solid var(--border); }
+        .btn-usar.btn-usar-original:hover { border-color: var(--primary); }
+        .btn-usar.btn-usar-ia { background: var(--gold); color: var(--primary); }
+        .btn-usar.btn-usar-ia:hover { box-shadow: var(--shadow-gold); transform: translateY(-1px); }
     </style>
 </head>
 <body>
@@ -244,16 +285,17 @@
                     <button class="btn-action btn-primary" onclick="agregarPropiedad()">⬆️ Subir a la web</button>
                 </div>
 
-                <div id="comparar-textos" style="display:none; margin-top:20px; grid-template-columns:1fr 1fr; gap:16px;">
-                    <div style="border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px;">
-                        <div style="font-weight:700; font-size:0.75rem; color:var(--text-light); text-transform:uppercase; margin-bottom:10px;">Original</div>
-                        <div id="cmp-original" style="font-size:0.9rem; line-height:1.5; margin-bottom:12px; white-space:pre-wrap;"></div>
-                        <button class="btn-action btn-secondary" style="font-size:0.8rem; padding:6px 14px;" onclick="usarTexto('original')">Usar este ↓</button>
+                <div id="comparar-textos" style="display:none; margin-top:24px; grid-template-columns:1fr 1fr; gap:20px;">
+                    <div class="cmp-vs">VS</div>
+                    <div class="cmp-card cmp-original">
+                        <div class="cmp-label cmp-label-original"><i class="fas fa-file-lines"></i> Original</div>
+                        <div class="cmp-text" id="cmp-original"></div>
+                        <button class="btn-usar btn-usar-original" onclick="usarTexto('original')"><i class="fas fa-check"></i> Usar este</button>
                     </div>
-                    <div style="border:1px solid var(--gold); border-radius:var(--radius-sm); padding:16px;">
-                        <div style="font-weight:700; font-size:0.75rem; color:var(--gold); text-transform:uppercase; margin-bottom:10px;">✨ Mejorado con IA</div>
-                        <div id="cmp-mejorado" style="font-size:0.9rem; line-height:1.5; margin-bottom:12px; white-space:pre-wrap;"></div>
-                        <button class="btn-action btn-primary" style="font-size:0.8rem; padding:6px 14px;" onclick="usarTexto('mejorado')">Usar este ↓</button>
+                    <div class="cmp-card cmp-ia">
+                        <div class="cmp-label cmp-label-ia"><i class="fas fa-wand-magic-sparkles"></i> Mejorado con IA</div>
+                        <div class="cmp-text" id="cmp-mejorado"></div>
+                        <button class="btn-usar btn-usar-ia" onclick="usarTexto('mejorado')"><i class="fas fa-check"></i> Usar este</button>
                     </div>
                 </div>
 
