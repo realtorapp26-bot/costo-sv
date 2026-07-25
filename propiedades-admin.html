@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <title>Gestionar Propiedades | CostoSV</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: var(--bg-main); }
+        .admin-header { background-color: var(--primary); color: white; padding: 25px 0; }
+        .admin-header h1 { font-family: 'Playfair Display', serif; font-size: 1.8rem; margin: 0; }
+        .admin-header p { color: var(--gold-light); margin: 5px 0 0; }
+        .admin-wrap { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .gestion-table { width: 100%; border-collapse: collapse; background: var(--bg-alt); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); }
+        .gestion-table th { background: var(--primary); color: white; text-align: left; padding: 12px 16px; font-size: 0.78rem; text-transform: uppercase; }
+        .gestion-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 0.9rem; vertical-align: middle; }
+        .gestion-table tr:last-child td { border-bottom: none; }
+        .gestion-thumb { width: 70px; height: 52px; object-fit: cover; border-radius: 6px; background: var(--bg-main); }
+        .gestion-titulo { font-weight: 600; color: var(--primary); max-width: 260px; }
+        .estado-chip { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; cursor: pointer; border: none; }
+        .estado-chip.publicada { background: #e7f7ec; color: #1b5e20; }
+        .estado-chip.oculta { background: #f3f4f6; color: #6b7280; }
+        .btn-eliminar { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: var(--radius-sm); padding: 6px 12px; font-size: 0.8rem; cursor: pointer; }
+        .btn-eliminar:hover { background: #fee2e2; }
+    </style>
+</head>
+<body>
+    <header class="admin-header">
+        <div class="container">
+            <h1>🗂️ Gestionar Propiedades</h1>
+            <p>Ver, publicar/ocultar y eliminar lo ya subido</p>
+        </div>
+    </header>
+
+    <div class="admin-wrap">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <a href="panel.html" style="font-size:0.85rem; color: var(--text-light);"><i class="fas fa-arrow-left"></i> Volver al panel</a>
+            <button onclick="CostoSVAuth.signOut()" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 14px;font-size:0.8rem;cursor:pointer;">Cerrar sesión</button>
+        </div>
+
+        <div class="scroll-x" style="overflow-x:auto;">
+            <table class="gestion-table">
+                <thead>
+                    <tr>
+                        <th>Foto</th>
+                        <th>Título</th>
+                        <th>Precio</th>
+                        <th>Categoría</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-body">
+                    <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-light);">Cargando...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="config.js?v=2"></script>
+    <script src="login.js?v=2"></script>
+    <script>
+        const SUPA_URL = window.SITE_CONFIG.SUPABASE_URL;
+        let propiedades = [];
+
+        async function cargarTodas() {
+            const body = document.getElementById('tabla-body');
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?select=id,titulo,precio,categoria,fotos,publicada,created_at&order=created_at.desc`, { headers });
+                if (!res.ok) throw new Error('No se pudieron cargar (' + res.status + ')');
+                propiedades = await res.json();
+                render();
+            } catch (ex) {
+                body.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#b91c1c; padding:20px;">${ex.message}</td></tr>`;
+            }
+        }
+
+        function render() {
+            const body = document.getElementById('tabla-body');
+            if (!propiedades.length) {
+                body.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-light);">Todavía no hay propiedades cargadas.</td></tr>';
+                return;
+            }
+            body.innerHTML = propiedades.map(p => {
+                const foto = (p.fotos && p.fotos[0]) || '';
+                const fecha = new Date(p.created_at).toLocaleDateString('es-SV', { day: '2-digit', month: 'short', year: 'numeric' });
+                return `
+                    <tr>
+                        <td>${foto ? `<img src="${foto}" class="gestion-thumb" onerror="this.style.display='none'">` : ''}</td>
+                        <td class="gestion-titulo">${p.titulo}</td>
+                        <td>${p.precio}</td>
+                        <td>${p.categoria}</td>
+                        <td>${fecha}</td>
+                        <td><button class="estado-chip ${p.publicada ? 'publicada' : 'oculta'}" onclick="cambiarEstado('${p.id}', ${!p.publicada})">${p.publicada ? '✓ Publicada' : 'Oculta'}</button></td>
+                        <td><button class="btn-eliminar" onclick="eliminar('${p.id}')"><i class="fas fa-trash"></i> Eliminar</button></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function cambiarEstado(id, nuevoValor) {
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?id=eq.${id}`, {
+                    method: 'PATCH', headers: { ...headers, Prefer: 'return=minimal' },
+                    body: JSON.stringify({ publicada: nuevoValor }),
+                });
+                if (!res.ok) throw new Error('No se pudo actualizar (' + res.status + ')');
+                const p = propiedades.find(x => x.id === id);
+                if (p) p.publicada = nuevoValor;
+                render();
+            } catch (ex) {
+                alert(ex.message);
+            }
+        }
+
+        async function eliminar(id) {
+            const p = propiedades.find(x => x.id === id);
+            if (!confirm(`¿Eliminar "${p ? p.titulo : 'esta propiedad'}"? Esto no se puede deshacer.`)) return;
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?id=eq.${id}`, {
+                    method: 'DELETE', headers: { ...headers, Prefer: 'return=minimal' },
+                });
+                if (!res.ok) throw new Error('No se pudo eliminar (' + res.status + ')');
+                propiedades = propiedades.filter(x => x.id !== id);
+                render();
+            } catch (ex) {
+                alert(ex.message);
+            }
+        }
+
+        CostoSVAuth.requireLogin(cargarTodas);
+    </script>
+</body>
+</html>

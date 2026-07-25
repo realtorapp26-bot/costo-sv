@@ -13,6 +13,10 @@
       "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
     },
     {
+      "source": "/propiedades-admin.html",
+      "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
+    },
+    {
       "source": "/config.js",
       "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
     },
@@ -22,6 +26,10 @@
     },
     {
       "source": "/login.js",
+      "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
+    },
+    {
+      "source": "/propiedades.html",
       "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
     }
   ]
