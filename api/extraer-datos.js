@@ -51,7 +51,7 @@ export default async function handler(req, res) {
             },
             body: JSON.stringify({
                 model: 'claude-haiku-4-5-20251001',
-                max_tokens: 500,
+                max_tokens: 800,
                 system: `Extraés datos de un listado inmobiliario a partir de texto pegado por el usuario (copiado por él de una página web). ` +
                     `Respondé ÚNICAMENTE con un objeto JSON válido, sin texto adicional ni markdown, con estas claves exactas: ` +
                     `titulo (string), precio (string, con símbolo $ si corresponde), ubicacion (string), categoria (una de: ${CATEGORIAS_VALIDAS.join(' | ')}), ` +
@@ -59,7 +59,10 @@ export default async function handler(req, res) {
                     `tipo_contrato ("venta" o "alquiler", default "venta"), tipo_propiedad_detalle (string o null, ej "Casa", "Apartamento", "Lote/Terreno"), ` +
                     `id_externo (string o null, el código/ID interno del listado si aparece), tamano_lote (string o null), tamano_construccion (string o null), ` +
                     `latitud (número o null), longitud (número o null), tour_virtual_url (string o null), video_url (string o null), ` +
-                    `garage (boolean), hoa (boolean, si tiene cuota de mantenimiento/asociación), comunidad_cerrada (boolean), propiedad_nueva (boolean). ` +
+                    `garage (boolean), hoa (boolean, si tiene cuota de mantenimiento/asociación), comunidad_cerrada (boolean), propiedad_nueva (boolean), ` +
+                    `copy_venta (string: un texto de venta persuasivo y profesional de 3-5 oraciones en español, con intención de venta clara y una llamada a la acción al final; ` +
+                    `respetá siempre los datos reales del listado — precio, ubicación, características — pero reformulá libremente el texto para que se lea mejor que el original; ` +
+                    `texto plano, sin emojis ni markdown, listo para pegar en Marketplace o en el sitio web). ` +
                     `IMPORTANTE: nunca incluyas nombre de agente, oficina, email o teléfono del agente aunque aparezcan en el texto — no son relevantes para esta extracción. ` +
                     `Si un dato no aparece en el texto, usá null o false según corresponda. No inventes datos.`,
                 messages: [{ role: 'user', content: texto.slice(0, 8000) }],

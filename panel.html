@@ -541,8 +541,15 @@
                 if (d.hoa) document.getElementById('f-hoa').checked = true;
                 if (d.comunidad_cerrada) document.getElementById('f-comunidad-cerrada').checked = true;
                 if (d.propiedad_nueva) document.getElementById('f-nueva').checked = true;
+
+                if (d.copy_venta) {
+                    document.getElementById('cmp-original').textContent = d.descripcion || document.getElementById('f-desc').value;
+                    document.getElementById('cmp-mejorado').textContent = d.copy_venta;
+                    document.getElementById('comparar-textos').style.display = 'grid';
+                }
+
                 cargarUsoIA();
-                alert('Datos extraídos — revisá los campos antes de guardar.' + (fotos.length ? ` (${fotos.length} fotos detectadas)` : ''));
+                document.getElementById('comparar-textos').scrollIntoView({ behavior: 'smooth', block: 'center' });
             } catch (ex) {
                 alert(ex.message);
             } finally {
