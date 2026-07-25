@@ -55,8 +55,13 @@ export default async function handler(req, res) {
                 system: `Extraés datos de un listado inmobiliario a partir de texto pegado por el usuario (copiado por él de una página web). ` +
                     `Respondé ÚNICAMENTE con un objeto JSON válido, sin texto adicional ni markdown, con estas claves exactas: ` +
                     `titulo (string), precio (string, con símbolo $ si corresponde), ubicacion (string), categoria (una de: ${CATEGORIAS_VALIDAS.join(' | ')}), ` +
-                    `habitaciones (string o null), banos (string o null), m2 (string o null), descripcion (string, resumen breve de 1-2 oraciones). ` +
-                    `Si un dato no aparece en el texto, usá null. No inventes datos.`,
+                    `habitaciones (string o null), banos (string o null), m2 (string o null), descripcion (string, resumen breve de 1-2 oraciones), ` +
+                    `tipo_contrato ("venta" o "alquiler", default "venta"), tipo_propiedad_detalle (string o null, ej "Casa", "Apartamento", "Lote/Terreno"), ` +
+                    `id_externo (string o null, el código/ID interno del listado si aparece), tamano_lote (string o null), tamano_construccion (string o null), ` +
+                    `latitud (número o null), longitud (número o null), tour_virtual_url (string o null), video_url (string o null), ` +
+                    `garage (boolean), hoa (boolean, si tiene cuota de mantenimiento/asociación), comunidad_cerrada (boolean), propiedad_nueva (boolean). ` +
+                    `IMPORTANTE: nunca incluyas nombre de agente, oficina, email o teléfono del agente aunque aparezcan en el texto — no son relevantes para esta extracción. ` +
+                    `Si un dato no aparece en el texto, usá null o false según corresponda. No inventes datos.`,
                 messages: [{ role: 'user', content: texto.slice(0, 8000) }],
             }),
         });

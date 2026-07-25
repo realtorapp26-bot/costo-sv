@@ -170,6 +170,21 @@
                         </select>
                     </div>
                     <div>
+                        <label>Tipo de contrato</label>
+                        <select id="f-tipo-contrato">
+                            <option value="venta">Venta</option>
+                            <option value="alquiler">Alquiler</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Tipo de propiedad (casa, terreno, apto...)</label>
+                        <input type="text" id="f-tipo-propiedad" placeholder="Lote/Terreno">
+                    </div>
+                    <div>
+                        <label>ID externo (código del listado)</label>
+                        <input type="text" id="f-id-externo" placeholder="002523093004">
+                    </div>
+                    <div>
                         <label>Habitaciones</label>
                         <input type="text" id="f-hab" placeholder="3">
                     </div>
@@ -178,8 +193,38 @@
                         <input type="text" id="f-banos" placeholder="2.5">
                     </div>
                     <div>
-                        <label>m²</label>
+                        <label>m² (general)</label>
                         <input type="text" id="f-m2" placeholder="220">
+                    </div>
+                    <div>
+                        <label>Tamaño de lote</label>
+                        <input type="text" id="f-tamano-lote" placeholder="345.77 m²">
+                    </div>
+                    <div>
+                        <label>Tamaño de construcción</label>
+                        <input type="text" id="f-tamano-construccion" placeholder="180 m²">
+                    </div>
+                    <div>
+                        <label>Latitud</label>
+                        <input type="text" id="f-latitud" placeholder="13.818696">
+                    </div>
+                    <div>
+                        <label>Longitud</label>
+                        <input type="text" id="f-longitud" placeholder="-89.695483">
+                    </div>
+                    <div>
+                        <label>Tour virtual (URL)</label>
+                        <input type="url" id="f-tour" placeholder="https://...">
+                    </div>
+                    <div>
+                        <label>Video (URL)</label>
+                        <input type="url" id="f-video" placeholder="https://...">
+                    </div>
+                    <div class="full" style="display:flex; gap:20px; flex-wrap:wrap; align-items:center;">
+                        <label style="display:flex; align-items:center; gap:6px; margin:0;"><input type="checkbox" id="f-garage" style="width:auto;"> Garage</label>
+                        <label style="display:flex; align-items:center; gap:6px; margin:0;"><input type="checkbox" id="f-hoa" style="width:auto;"> Cuota de mantenimiento (HOA)</label>
+                        <label style="display:flex; align-items:center; gap:6px; margin:0;"><input type="checkbox" id="f-comunidad-cerrada" style="width:auto;"> Comunidad cerrada</label>
+                        <label style="display:flex; align-items:center; gap:6px; margin:0;"><input type="checkbox" id="f-nueva" style="width:auto;"> Propiedad nueva</label>
                     </div>
                     <div class="full">
                         <label>Descripción original (la que ves en el listado — pegala tal cual)</label>
@@ -412,6 +457,19 @@
                     const sel = document.getElementById('f-categoria');
                     if ([...sel.options].some(o => o.value === d.categoria)) sel.value = d.categoria;
                 }
+                if (d.tipo_contrato && ['venta', 'alquiler'].includes(d.tipo_contrato)) document.getElementById('f-tipo-contrato').value = d.tipo_contrato;
+                if (d.tipo_propiedad_detalle) document.getElementById('f-tipo-propiedad').value = d.tipo_propiedad_detalle;
+                if (d.id_externo) document.getElementById('f-id-externo').value = d.id_externo;
+                if (d.tamano_lote) document.getElementById('f-tamano-lote').value = d.tamano_lote;
+                if (d.tamano_construccion) document.getElementById('f-tamano-construccion').value = d.tamano_construccion;
+                if (d.latitud) document.getElementById('f-latitud').value = d.latitud;
+                if (d.longitud) document.getElementById('f-longitud').value = d.longitud;
+                if (d.tour_virtual_url) document.getElementById('f-tour').value = d.tour_virtual_url;
+                if (d.video_url) document.getElementById('f-video').value = d.video_url;
+                if (d.garage) document.getElementById('f-garage').checked = true;
+                if (d.hoa) document.getElementById('f-hoa').checked = true;
+                if (d.comunidad_cerrada) document.getElementById('f-comunidad-cerrada').checked = true;
+                if (d.propiedad_nueva) document.getElementById('f-nueva').checked = true;
                 cargarUsoIA();
                 alert('Datos extraídos — revisá los campos antes de guardar.' + (fotos.length ? ` (${fotos.length} fotos detectadas)` : ''));
             } catch (ex) {
@@ -457,6 +515,19 @@
                 descripcion_original: document.getElementById('f-desc').value.trim() || null,
                 copy_venta: document.getElementById('cp-texto').value.trim() || null,
                 fotos: document.getElementById('f-fotos').value.split('\n').map(s => s.trim()).filter(Boolean),
+                tipo_contrato: document.getElementById('f-tipo-contrato').value,
+                tipo_propiedad_detalle: document.getElementById('f-tipo-propiedad').value.trim() || null,
+                id_externo: document.getElementById('f-id-externo').value.trim() || null,
+                tamano_lote: document.getElementById('f-tamano-lote').value.trim() || null,
+                tamano_construccion: document.getElementById('f-tamano-construccion').value.trim() || null,
+                latitud: parseFloat(document.getElementById('f-latitud').value) || null,
+                longitud: parseFloat(document.getElementById('f-longitud').value) || null,
+                tour_virtual_url: document.getElementById('f-tour').value.trim() || null,
+                video_url: document.getElementById('f-video').value.trim() || null,
+                garage: document.getElementById('f-garage').checked,
+                hoa: document.getElementById('f-hoa').checked,
+                comunidad_cerrada: document.getElementById('f-comunidad-cerrada').checked,
+                propiedad_nueva: document.getElementById('f-nueva').checked,
             };
             try {
                 const headers = await CostoSVAuth.authHeaders();
@@ -502,7 +573,11 @@
         }
 
         function limpiarForm() {
-            ['f-link','f-titulo','f-precio','f-ubicacion','f-hab','f-banos','f-m2','f-desc','f-fotos'].forEach(id => document.getElementById(id).value = '');
+            ['f-link','f-titulo','f-precio','f-ubicacion','f-hab','f-banos','f-m2','f-desc','f-fotos',
+             'f-tipo-propiedad','f-id-externo','f-tamano-lote','f-tamano-construccion','f-latitud','f-longitud','f-tour','f-video']
+                .forEach(id => document.getElementById(id).value = '');
+            ['f-garage','f-hoa','f-comunidad-cerrada','f-nueva'].forEach(id => document.getElementById(id).checked = false);
+            document.getElementById('f-tipo-contrato').value = 'venta';
             document.getElementById('copy-preview').classList.remove('show');
             previsualizarFotos();
         }
