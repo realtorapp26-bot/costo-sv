@@ -112,7 +112,10 @@
     </header>
 
     <div class="admin-wrap">
-        <div style="text-align:right; margin-bottom: 10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+            <div id="uso-ia-badge" style="font-size:0.8rem; color:var(--text-light); background:var(--bg-alt); border:1px solid var(--border); border-radius:20px; padding:6px 14px;">
+                Uso de IA este mes: cargando...
+            </div>
             <button onclick="CostoSVAuth.signOut()" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 14px;font-size:0.8rem;cursor:pointer;">Cerrar sesión</button>
         </div>
 
@@ -181,7 +184,8 @@
 
                 <div class="actions-row">
                     <button class="btn-action btn-secondary" onclick="limpiarForm()">Limpiar</button>
-                    <button class="btn-action btn-primary" onclick="generarCopy()">✨ Generar copy de venta</button>
+                    <button class="btn-action btn-secondary" onclick="generarCopy()">Mantener tal cual</button>
+                    <button class="btn-action btn-primary" id="btn-mejorar-ia" onclick="mejorarConIA()">✨ Mejorar con IA</button>
                 </div>
 
                 <div class="copy-preview" id="copy-preview">
@@ -280,23 +284,69 @@
         }
 
         // ---------- Propiedades ----------
-        const plantillasVenta = [
-            (t, u) => `Oportunidad real en ${u}: ${t.toLowerCase()} te espera. Espacios pensados para vivir, no solo para mostrar. Agendá tu visita hoy — este tipo de propiedades no dura en el mercado.`,
-            (t, u) => `${t} — una de esas propiedades que hay que ver en persona para entender el valor. Ubicación estratégica en ${u}, lista para que la hagas tuya. Escribime y coordinamos una visita esta semana.`,
-            (t, u) => `Presentamos ${t.toLowerCase()} en ${u}. Diseño, ubicación y precio alineados para una decisión inteligente. Cupo limitado de visitas — reservá la tuya.`
-        ];
-        let contador = 0;
+        function mostrarPreview(titulo, precio, texto) {
+            document.getElementById('cp-titulo').textContent = titulo;
+            document.getElementById('cp-precio').textContent = precio;
+            document.getElementById('cp-texto').value = texto;
+            document.getElementById('copy-preview').classList.add('show');
+        }
 
         function generarCopy() {
             const titulo = document.getElementById('f-titulo').value.trim() || 'Propiedad sin título';
             const precio = document.getElementById('f-precio').value.trim() || 'Precio a consultar';
-            const ubicacion = document.getElementById('f-ubicacion').value.trim() || 'El Salvador';
-            const plantilla = plantillasVenta[contador % plantillasVenta.length];
-            contador++;
-            document.getElementById('cp-titulo').textContent = titulo;
-            document.getElementById('cp-precio').textContent = precio;
-            document.getElementById('cp-texto').value = plantilla(titulo, ubicacion);
-            document.getElementById('copy-preview').classList.add('show');
+            const desc = document.getElementById('f-desc').value.trim();
+            mostrarPreview(titulo, precio, desc || `${titulo}. ${precio}. Contactanos para más información.`);
+        }
+
+        async function mejorarConIA() {
+            const btn = document.getElementById('btn-mejorar-ia');
+            const titulo = document.getElementById('f-titulo').value.trim() || 'Propiedad sin título';
+            const precio = document.getElementById('f-precio').value.trim() || 'Precio a consultar';
+            const payload = {
+                titulo,
+                precio,
+                ubicacion: document.getElementById('f-ubicacion').value.trim(),
+                categoria: document.getElementById('f-categoria').value,
+                habitaciones: document.getElementById('f-hab').value.trim(),
+                banos: document.getElementById('f-banos').value.trim(),
+                m2: document.getElementById('f-m2').value.trim(),
+                descripcion_original: document.getElementById('f-desc').value.trim(),
+            };
+            btn.textContent = 'Redactando...';
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/generar-copy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'No se pudo generar el copy');
+                mostrarPreview(titulo, precio, data.copy);
+                cargarUsoIA();
+            } catch (ex) {
+                alert(ex.message);
+            } finally {
+                btn.textContent = '✨ Mejorar con IA';
+                btn.disabled = false;
+            }
+        }
+
+        async function cargarUsoIA() {
+            const badge = document.getElementById('uso-ia-badge');
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const inicioMes = new Date();
+                inicioMes.setDate(1);
+                inicioMes.setHours(0, 0, 0, 0);
+                const res = await fetch(`${SUPA_URL}/rest/v1/uso_ia?select=costo_estimado&created_at=gte.${inicioMes.toISOString()}`, { headers });
+                if (!res.ok) throw new Error();
+                const filas = await res.json();
+                const total = filas.reduce((s, f) => s + Number(f.costo_estimado || 0), 0);
+                badge.textContent = `Uso de IA este mes: ${filas.length} generaciones · ~$${total.toFixed(3)}`;
+            } catch (ex) {
+                badge.textContent = 'Uso de IA: sin datos';
+            }
         }
 
         function copiarTexto() {
@@ -525,6 +575,7 @@
         CostoSVAuth.requireLogin(() => {
             cargarPropiedades();
             cargarLeads();
+            cargarUsoIA();
         });
     </script>
 </body>
