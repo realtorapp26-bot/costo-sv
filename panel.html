@@ -654,11 +654,14 @@
 
         function limpiarForm() {
             ['f-link','f-titulo','f-precio','f-ubicacion','f-hab','f-banos','f-m2','f-desc','f-fotos',
-             'f-tipo-propiedad','f-id-externo','f-tamano-lote','f-tamano-construccion','f-latitud','f-longitud','f-tour','f-video']
+             'f-tipo-propiedad','f-id-externo','f-tamano-lote','f-tamano-construccion','f-latitud','f-longitud','f-tour','f-video','f-pegado']
                 .forEach(id => document.getElementById(id).value = '');
             ['f-garage','f-hoa','f-comunidad-cerrada','f-nueva'].forEach(id => document.getElementById(id).checked = false);
             document.getElementById('f-tipo-contrato').value = 'venta';
             document.getElementById('copy-preview').classList.remove('show');
+            document.getElementById('comparar-textos').style.display = 'none';
+            document.getElementById('cmp-original').textContent = '';
+            document.getElementById('cmp-mejorado').textContent = '';
             previsualizarFotos();
         }
 

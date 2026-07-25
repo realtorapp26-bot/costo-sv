@@ -29,6 +29,25 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        .prop-carrusel-btn {
+            position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
+            width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer;
+            background: rgba(10, 15, 28, 0.55); color: white; display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.25s ease, background 0.25s ease; font-size: 0.85rem;
+        }
+        .prop-carrusel-btn:hover { background: rgba(10, 15, 28, 0.85); }
+        .prop-card:hover .prop-carrusel-btn { opacity: 1; }
+        .prop-carrusel-prev { left: 12px; }
+        .prop-carrusel-next { right: 12px; }
+        .prop-carrusel-dots {
+            position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 3;
+            display: flex; gap: 6px;
+        }
+        .prop-dot {
+            width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, 0.55);
+            transition: var(--transition);
+        }
+        .prop-dot.active { background: var(--gold); width: 18px; border-radius: 4px; }
         .category-header {
             font-family: 'Playfair Display', serif;
             font-size: 2rem;
@@ -172,8 +191,8 @@
             };
             const FOTO_RESPALDO = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
 
-            function tarjeta(p) {
-                const foto = (p.fotos && p.fotos[0]) || FOTO_RESPALDO;
+            function tarjeta(p, idx) {
+                const fotos = (p.fotos && p.fotos.length) ? p.fotos : [FOTO_RESPALDO];
                 const meta = [
                     p.habitaciones ? `<span><i class="fas fa-bed"></i> ${p.habitaciones} Hab</span>` : '',
                     p.banos ? `<span><i class="fas fa-bath"></i> ${p.banos} Baños</span>` : '',
@@ -181,12 +200,20 @@
                 ].filter(Boolean).join('');
                 const cta = CTA_POR_CATEGORIA[p.categoria] || 'Preguntar Disponibilidad';
                 const mensaje = encodeURIComponent(`Hola Walter, me interesa "${p.titulo}" (${p.precio}). ¿Me das más información?`);
+                const carruselId = `prop-carrusel-${idx}`;
+
+                const controlesCarrusel = fotos.length > 1 ? `
+                    <button type="button" class="prop-carrusel-btn prop-carrusel-prev" onclick="moverCarrusel('${carruselId}', -1)" aria-label="Foto anterior"><i class="fas fa-chevron-left"></i></button>
+                    <button type="button" class="prop-carrusel-btn prop-carrusel-next" onclick="moverCarrusel('${carruselId}', 1)" aria-label="Foto siguiente"><i class="fas fa-chevron-right"></i></button>
+                    <div class="prop-carrusel-dots">${fotos.map((_, i) => `<span class="prop-dot${i === 0 ? ' active' : ''}"></span>`).join('')}</div>
+                ` : '';
 
                 return `
                     <div class="prop-card">
-                        <div class="prop-img">
+                        <div class="prop-img" id="${carruselId}" data-idx="0" data-fotos="${fotos.join(',').replace(/"/g, '&quot;')}">
                             <span class="prop-badge">${p.ubicacion || p.categoria}</span>
-                            <img loading="lazy" decoding="async" src="${foto}" alt="${p.titulo}" onerror="this.src='${FOTO_RESPALDO}'">
+                            <img loading="lazy" decoding="async" src="${fotos[0]}" alt="${p.titulo}" onerror="this.src='${FOTO_RESPALDO}'">
+                            ${controlesCarrusel}
                         </div>
                         <div class="prop-content">
                             <div class="prop-price">${p.precio}</div>
@@ -197,6 +224,17 @@
                     </div>
                 `;
             }
+
+            window.moverCarrusel = function (id, direccion) {
+                const cont = document.getElementById(id);
+                if (!cont) return;
+                const fotos = cont.getAttribute('data-fotos').split(',');
+                let idx = parseInt(cont.getAttribute('data-idx'), 10) || 0;
+                idx = (idx + direccion + fotos.length) % fotos.length;
+                cont.setAttribute('data-idx', idx);
+                cont.querySelector('img').src = fotos[idx];
+                cont.querySelectorAll('.prop-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+            };
 
             async function cargarPropiedadesPublicas() {
                 try {
@@ -211,10 +249,10 @@
                         if (el) el.innerHTML = '';
                     });
 
-                    propiedades.forEach(p => {
+                    propiedades.forEach((p, idx) => {
                         const gridId = GRID_POR_CATEGORIA[p.categoria];
                         const grid = gridId && document.getElementById(gridId);
-                        if (grid) grid.insertAdjacentHTML('beforeend', tarjeta(p));
+                        if (grid) grid.insertAdjacentHTML('beforeend', tarjeta(p, idx));
                     });
 
                     Object.entries(GRID_POR_CATEGORIA).forEach(([categoria, id]) => {
