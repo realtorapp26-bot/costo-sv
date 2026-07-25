@@ -465,7 +465,10 @@
         }
 
         function extraerFotosDeTexto(texto) {
-            const regex = /https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|webp)(?:\?[^\s"'<>]*)?/gi;
+            // Ojo: algunos hosts (ej. fotos exportadas de WhatsApp) tienen espacios en el
+            // nombre de archivo — no se puede excluir \s del patrón, solo saltos de línea
+            // y las comillas/ángulos que sí delimitan el atributo HTML.
+            const regex = /https?:\/\/[^\n\r"'<>]+\.(?:jpg|jpeg|png|webp)(?:\?[^\n\r"'<>]*)?/gi;
             const encontradas = texto.match(regex) || [];
             const excluir = /logo|favicon|icon|avatar|userfiles|\/photos\/[^/]*-min\.|agent|profile/i;
             return [...new Set(encontradas)].filter(u => !excluir.test(u));
