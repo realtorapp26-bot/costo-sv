@@ -205,7 +205,7 @@
                     <textarea id="cp-texto" readonly></textarea>
                     <div style="display:flex; gap:10px; margin-top:10px;">
                         <button class="btn-copy-clip" onclick="copiarTexto()"><i class="fas fa-copy"></i> Copiar para Marketplace</button>
-                        <button class="btn-action btn-primary" style="padding:8px 16px; font-size:0.85rem;" onclick="agregarPropiedad()">Agregar a la lista ↓</button>
+                        <button class="btn-action btn-primary" style="padding:8px 16px; font-size:0.85rem;" onclick="agregarPropiedad()">⬆️ Subir a la web</button>
                     </div>
                 </div>
             </div>
@@ -349,10 +349,20 @@
         }
 
         function extraerLinkDeTexto(texto) {
-            const canonical = texto.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i);
-            if (canonical) return canonical[1];
-            const ogUrl = texto.match(/<meta[^>]+property=["']og:url["'][^>]+content=["']([^"']+)["']/i);
-            if (ogUrl) return ogUrl[1];
+            const linkTags = texto.match(/<link\b[^>]*>/gi) || [];
+            for (const tag of linkTags) {
+                if (/rel=["']canonical["']/i.test(tag)) {
+                    const href = tag.match(/href=["']([^"']+)["']/i);
+                    if (href) return href[1];
+                }
+            }
+            const metaTags = texto.match(/<meta\b[^>]*>/gi) || [];
+            for (const tag of metaTags) {
+                if (/property=["']og:url["']/i.test(tag)) {
+                    const content = tag.match(/content=["']([^"']+)["']/i);
+                    if (content) return content[1];
+                }
+            }
             return null;
         }
 
