@@ -179,6 +179,7 @@
                 <label>Abrí el listado en RE/MAX. Para texto: Ctrl+A → Ctrl+C sobre la página normal. Para que también traiga las fotos: clic derecho → "Ver código fuente" (o Ctrl+U), y ahí Ctrl+A → Ctrl+C. Pegá el resultado acá abajo.</label>
                 <textarea id="f-pegado" style="min-height: 100px;" placeholder="Pegá acá todo el texto de la página del listado..."></textarea>
                 <div class="actions-row">
+                    <button class="btn-action btn-secondary" onclick="pegarDePortapapeles()">📋 Pegar del portapapeles</button>
                     <button class="btn-action btn-primary" id="btn-extraer-ia" onclick="extraerDatosConIA()">🪄 Extraer datos con IA</button>
                 </div>
             </div>
@@ -491,6 +492,16 @@
                 }
             }
             return null;
+        }
+
+        async function pegarDePortapapeles() {
+            try {
+                const texto = await navigator.clipboard.readText();
+                if (!texto) { alert('El portapapeles está vacío.'); return; }
+                document.getElementById('f-pegado').value = texto;
+            } catch (ex) {
+                alert('No se pudo leer el portapapeles automáticamente. Pegalo con Ctrl+V en el cuadro de arriba.');
+            }
         }
 
         async function extraerDatosConIA() {
