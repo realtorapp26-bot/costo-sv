@@ -187,7 +187,8 @@
                     </div>
                     <div class="full">
                         <label>Fotos (una URL por línea)</label>
-                        <textarea id="f-fotos" placeholder="https://...jpg&#10;https://...jpg" style="min-height: 60px;"></textarea>
+                        <textarea id="f-fotos" placeholder="https://...jpg&#10;https://...jpg" style="min-height: 60px;" oninput="previsualizarFotos()"></textarea>
+                        <div id="fotos-preview" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;"></div>
                     </div>
                 </div>
 
@@ -355,6 +356,7 @@
             const fotos = extraerFotosDeTexto(texto);
             if (fotos.length) {
                 document.getElementById('f-fotos').value = fotos.join('\n');
+                previsualizarFotos();
             }
 
             btn.textContent = 'Extrayendo...';
@@ -472,6 +474,18 @@
         function limpiarForm() {
             ['f-link','f-titulo','f-precio','f-ubicacion','f-hab','f-banos','f-m2','f-desc','f-fotos'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('copy-preview').classList.remove('show');
+            previsualizarFotos();
+        }
+
+        function previsualizarFotos() {
+            const cont = document.getElementById('fotos-preview');
+            const urls = document.getElementById('f-fotos').value.split('\n').map(s => s.trim()).filter(Boolean);
+            cont.innerHTML = urls.map(u => `
+                <div style="width:90px;">
+                    <img src="${u}" style="width:90px;height:70px;object-fit:cover;border-radius:6px;border:1px solid var(--border);"
+                         onerror="this.parentElement.innerHTML='<div style=&quot;width:90px;height:70px;display:flex;align-items:center;justify-content:center;background:#fef2f2;color:#b91c1c;font-size:0.65rem;border-radius:6px;text-align:center;padding:4px;&quot;>No se pudo cargar</div>'">
+                </div>
+            `).join('');
         }
 
         // ---------- Leads ----------
