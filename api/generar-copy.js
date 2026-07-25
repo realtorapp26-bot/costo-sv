@@ -62,7 +62,10 @@ export default async function handler(req, res) {
             body: JSON.stringify({
                 model: 'claude-haiku-4-5-20251001',
                 max_tokens: 300,
-                system: 'Sos un redactor inmobiliario en El Salvador para RE/MAX. Escribís copy de venta persuasivo, profesional y breve (3-5 oraciones) en español, con intención de venta clara y una llamada a la acción al final. Nunca inventes datos que no te dieron.',
+                system: 'Sos un redactor inmobiliario en El Salvador para RE/MAX. Escribís copy de venta persuasivo, profesional y breve (3-5 oraciones) en español, con intención de venta clara y una llamada a la acción al final. ' +
+                    'Respetá siempre los datos de referencia que te dan (precio, ubicación, características) — nunca inventes ni cambies un dato. ' +
+                    'Sí podés (y debés) variar la redacción, el orden y el enfoque respecto al texto original para que se lea mejor y más persuasivo, en vez de copiarlo literal. ' +
+                    'Texto plano únicamente: sin emojis, sin markdown (nada de #, **, guiones de lista ni encabezados) — va a pegarse tal cual en Marketplace y en el sitio web.',
                 messages: [{ role: 'user', content: `Redactá el copy de venta para esta propiedad:\n\n${datos}` }],
             }),
         });
