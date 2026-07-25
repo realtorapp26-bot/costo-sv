@@ -348,6 +348,14 @@
             return [...new Set(encontradas)];
         }
 
+        function extraerLinkDeTexto(texto) {
+            const canonical = texto.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i);
+            if (canonical) return canonical[1];
+            const ogUrl = texto.match(/<meta[^>]+property=["']og:url["'][^>]+content=["']([^"']+)["']/i);
+            if (ogUrl) return ogUrl[1];
+            return null;
+        }
+
         async function extraerDatosConIA() {
             const btn = document.getElementById('btn-extraer-ia');
             const texto = document.getElementById('f-pegado').value.trim();
@@ -357,6 +365,11 @@
             if (fotos.length) {
                 document.getElementById('f-fotos').value = fotos.join('\n');
                 previsualizarFotos();
+            }
+
+            const linkDetectado = extraerLinkDeTexto(texto);
+            if (linkDetectado && !document.getElementById('f-link').value.trim()) {
+                document.getElementById('f-link').value = linkDetectado;
             }
 
             btn.textContent = 'Extrayendo...';
