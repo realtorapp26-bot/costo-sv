@@ -48,6 +48,12 @@
             transition: var(--transition);
         }
         .prop-dot.active { background: var(--gold); width: 18px; border-radius: 4px; }
+        #grid-residencial, #grid-lujo, #grid-industrial, #grid-desarrollos {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 40px;
+        }
+        #grid-residencial .prop-card, #grid-lujo .prop-card, #grid-industrial .prop-card, #grid-desarrollos .prop-card {
+            flex: 0 1 360px;
+        }
         .category-header {
             font-family: 'Playfair Display', serif;
             font-size: 2rem;
