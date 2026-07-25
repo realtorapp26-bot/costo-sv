@@ -18,6 +18,12 @@ window.SITE_CONFIG = {
   // pegar la URL acá y se activa el envío automático.
   WEBHOOK_URL: '',
 
+  // Backend propio de Costo SV (Supabase, proyecto separado del de Cavaler).
+  // La SUPABASE_ANON_KEY es pública por diseño (clave "publishable") — está
+  // pensada para exponerse en el navegador. Nunca poner acá la secret/service_role.
+  SUPABASE_URL: 'https://iseoyfiteeobzvtfjhoe.supabase.co',
+  SUPABASE_ANON_KEY: 'sb_publishable_EWNNEWfk4DjuIGwkrbtx4g_PFMtzhSv',
+
   // Datos comprobados para SEO/JSON-LD (solo lo verificable que ya está en el sitio).
   BUSINESS: {
     name: 'Walter Guerrero',

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <title>Panel de Leads (vista previa) | CostoSV</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: var(--bg-main); }
+        .admin-header { background-color: var(--primary); color: white; padding: 25px 0; }
+        .admin-header h1 { font-family: 'Playfair Display', serif; font-size: 1.8rem; margin: 0; }
+        .admin-header p { color: var(--gold-light); margin: 5px 0 0; }
+        .admin-wrap { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .preview-banner {
+            background-color: #fff4e5; border-left: 4px solid var(--gold); color: #7a4a00;
+            padding: 15px 20px; border-radius: var(--radius-sm); margin-bottom: 30px;
+        }
+        .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 30px; }
+        .kpi-card { background: var(--bg-alt); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: 20px; text-align: center; }
+        .kpi-card .kpi-num { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--primary); }
+        .kpi-card .kpi-label { font-size: 0.8rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+        .filters-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; align-items: center; }
+        .filter-group { display: flex; gap: 6px; flex-wrap: wrap; }
+        .chip {
+            border: 1px solid var(--border); background: white; padding: 6px 14px; border-radius: 20px;
+            font-size: 0.8rem; cursor: pointer; transition: var(--transition); color: var(--text-main);
+        }
+        .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .filter-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-light); margin-right: 4px; }
+        .leads-table { width: 100%; border-collapse: collapse; background: var(--bg-alt); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); }
+        .leads-table th { background: var(--primary); color: white; text-align: left; padding: 12px 16px; font-size: 0.8rem; text-transform: uppercase; }
+        .leads-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 0.9rem; vertical-align: middle; }
+        .leads-table tr:last-child td { border-bottom: none; }
+        .badge-origen { font-size: 0.7rem; padding: 3px 10px; border-radius: 20px; background: var(--gold-light); color: #7a4a00; }
+        .estado-select { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 5px 8px; font-size: 0.85rem; font-family: 'Outfit', sans-serif; }
+        .estado-nuevo { color: #2563eb; font-weight: 600; }
+        .estado-contactado { color: #d97706; font-weight: 600; }
+        .estado-calificado { color: #059669; font-weight: 600; }
+        .estado-perdido { color: #9ca3af; font-weight: 600; }
+        .estado-cerrado { color: #7c3aed; font-weight: 600; }
+        .btn-nota { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 5px 10px; font-size: 0.8rem; cursor: pointer; }
+        .contacto-nombre { font-weight: 600; color: var(--primary); }
+        .contacto-tel { font-size: 0.8rem; color: var(--text-light); }
+    </style>
+</head>
+<body>
+    <header class="admin-header">
+        <div class="container">
+            <h1>📋 Panel de Leads <span style="font-size:0.9rem; opacity:0.7;">— vista previa de diseño</span></h1>
+            <p>Reporte diario para vos y tu esposa</p>
+        </div>
+    </header>
+
+    <div class="admin-wrap">
+        <div class="preview-banner" style="border-left-color:#059669; background-color:#e7f7ec; color:#1b5e20;">
+            <strong>✅ Conectado a Supabase.</strong> Esta tabla muestra los leads reales que llegan
+            de los formularios del sitio. Los filtros y el cambio de estado quedan guardados de verdad.
+        </div>
+        <div style="text-align:right; margin-bottom: 10px;">
+            <button onclick="CostoSVAuth.signOut()" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 14px;font-size:0.8rem;cursor:pointer;">Cerrar sesión</button>
+        </div>
+
+        <div class="kpi-row">
+            <div class="kpi-card"><div class="kpi-num" id="kpi-nuevos">-</div><div class="kpi-label">Nuevos hoy</div></div>
+            <div class="kpi-card"><div class="kpi-num" id="kpi-activos">-</div><div class="kpi-label">En seguimiento</div></div>
+            <div class="kpi-card"><div class="kpi-num" id="kpi-calificados">-</div><div class="kpi-label">Calificados</div></div>
+            <div class="kpi-card"><div class="kpi-num" id="kpi-total">-</div><div class="kpi-label">Total mostrados</div></div>
+        </div>
+
+        <div class="filters-bar">
+            <span class="filter-label">Estado</span>
+            <div class="filter-group" id="filtro-estado"></div>
+        </div>
+        <div class="filters-bar">
+            <span class="filter-label">Origen</span>
+            <div class="filter-group" id="filtro-origen"></div>
+        </div>
+        <div class="filters-bar">
+            <span class="filter-label">Interés</span>
+            <div class="filter-group" id="filtro-interes"></div>
+        </div>
+
+        <table class="leads-table">
+            <thead>
+                <tr>
+                    <th>Contacto</th>
+                    <th>Origen</th>
+                    <th>Interés</th>
+                    <th>Propiedad / Nota</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="leads-body"></tbody>
+        </table>
+    </div>
+
+    <script src="config.js?v=2"></script>
+    <script src="login.js?v=2"></script>
+    <script>
+        const SUPA_URL = window.SITE_CONFIG.SUPABASE_URL;
+        let leadsData = [];
+
+        const origenLabels = { whatsapp: 'WhatsApp', formulario_web: 'Sitio Web', marketplace: 'Marketplace', referido: 'Referido', otro: 'Otro' };
+        const estados = ['nuevo', 'contactado', 'calificado', 'perdido', 'cerrado'];
+        const origenes = ['whatsapp', 'formulario_web', 'marketplace', 'referido'];
+        const intereses = ['comprar', 'vender', 'invertir', 'otro'];
+
+        let filtroEstado = null, filtroOrigen = null, filtroInteres = null;
+
+        function esHoy(fechaIso) {
+            const f = new Date(fechaIso);
+            const hoy = new Date();
+            return f.toDateString() === hoy.toDateString();
+        }
+
+        function formatearFecha(fechaIso) {
+            const f = new Date(fechaIso);
+            const hora = f.toLocaleTimeString('es-SV', { hour: '2-digit', minute: '2-digit' });
+            return esHoy(fechaIso) ? `Hoy ${hora}` : f.toLocaleDateString('es-SV') + ' ' + hora;
+        }
+
+        async function cargarLeads() {
+            const body = document.getElementById('leads-body');
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/leads?select=id,origen,interes,propiedad_referencia,estado,created_at,contactos(nombre,telefono)&order=created_at.desc`, { headers });
+                if (!res.ok) throw new Error('No se pudieron cargar los leads (' + res.status + ')');
+                leadsData = await res.json();
+                render();
+            } catch (ex) {
+                body.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#b91c1c; padding:20px;">${ex.message}</td></tr>`;
+            }
+        }
+
+        function crearChips(contenedorId, valores, labelFn, activo, onClick) {
+            const cont = document.getElementById(contenedorId);
+            cont.innerHTML = '';
+            const todos = document.createElement('span');
+            todos.className = 'chip' + (activo === null ? ' active' : '');
+            todos.textContent = 'Todos';
+            todos.onclick = () => onClick(null);
+            cont.appendChild(todos);
+            valores.forEach(v => {
+                const chip = document.createElement('span');
+                chip.className = 'chip' + (activo === v ? ' active' : '');
+                chip.textContent = labelFn(v);
+                chip.onclick = () => onClick(v);
+                cont.appendChild(chip);
+            });
+        }
+
+        function render() {
+            crearChips('filtro-estado', estados, e => e[0].toUpperCase() + e.slice(1), filtroEstado, v => { filtroEstado = v; render(); });
+            crearChips('filtro-origen', origenes, o => origenLabels[o], filtroOrigen, v => { filtroOrigen = v; render(); });
+            crearChips('filtro-interes', intereses, i => i[0].toUpperCase() + i.slice(1), filtroInteres, v => { filtroInteres = v; render(); });
+
+            const filtrados = leadsData.filter(l =>
+                (!filtroEstado || l.estado === filtroEstado) &&
+                (!filtroOrigen || l.origen === filtroOrigen) &&
+                (!filtroInteres || l.interes === filtroInteres)
+            );
+
+            document.getElementById('kpi-nuevos').textContent = leadsData.filter(l => esHoy(l.created_at)).length;
+            document.getElementById('kpi-activos').textContent = leadsData.filter(l => ['nuevo','contactado'].includes(l.estado)).length;
+            document.getElementById('kpi-calificados').textContent = leadsData.filter(l => l.estado === 'calificado').length;
+            document.getElementById('kpi-total').textContent = filtrados.length;
+
+            const body = document.getElementById('leads-body');
+            body.innerHTML = '';
+            if (!filtrados.length) {
+                body.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-light); padding:20px;">No hay leads con estos filtros.</td></tr>';
+                return;
+            }
+            filtrados.forEach((l) => {
+                const contacto = l.contactos || {};
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><div class="contacto-nombre">${contacto.nombre || 'Sin nombre'}</div><div class="contacto-tel">${contacto.telefono || ''}</div></td>
+                    <td><span class="badge-origen">${origenLabels[l.origen] || l.origen}</span></td>
+                    <td>${l.interes[0].toUpperCase() + l.interes.slice(1)}</td>
+                    <td>${l.propiedad_referencia || '—'}</td>
+                    <td>
+                        <select class="estado-select estado-${l.estado}" data-id="${l.id}" onchange="cambiarEstado(this)">
+                            ${estados.map(e => `<option value="${e}" ${e === l.estado ? 'selected' : ''}>${e[0].toUpperCase() + e.slice(1)}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td>${formatearFecha(l.created_at)}</td>
+                    <td><button class="btn-nota" onclick="agregarNota('${l.id}', '${(contacto.nombre || '').replace(/'/g, "\\'")}')"><i class="fas fa-note-sticky"></i></button></td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        async function cambiarEstado(select) {
+            const id = select.getAttribute('data-id');
+            const nuevoEstado = select.value;
+            const claseAnterior = select.className;
+            select.className = 'estado-select estado-' + nuevoEstado;
+            select.disabled = true;
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/leads?id=eq.${id}`, {
+                    method: 'PATCH',
+                    headers: { ...headers, Prefer: 'return=minimal' },
+                    body: JSON.stringify({ estado: nuevoEstado, updated_at: new Date().toISOString() }),
+                });
+                if (!res.ok) throw new Error('No se pudo actualizar (' + res.status + ')');
+                const lead = leadsData.find(l => l.id === id);
+                if (lead) lead.estado = nuevoEstado;
+                render();
+            } catch (ex) {
+                alert(ex.message);
+                select.className = claseAnterior;
+                select.disabled = false;
+            }
+        }
+
+        async function agregarNota(leadId, nombre) {
+            const nota = prompt(`Agregar nota de seguimiento para ${nombre}:`);
+            if (!nota) return;
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/actividades`, {
+                    method: 'POST',
+                    headers: { ...headers, Prefer: 'return=minimal' },
+                    body: JSON.stringify({ lead_id: leadId, tipo: 'nota', detalle: nota }),
+                });
+                if (!res.ok) throw new Error('No se pudo guardar la nota (' + res.status + ')');
+                alert('Nota guardada.');
+            } catch (ex) {
+                alert(ex.message);
+            }
+        }
+
+        CostoSVAuth.requireLogin(cargarLeads);
+    </script>
+</body>
+</html>
