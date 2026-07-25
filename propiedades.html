@@ -48,12 +48,12 @@
             transition: var(--transition);
         }
         .prop-dot.active { background: var(--gold); width: 18px; border-radius: 4px; }
-        #grid-residencial, #grid-lujo, #grid-industrial, #grid-desarrollos {
+        #grid-todas {
             display: flex; flex-wrap: wrap; justify-content: center; gap: 40px;
         }
-        #grid-residencial .prop-card, #grid-lujo .prop-card, #grid-industrial .prop-card, #grid-desarrollos .prop-card {
-            flex: 0 1 360px;
-        }
+        #grid-todas .prop-card { flex: 0 1 360px; }
+        .filtro-categoria { background: none; border: 1px solid var(--border); color: var(--text-main); transition: var(--transition); }
+        .filtro-categoria.activo { background: var(--primary); color: white; border-color: var(--primary); }
         .category-header {
             font-family: 'Playfair Display', serif;
             font-size: 2rem;
@@ -97,37 +97,23 @@
         </div>
     </section>
 
-    <!-- Quick Navigation Filters -->
+    <!-- Category Filters -->
     <div style="background-color: white; border-bottom: 1px solid var(--border); padding: 15px 0; position: sticky; top: 80px; z-index: 900;">
-        <div class="container" style="display: flex; gap: 20px; overflow-x: auto; white-space: nowrap; align-items: center; justify-content: center;">
-            <a href="#residencial" class="btn btn-outline" style="padding: 8px 16px; border-color: var(--border); color: var(--text-main);">Vivienda Residencial</a>
-            <a href="#lujo" class="btn btn-outline" style="padding: 8px 16px; border-color: var(--border); color: var(--text-main);">RE/MAX Exclusive (Lujo)</a>
-            <a href="#industrial" class="btn btn-outline" style="padding: 8px 16px; border-color: var(--border); color: var(--text-main);">Comercial / Industrial</a>
-            <a href="#desarrollos" class="btn btn-outline" style="padding: 8px 16px; border-color: var(--border); color: var(--text-main);">Proyectos en desarrollo</a>
+        <div class="container" style="display: flex; gap: 12px; overflow-x: auto; white-space: nowrap; align-items: center; justify-content: center;">
+            <button type="button" class="btn btn-outline filtro-categoria activo" data-categoria="todas" style="padding: 8px 16px; cursor: pointer;">Todas</button>
+            <button type="button" class="btn btn-outline filtro-categoria" data-categoria="Vivienda Residencial" style="padding: 8px 16px; cursor: pointer;">Vivienda Residencial</button>
+            <button type="button" class="btn btn-outline filtro-categoria" data-categoria="RE/MAX Exclusive (Lujo)" style="padding: 8px 16px; cursor: pointer;">RE/MAX Exclusive (Lujo)</button>
+            <button type="button" class="btn btn-outline filtro-categoria" data-categoria="Comercial / Industrial" style="padding: 8px 16px; cursor: pointer;">Comercial / Industrial</button>
+            <button type="button" class="btn btn-outline filtro-categoria" data-categoria="Proyectos y Desarrollos" style="padding: 8px 16px; cursor: pointer;">Proyectos y Desarrollos</button>
         </div>
     </div>
 
     <!-- Listings -->
     <section class="section pt-0" style="background-color: var(--bg-main);">
         <div class="container">
-            
-            <!-- Category: Residencial -->
-            <h2 id="residencial" class="category-header">Vivienda Residencial</h2>
-            <div class="card-grid" id="grid-residencial"></div>
 
-            <!-- Category: Lujo -->
-            <h2 id="lujo" class="category-header">RE/MAX Exclusive (Lujo)</h2>
-            <div class="card-grid" id="grid-lujo"></div>
-
-            <!-- Category: Industrial / Comercial -->
-            <div class="theme-remax-commercial-dark" style="margin-top: 60px; margin-bottom: 60px;">
-                <h2 id="industrial" class="category-header" style="margin-top: 0;">Comercial e Industrial</h2>
-                <div class="card-grid" id="grid-industrial"></div>
-            </div>
-
-            <!-- Category: Desarrollos -->
-            <h2 id="desarrollos" class="category-header">Proyectos y Desarrollos</h2>
-            <div class="card-grid" id="grid-desarrollos"></div>
+            <div class="card-grid" id="grid-todas"></div>
+            <p id="grid-vacio-msg" style="display:none; color: var(--text-light); text-align:center; padding: 60px 0; font-size: 1.1rem;">Todavía no hay propiedades cargadas en esta categoría.</p>
 
             <!-- CTA Final -->
             <div style="background-color: var(--primary); color: white; border-radius: 16px; padding: 50px 30px; text-align: center; margin-top: 80px;">
@@ -183,12 +169,6 @@
             const SUPA_KEY = CFG.SUPABASE_ANON_KEY;
             if (!SUPA_URL || !SUPA_KEY) return;
 
-            const GRID_POR_CATEGORIA = {
-                'Vivienda Residencial': 'grid-residencial',
-                'RE/MAX Exclusive (Lujo)': 'grid-lujo',
-                'Comercial / Industrial': 'grid-industrial',
-                'Proyectos y Desarrollos': 'grid-desarrollos',
-            };
             const CTA_POR_CATEGORIA = {
                 'Vivienda Residencial': 'Preguntar Disponibilidad',
                 'RE/MAX Exclusive (Lujo)': 'Solicitar Dossier Privado',
@@ -242,38 +222,44 @@
                 cont.querySelectorAll('.prop-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
             };
 
+            let todasLasPropiedades = [];
+            let filtroActivo = 'todas';
+
+            function renderGrid() {
+                const grid = document.getElementById('grid-todas');
+                const vacioMsg = document.getElementById('grid-vacio-msg');
+                const filtradas = filtroActivo === 'todas'
+                    ? todasLasPropiedades
+                    : todasLasPropiedades.filter(p => p.categoria === filtroActivo);
+
+                grid.innerHTML = filtradas.map((p, idx) => tarjeta(p, idx)).join('');
+                vacioMsg.style.display = filtradas.length ? 'none' : 'block';
+            }
+
             async function cargarPropiedadesPublicas() {
                 try {
                     const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?select=*&publicada=eq.true&order=created_at.desc`, {
                         headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
                     });
                     if (!res.ok) return;
-                    const propiedades = await res.json();
-
-                    Object.values(GRID_POR_CATEGORIA).forEach(id => {
-                        const el = document.getElementById(id);
-                        if (el) el.innerHTML = '';
-                    });
-
-                    propiedades.forEach((p, idx) => {
-                        const gridId = GRID_POR_CATEGORIA[p.categoria];
-                        const grid = gridId && document.getElementById(gridId);
-                        if (grid) grid.insertAdjacentHTML('beforeend', tarjeta(p, idx));
-                    });
-
-                    Object.entries(GRID_POR_CATEGORIA).forEach(([categoria, id]) => {
-                        const grid = document.getElementById(id);
-                        if (grid && !grid.children.length) {
-                            const header = document.getElementById(id).previousElementSibling;
-                            grid.innerHTML = `<p style="color: var(--text-light); grid-column: 1/-1;">Todavía no hay propiedades cargadas en "${categoria}".</p>`;
-                        }
-                    });
+                    todasLasPropiedades = await res.json();
+                    renderGrid();
                 } catch (err) {
                     console.error('No se pudieron cargar las propiedades:', err);
                 }
             }
 
-            document.addEventListener('DOMContentLoaded', cargarPropiedadesPublicas);
+            document.addEventListener('DOMContentLoaded', () => {
+                cargarPropiedadesPublicas();
+                document.querySelectorAll('.filtro-categoria').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.filtro-categoria').forEach(b => b.classList.remove('activo'));
+                        btn.classList.add('activo');
+                        filtroActivo = btn.getAttribute('data-categoria');
+                        renderGrid();
+                    });
+                });
+            });
         })();
     </script>
 </body>
