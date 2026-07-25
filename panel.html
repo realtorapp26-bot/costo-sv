@@ -132,6 +132,15 @@
                 que arma "Generar copy de venta" sigue siendo una plantilla local de muestra.
             </div>
 
+            <div class="panel" style="border: 2px dashed var(--gold);">
+                <h2>Pegar listado completo (opcional)</h2>
+                <label>Abrí el listado en RE/MAX, hacé Ctrl+A → Ctrl+C en esa página, y pegá acá todo el texto (incluye las URLs de fotos si vienen mezcladas)</label>
+                <textarea id="f-pegado" style="min-height: 100px;" placeholder="Pegá acá todo el texto de la página del listado..."></textarea>
+                <div class="actions-row">
+                    <button class="btn-action btn-primary" id="btn-extraer-ia" onclick="extraerDatosConIA()">🪄 Extraer datos con IA</button>
+                </div>
+            </div>
+
             <div class="panel">
                 <h2>Nueva propiedad</h2>
                 <div class="form-grid">
@@ -328,6 +337,55 @@
                 alert(ex.message);
             } finally {
                 btn.textContent = '✨ Mejorar con IA';
+                btn.disabled = false;
+            }
+        }
+
+        function extraerFotosDeTexto(texto) {
+            const regex = /https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|webp)(?:\?[^\s"'<>]*)?/gi;
+            const encontradas = texto.match(regex) || [];
+            return [...new Set(encontradas)];
+        }
+
+        async function extraerDatosConIA() {
+            const btn = document.getElementById('btn-extraer-ia');
+            const texto = document.getElementById('f-pegado').value.trim();
+            if (!texto) { alert('Pegá primero el texto del listado.'); return; }
+
+            const fotos = extraerFotosDeTexto(texto);
+            if (fotos.length) {
+                document.getElementById('f-fotos').value = fotos.join('\n');
+            }
+
+            btn.textContent = 'Extrayendo...';
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/extraer-datos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ texto }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'No se pudo extraer');
+
+                const d = data.datos || {};
+                if (d.titulo) document.getElementById('f-titulo').value = d.titulo;
+                if (d.precio) document.getElementById('f-precio').value = d.precio;
+                if (d.ubicacion) document.getElementById('f-ubicacion').value = d.ubicacion;
+                if (d.habitaciones) document.getElementById('f-hab').value = d.habitaciones;
+                if (d.banos) document.getElementById('f-banos').value = d.banos;
+                if (d.m2) document.getElementById('f-m2').value = d.m2;
+                if (d.descripcion) document.getElementById('f-desc').value = d.descripcion;
+                if (d.categoria) {
+                    const sel = document.getElementById('f-categoria');
+                    if ([...sel.options].some(o => o.value === d.categoria)) sel.value = d.categoria;
+                }
+                cargarUsoIA();
+                alert('Datos extraídos — revisá los campos antes de guardar.' + (fotos.length ? ` (${fotos.length} fotos detectadas)` : ''));
+            } catch (ex) {
+                alert(ex.message);
+            } finally {
+                btn.textContent = '🪄 Extraer datos con IA';
                 btn.disabled = false;
             }
         }
