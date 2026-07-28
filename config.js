@@ -3,15 +3,14 @@
 //  Editá los valores SOLO acá. app.js y las páginas leen de aquí.
 // ============================================================
 window.SITE_CONFIG = {
-  // Dominio final (con https://, sin barra final). PENDIENTE: dejar vacío
-  // hasta tenerlo. La validación pre-deploy (predeploy-check.mjs) FALLA si
-  // sigue vacío o si quedan marcadores %%SITE_URL%% sin resolver.
-  // NO publicar canonical/sitemap/JSON-LD con un dominio inventado.
-  SITE_URL: '',
+  // Dominio final (con https://, sin barra final). Registrado en Cloudflare
+  // el 28/07/2026. El ápex es el canónico; www redirige al ápex en Vercel.
+  // Fuente única: build-seo.mjs lee este valor para canonical/OG/JSON-LD.
+  SITE_URL: 'https://guerrero-properties.com',
 
   // WhatsApp de contacto: número internacional LIMPIO (sin +, espacios ni guiones).
-  // Provisional confirmado: +503 7038-4194  ->  50370384194
-  WHATSAPP_NUMBER: '50370384194',
+  // Confirmado 28/07/2026: +503 7038-1941  ->  50370381941
+  WHATSAPP_NUMBER: '50370381941',
 
   // Webhook de leads (n8n/CRM). VACÍO = no configurado: no se simula éxito,
   // se degrada a WhatsApp y se guarda el lead localmente. Cuando exista uno real,
@@ -30,7 +29,7 @@ window.SITE_CONFIG = {
     jobTitle: 'Agente Inmobiliario',
     affiliation: 'RE/MAX El Salvador',
     areaServed: 'El Salvador',
-    telephone: '+503 7038-4194',
+    telephone: '+503 7038-1941',
     email: 'walter.guerrero@remax.com.sv',
   },
 };

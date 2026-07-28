@@ -1,17 +1,25 @@
 // ============================================================
 //  Costo SV — Inyector de SEO (OG/Twitter/canonical/favicon/JSON-LD)
-//  Idempotente. Usa %%SITE_URL%% (lo bloquea predeploy-check.mjs).
+//  Idempotente. El dominio sale de SITE_URL en config.js (fuente única):
+//  se arma el bloque con %%SITE_URL%% y se resuelve al insertarlo.
 //  SOLO datos verificados. Excluye admin.html y 404.html.
 //  Correr:  node build-seo.mjs
 // ============================================================
 import { readFileSync, writeFileSync } from 'node:fs';
+
+const SITE = (readFileSync(new URL('./config.js', import.meta.url), 'utf8')
+  .match(/SITE_URL:\s*['"]([^'"]*)['"]/) || [])[1]?.trim() || '';
+if (!SITE) {
+  console.error('❌ SITE_URL está vacío en config.js — definí el dominio antes de generar el SEO.');
+  process.exit(1);
+}
 
 const BIZ = {
   name: 'Walter Guerrero',
   jobTitle: 'Agente Inmobiliario',
   affiliation: 'RE/MAX El Salvador',
   areaServed: 'El Salvador',
-  telephone: '+503 7038-4194',
+  telephone: '+503 7038-1941',
   email: 'walter.guerrero@remax.com.sv',
   siteName: 'Walter Guerrero · RE/MAX El Salvador',
   ogImage: '%%SITE_URL%%/assets/walter-guerrero-retocada.png',
@@ -83,7 +91,8 @@ for (const [file, label] of Object.entries(PAGES)) {
   // idempotencia: quitar bloque previo si existe
   html = html.replace(/[ \t]*<!-- SEO-META:START[\s\S]*?<!-- SEO-META:END -->\n?/, '');
   // insertar justo después de la línea de <meta name="description" ...>
-  html = html.replace(/(<meta name="description"[^>]*>\n)/, `$1${bloque(file, title, desc, label)}\n`);
+  const seo = bloque(file, title, desc, label).replaceAll('%%SITE_URL%%', SITE);
+  html = html.replace(/(<meta name="description"[^>]*>\n)/, `$1${seo}\n`);
   writeFileSync(new URL('./' + file, import.meta.url), html);
   hechos++;
 }

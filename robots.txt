@@ -1,7 +1,5 @@
-# Costo SV — robots.txt  (BORRADOR — BLOQUEADO hasta definir el dominio)
-# La línea Sitemap usa el marcador %%SITE_URL%%. La validación pre-deploy
-# (predeploy-check.mjs) FALLA mientras el marcador siga sin resolver.
-# No publicar con un dominio inventado.
+# Costo SV — robots.txt. Dominio: guerrero-properties.com (ápex canónico).
+# Si el dominio cambia, actualizar también SITE_URL en config.js y sitemap.xml.
 
 User-agent: *
 Allow: /
@@ -11,4 +9,4 @@ Allow: /
 # La protección real es el `noindex` en admin.html + no enlazarla + excluirla del sitemap.
 # La solución definitiva será autenticación o directamente no desplegar ese archivo.
 
-Sitemap: %%SITE_URL%%/sitemap.xml
+Sitemap: https://guerrero-properties.com/sitemap.xml
