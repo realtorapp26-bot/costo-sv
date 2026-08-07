@@ -2,7 +2,7 @@
 //  Costo SV — Inyector de SEO (OG/Twitter/canonical/favicon/JSON-LD)
 //  Idempotente. El dominio sale de SITE_URL en config.js (fuente única):
 //  se arma el bloque con %%SITE_URL%% y se resuelve al insertarlo.
-//  SOLO datos verificados. Excluye admin.html y 404.html.
+//  SOLO datos verificados. Excluye 404.html.
 //  Correr:  node build-seo.mjs
 // ============================================================
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -96,4 +96,4 @@ for (const [file, label] of Object.entries(PAGES)) {
   writeFileSync(new URL('./' + file, import.meta.url), html);
   hechos++;
 }
-console.log(`✅ SEO inyectado en ${hechos} páginas (admin.html y 404.html excluidos a propósito).`);
+console.log(`✅ SEO inyectado en ${hechos} páginas (404.html excluido a propósito).`);

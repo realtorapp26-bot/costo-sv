@@ -1,4 +1,4 @@
-// Login compartido para los paneles internos (admin-propiedades, admin-leads).
+// Login compartido para los paneles internos (panel, propiedades-admin).
 // Usa Supabase Auth por REST directo (sin librería) — misma clave publicable
 // de config.js. La sesión vive en sessionStorage: se borra al cerrar la pestaña.
 (function () {

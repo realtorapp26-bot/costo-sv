@@ -4,9 +4,4 @@
 User-agent: *
 Allow: /
 
-# admin.html NO se bloquea aquí a propósito: un `Disallow` impediría que el crawler
-# LEA la etiqueta <meta robots="noindex"> y podría dejar la URL indexada "a ciegas".
-# La protección real es el `noindex` en admin.html + no enlazarla + excluirla del sitemap.
-# La solución definitiva será autenticación o directamente no desplegar ese archivo.
-
 Sitemap: https://guerrero-properties.com/sitemap.xml

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Costo SV — sitemap.xml. Dominio: guerrero-properties.com (ápex canónico).
-     Si el dominio cambia, actualizar también SITE_URL en config.js y robots.txt.
-     admin.html queda EXCLUIDO a propósito (herramienta interna, noindex). -->
+     Si el dominio cambia, actualizar también SITE_URL en config.js y robots.txt. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://guerrero-properties.com/index.html</loc><priority>1.0</priority></url>
   <url><loc>https://guerrero-properties.com/vender.html</loc><priority>0.8</priority></url>
