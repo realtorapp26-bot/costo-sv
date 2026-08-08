@@ -1,0 +1,17 @@
+name: Mantener despierto Supabase
+
+on:
+  schedule:
+    - cron: '0 8 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consulta minima a Supabase
+        run: |
+          curl -sf "https://iseoyfiteeobzvtfjhoe.supabase.co/rest/v1/uso_ia?select=id&limit=1" \
+            -H "apikey: sb_publishable_EWNNEWfk4DjuIGwkrbtx4g_PFMtzhSv" \
+            -H "Authorization: Bearer sb_publishable_EWNNEWfk4DjuIGwkrbtx4g_PFMtzhSv" \
+            -o /dev/null -w "Supabase respondio: %{http_code}\n"
