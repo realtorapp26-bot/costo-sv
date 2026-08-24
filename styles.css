@@ -446,6 +446,21 @@ img {
     .hero-image { justify-content: center; margin-top: 40px; }
 }
 
+/* Tamaño fijo para los <h1> de las paginas interiores (landing-header) —
+   antes cada pagina lo fijaba con style="font-size: ...rem" inline, lo que
+   ademas de ser inconsistente entre paginas, impedia que el media query de
+   abajo lo achicara en movil (un inline style siempre gana sobre el CSS). */
+.hero-title-sm { font-size: 3.5rem; }
+
+@media (max-width: 600px) {
+    .hero { padding: 90px 0 60px; min-height: auto; }
+    .hero-title { font-size: 2.3rem; }
+    .hero-subtitle { font-size: 1rem; }
+    .hero-title-sm { font-size: 2.1rem; }
+    .landing-header .hero-title-sm { font-size: 2rem; }
+    .floating-whatsapp { width: 54px; height: 54px; font-size: 28px; bottom: 18px; right: 18px; }
+}
+
 /* Cards Generales */
 .card-grid {
     display: grid;
@@ -846,7 +861,7 @@ footer {
     font-size: 35px;
     box-shadow: 0 10px 25px rgba(37, 211, 102, 0.4);
     z-index: 1000;
-    transition: var(--transition);
+    transition: var(--transition), opacity 0.3s ease;
 }
 
 .floating-whatsapp:hover {

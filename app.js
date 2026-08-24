@@ -89,6 +89,20 @@
     const mobileBtn = document.querySelector('.mobile-menu-btn');
     const navLinks = document.querySelector('.nav-links');
     if (mobileBtn && navLinks) mobileBtn.addEventListener('click', () => navLinks.classList.toggle('active'));
+
+    // Botón flotante de WhatsApp: se oculta mientras el botón de WhatsApp
+    // propio del hero esté visible, para no superponerse con él (pasaba en
+    // el hero de index.html, sobre todo en móvil).
+    const floatingWa = document.querySelector('.floating-whatsapp');
+    const heroWaButtons = document.querySelectorAll('.hero .btn-whatsapp');
+    if (floatingWa && heroWaButtons.length && 'IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        const algunoVisible = entries.some((entry) => entry.isIntersecting);
+        floatingWa.style.opacity = algunoVisible ? '0' : '';
+        floatingWa.style.pointerEvents = algunoVisible ? 'none' : '';
+      }, { threshold: 0.15 });
+      heroWaButtons.forEach((btn) => observer.observe(btn));
+    }
   });
 
   // Payload SOLO en memoria: todos los campos del formulario + metadatos.
