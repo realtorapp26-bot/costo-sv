@@ -36,6 +36,29 @@
         .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         .tab-panel { display: none; }
         .tab-panel.active { display: block; }
+        .btn-editar { background: #eef2ff; color: var(--primary); border: 1px solid #c7d2fe; border-radius: var(--radius-sm); padding: 6px 12px; font-size: 0.8rem; cursor: pointer; margin-right: 6px; }
+        .btn-editar:hover { background: #e0e7ff; }
+
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(10,15,28,0.6); z-index: 2000;
+            align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box { background: white; border-radius: var(--radius-md); max-width: 720px; width: 100%; padding: 28px; box-shadow: var(--shadow-md); }
+        .modal-box h3 { font-family: 'Playfair Display', serif; color: var(--primary); margin: 0 0 18px; }
+        .modal-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .modal-form-grid .full { grid-column: 1 / -1; }
+        .modal-form-grid label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-light); margin-bottom: 5px; }
+        .modal-form-grid input, .modal-form-grid select, .modal-form-grid textarea {
+            width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+            font-family: 'Outfit', sans-serif; font-size: 0.9rem; color: var(--text-main);
+        }
+        .modal-form-grid textarea { resize: vertical; min-height: 60px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; }
+        .btn-modal-cancel { background: none; border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm); padding: 10px 20px; cursor: pointer; }
+        .btn-modal-guardar { background: var(--gold); color: var(--primary); border: none; border-radius: var(--radius-sm); padding: 10px 20px; font-weight: 700; cursor: pointer; }
+        .fotos-edit-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .fotos-edit-preview img { width: 90px; height: 65px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
     </style>
 </head>
 <body>
@@ -96,6 +119,50 @@
                         <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-light);">Cargando...</td></tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: Editar franquicia ===== -->
+    <div class="modal-overlay" id="modal-editar-fr">
+        <div class="modal-box">
+            <h3>Editar franquicia</h3>
+            <div class="modal-form-grid">
+                <div><label>Nombre</label><input type="text" id="ed-nombre"></div>
+                <div><label>Aliado / representante</label><input type="text" id="ed-aliado"></div>
+                <div>
+                    <label>Rubro</label>
+                    <select id="ed-categoria">
+                        <option>Alimentos y Bebidas</option>
+                        <option>Retail y Moda</option>
+                        <option>Servicios</option>
+                        <option>Salud y Belleza</option>
+                        <option>Educación</option>
+                        <option>Entretenimiento</option>
+                        <option>Otro</option>
+                    </select>
+                </div>
+                <div><label>Inversión total</label><input type="text" id="ed-inversion"></div>
+                <div><label>Cuota de franquicia</label><input type="text" id="ed-cuota"></div>
+                <div><label>Regalías</label><input type="text" id="ed-regalias"></div>
+                <div><label>Retorno de inversión estimado</label><input type="text" id="ed-retorno"></div>
+                <div><label>Espacio requerido</label><input type="text" id="ed-espacio"></div>
+                <div><label>Empleados requeridos</label><input type="text" id="ed-empleados"></div>
+                <div><label>Unidades actuales</label><input type="text" id="ed-unidades"></div>
+                <div><label>Años en el mercado</label><input type="text" id="ed-anos"></div>
+                <div class="full"><label>Territorios disponibles</label><input type="text" id="ed-territorios"></div>
+                <div class="full"><label>Link de referencia</label><input type="url" id="ed-link"></div>
+                <div class="full"><label>Beneficios / soporte (uno por línea)</label><textarea id="ed-beneficios"></textarea></div>
+                <div class="full"><label>Descripción</label><textarea id="ed-desc"></textarea></div>
+                <div class="full">
+                    <label>Fotos (una URL por línea)</label>
+                    <textarea id="ed-fotos" oninput="previsualizarFotosEdit()"></textarea>
+                    <div class="fotos-edit-preview" id="ed-fotos-preview"></div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal-cancel" onclick="cerrarEdicionFr()">Cancelar</button>
+                <button class="btn-modal-guardar" onclick="guardarEdicionFr()">Guardar cambios</button>
             </div>
         </div>
     </div>
@@ -187,7 +254,7 @@
             const body = document.getElementById('tabla-body-fr');
             try {
                 const headers = await CostoSVAuth.authHeaders();
-                const res = await fetch(`${SUPA_URL}/rest/v1/franquicias?select=id,nombre,inversion_total,categoria,fotos,publicada,created_at&order=created_at.desc`, { headers });
+                const res = await fetch(`${SUPA_URL}/rest/v1/franquicias?select=*&order=created_at.desc`, { headers });
                 if (!res.ok) throw new Error('No se pudieron cargar (' + res.status + ')');
                 franquicias = await res.json();
                 renderFr();
@@ -213,7 +280,10 @@
                         <td>${f.categoria}</td>
                         <td>${fecha}</td>
                         <td><button class="estado-chip ${f.publicada ? 'publicada' : 'oculta'}" onclick="cambiarEstadoFr('${f.id}', ${!f.publicada})">${f.publicada ? '✓ Publicada' : 'Oculta'}</button></td>
-                        <td><button class="btn-eliminar" onclick="eliminarFr('${f.id}')"><i class="fas fa-trash"></i> Eliminar</button></td>
+                        <td>
+                            <button class="btn-editar" onclick="abrirEdicionFr('${f.id}')"><i class="fas fa-pen"></i> Editar</button>
+                            <button class="btn-eliminar" onclick="eliminarFr('${f.id}')"><i class="fas fa-trash"></i> Eliminar</button>
+                        </td>
                     </tr>
                 `;
             }).join('');
@@ -246,6 +316,82 @@
                 if (!res.ok) throw new Error('No se pudo eliminar (' + res.status + ')');
                 franquicias = franquicias.filter(x => x.id !== id);
                 renderFr();
+            } catch (ex) {
+                alert(ex.message);
+            }
+        }
+
+        // ---------- Edicion de franquicias ----------
+        let edicionActualId = null;
+
+        function obtenerUrlsFotosEdit() {
+            return document.getElementById('ed-fotos').value.split('\n').map(s => s.trim()).filter(Boolean);
+        }
+
+        function previsualizarFotosEdit() {
+            const cont = document.getElementById('ed-fotos-preview');
+            const urls = obtenerUrlsFotosEdit();
+            cont.innerHTML = urls.map(u => `<img src="${u}" onerror="this.style.display='none'">`).join('');
+        }
+
+        function abrirEdicionFr(id) {
+            const f = franquicias.find(x => x.id === id);
+            if (!f) return;
+            edicionActualId = id;
+            document.getElementById('ed-nombre').value = f.nombre || '';
+            document.getElementById('ed-aliado').value = f.aliado || '';
+            document.getElementById('ed-categoria').value = f.categoria || 'Alimentos y Bebidas';
+            document.getElementById('ed-inversion').value = f.inversion_total || '';
+            document.getElementById('ed-cuota').value = f.cuota_franquicia || '';
+            document.getElementById('ed-regalias').value = f.regalias || '';
+            document.getElementById('ed-retorno').value = f.retorno_estimado || '';
+            document.getElementById('ed-espacio').value = f.espacio_requerido || '';
+            document.getElementById('ed-empleados').value = f.empleados_requeridos || '';
+            document.getElementById('ed-unidades').value = f.unidades_actuales || '';
+            document.getElementById('ed-anos').value = f.anos_en_mercado || '';
+            document.getElementById('ed-territorios').value = f.territorios_disponibles || '';
+            document.getElementById('ed-link').value = f.link_referencia || '';
+            document.getElementById('ed-beneficios').value = (f.beneficios || []).join('\n');
+            document.getElementById('ed-desc').value = f.descripcion_original || '';
+            document.getElementById('ed-fotos').value = (f.fotos || []).join('\n');
+            previsualizarFotosEdit();
+            document.getElementById('modal-editar-fr').classList.add('show');
+        }
+
+        function cerrarEdicionFr() {
+            document.getElementById('modal-editar-fr').classList.remove('show');
+            edicionActualId = null;
+        }
+
+        async function guardarEdicionFr() {
+            if (!edicionActualId) return;
+            const body = {
+                nombre: document.getElementById('ed-nombre').value.trim(),
+                aliado: document.getElementById('ed-aliado').value.trim() || 'Retail Solutions',
+                categoria: document.getElementById('ed-categoria').value,
+                inversion_total: document.getElementById('ed-inversion').value.trim() || null,
+                cuota_franquicia: document.getElementById('ed-cuota').value.trim() || null,
+                regalias: document.getElementById('ed-regalias').value.trim() || null,
+                retorno_estimado: document.getElementById('ed-retorno').value.trim() || null,
+                espacio_requerido: document.getElementById('ed-espacio').value.trim() || null,
+                empleados_requeridos: document.getElementById('ed-empleados').value.trim() || null,
+                unidades_actuales: document.getElementById('ed-unidades').value.trim() || null,
+                anos_en_mercado: document.getElementById('ed-anos').value.trim() || null,
+                territorios_disponibles: document.getElementById('ed-territorios').value.trim() || null,
+                link_referencia: document.getElementById('ed-link').value.trim() || null,
+                beneficios: document.getElementById('ed-beneficios').value.split('\n').map(s => s.trim()).filter(Boolean),
+                descripcion_original: document.getElementById('ed-desc').value.trim() || null,
+                fotos: obtenerUrlsFotosEdit(),
+            };
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/franquicias?id=eq.${edicionActualId}`, {
+                    method: 'PATCH', headers: { ...headers, Prefer: 'return=minimal' }, body: JSON.stringify(body),
+                });
+                if (!res.ok) throw new Error('No se pudo guardar (' + res.status + ')');
+                Object.assign(franquicias.find(x => x.id === edicionActualId), body);
+                renderFr();
+                cerrarEdicionFr();
             } catch (ex) {
                 alert(ex.message);
             }
