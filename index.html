@@ -118,59 +118,8 @@
             <h2 class="section-title">Propiedades Exclusivas</h2>
             <p class="section-subtitle">Explora nuestra cuidada selección de propiedades disponibles para venta.</p>
             
-            <div class="card-grid">
-                <div class="prop-card">
-                    <div class="prop-img">
-                        <span class="prop-badge">Venta - Residencial</span>
-                        <!-- TODO: Reemplazar placeholder -->
-                        <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Casa en Nuevo Cuscatlán">
-                    </div>
-                    <div class="prop-content">
-                        <div class="prop-price">$450,000</div>
-                        <h3 class="prop-title">Moderna Residencia en Nuevo Cuscatlán</h3>
-                        <div class="prop-meta">
-                            <span><i class="fas fa-bed"></i> 4 Hab</span>
-                            <span><i class="fas fa-bath"></i> 3.5 Baños</span>
-                            <span><i class="fas fa-vector-square"></i> 300 m²</span>
-                        </div>
-                        <a href="propiedades.html" class="btn btn-outline" style="width: 100%;">Ver detalles</a>
-                    </div>
-                </div>
-
-                <div class="prop-card">
-                    <div class="prop-img">
-                        <span class="prop-badge">Inversión - Lujo</span>
-                        <!-- TODO: Reemplazar placeholder -->
-                        <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Apartamento San Benito">
-                    </div>
-                    <div class="prop-content">
-                        <div class="prop-price">$285,000</div>
-                        <h3 class="prop-title">Apartamento Premium en San Benito</h3>
-                        <div class="prop-meta">
-                            <span><i class="fas fa-bed"></i> 2 Hab</span>
-                            <span><i class="fas fa-bath"></i> 2 Baños</span>
-                            <span><i class="fas fa-car"></i> 2 Parq.</span>
-                        </div>
-                        <a href="propiedades.html" class="btn btn-outline" style="width: 100%;">Ver detalles</a>
-                    </div>
-                </div>
-
-                <div class="prop-card">
-                    <div class="prop-img">
-                        <span class="prop-badge">Terreno Comercial</span>
-                        <!-- TODO: Reemplazar placeholder -->
-                        <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="Terreno Comercial">
-                    </div>
-                    <div class="prop-content">
-                        <div class="prop-price">$1,200,000</div>
-                        <h3 class="prop-title">Lote Estratégico en Carretera al Puerto</h3>
-                        <div class="prop-meta">
-                            <span><i class="fas fa-layer-group"></i> 5,000 V²</span>
-                            <span><i class="fas fa-road"></i> Orilla Calle</span>
-                        </div>
-                        <a href="propiedades.html" class="btn btn-outline" style="width: 100%;">Ver detalles</a>
-                    </div>
-                </div>
+            <div class="card-grid" id="grid-propiedades-home">
+                <p style="color: var(--text-light); grid-column: 1 / -1; text-align: center;">Cargando propiedades...</p>
             </div>
             
             <div style="text-align: center; margin-top: 40px;">
@@ -228,5 +177,55 @@
 
     <script src="config.js?v=2"></script>
     <script src="app.js?v=2"></script>
+    <script>
+        (function () {
+            const CFG = window.SITE_CONFIG || {};
+            const SUPA_URL = CFG.SUPABASE_URL;
+            const SUPA_KEY = CFG.SUPABASE_ANON_KEY;
+            const grid = document.getElementById('grid-propiedades-home');
+            if (!grid || !SUPA_URL || !SUPA_KEY) return;
+
+            const FOTO_RESPALDO = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+
+            function tarjetaHome(p) {
+                const foto = (p.fotos && p.fotos[0]) || FOTO_RESPALDO;
+                const meta = [
+                    p.habitaciones ? `<span><i class="fas fa-bed"></i> ${p.habitaciones} Hab</span>` : '',
+                    p.banos ? `<span><i class="fas fa-bath"></i> ${p.banos} Baños</span>` : '',
+                    p.m2 ? `<span><i class="fas fa-vector-square"></i> ${p.m2} m²</span>` : '',
+                ].filter(Boolean).join('');
+                return `
+                    <div class="prop-card">
+                        <div class="prop-img">
+                            <span class="prop-badge">${p.ubicacion || p.categoria}</span>
+                            <img loading="lazy" decoding="async" src="${foto}" alt="${p.titulo}" onerror="this.src='${FOTO_RESPALDO}'">
+                        </div>
+                        <div class="prop-content">
+                            <div class="prop-price">${p.precio}</div>
+                            <h3 class="prop-title">${p.titulo}</h3>
+                            <div class="prop-meta">${meta}</div>
+                            <a href="propiedades.html" class="btn btn-outline" style="width: 100%;">Ver detalles</a>
+                        </div>
+                    </div>
+                `;
+            }
+
+            fetch(`${SUPA_URL}/rest/v1/propiedades?select=titulo,precio,ubicacion,categoria,fotos,habitaciones,banos,m2&publicada=eq.true&order=created_at.desc&limit=3`, {
+                headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
+            })
+                .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+                .then((propiedades) => {
+                    if (!propiedades.length) {
+                        grid.innerHTML = '<p style="color: var(--text-light); grid-column: 1 / -1; text-align: center;">Muy pronto vas a ver acá nuestro inventario disponible.</p>';
+                        return;
+                    }
+                    grid.innerHTML = propiedades.map(tarjetaHome).join('');
+                })
+                .catch((err) => {
+                    console.error('No se pudieron cargar las propiedades de portada:', err);
+                    grid.innerHTML = '';
+                });
+        })();
+    </script>
 </body>
 </html>
