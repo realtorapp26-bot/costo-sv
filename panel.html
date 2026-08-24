@@ -162,8 +162,9 @@
 
         <div class="tab-switch">
             <button class="tab-btn active" id="btn-tab-propiedades" onclick="cambiarTab('propiedades')">🏠 Propiedades</button>
+            <button class="tab-btn" id="btn-tab-franquicias" onclick="cambiarTab('franquicias')">🏪 Franquicias</button>
             <button class="tab-btn" id="btn-tab-leads" onclick="cambiarTab('leads')">📋 Leads</button>
-            <a class="tab-btn" href="propiedades-admin.html" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">🗂️ Administrar Propiedades</a>
+            <a class="tab-btn" href="propiedades-admin.html" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">🗂️ Administrar Publicaciones</a>
         </div>
 
         <!-- ===== TAB: PROPIEDADES ===== -->
@@ -320,6 +321,128 @@
             </div>
         </div>
 
+        <!-- ===== TAB: FRANQUICIAS ===== -->
+        <div class="tab-panel" id="tab-franquicias">
+            <div class="preview-banner">
+                <strong>✅ Conectado a Supabase.</strong> Lo que agregues acá se guarda en la tabla
+                <code>franquicias</code> y ya es visible para cualquier visitante (lectura pública).
+            </div>
+
+            <div class="panel">
+                <h2>Nueva franquicia</h2>
+                <div class="form-grid">
+                    <div>
+                        <label>Nombre de la franquicia</label>
+                        <input type="text" id="fr-nombre" placeholder="Ej. Pollo Real Express">
+                    </div>
+                    <div>
+                        <label>Aliado / representante</label>
+                        <input type="text" id="fr-aliado" value="Retail Solutions">
+                    </div>
+                    <div>
+                        <label>Rubro</label>
+                        <select id="fr-categoria">
+                            <option>Alimentos y Bebidas</option>
+                            <option>Retail y Moda</option>
+                            <option>Servicios</option>
+                            <option>Salud y Belleza</option>
+                            <option>Educación</option>
+                            <option>Entretenimiento</option>
+                            <option>Otro</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Inversión total</label>
+                        <input type="text" id="fr-inversion" placeholder="$25,000 - $45,000">
+                    </div>
+                    <div>
+                        <label>Cuota de franquicia</label>
+                        <input type="text" id="fr-cuota" placeholder="$8,000">
+                    </div>
+                    <div>
+                        <label>Regalías</label>
+                        <input type="text" id="fr-regalias" placeholder="6% mensual sobre ventas">
+                    </div>
+                    <div>
+                        <label>Retorno de inversión estimado</label>
+                        <input type="text" id="fr-retorno" placeholder="18-24 meses">
+                    </div>
+                    <div>
+                        <label>Espacio requerido</label>
+                        <input type="text" id="fr-espacio" placeholder="60-90 m²">
+                    </div>
+                    <div>
+                        <label>Empleados requeridos</label>
+                        <input type="text" id="fr-empleados" placeholder="4-6 personas">
+                    </div>
+                    <div>
+                        <label>Unidades actuales en operación</label>
+                        <input type="text" id="fr-unidades" placeholder="12 sucursales en El Salvador">
+                    </div>
+                    <div>
+                        <label>Años en el mercado</label>
+                        <input type="text" id="fr-anos" placeholder="8">
+                    </div>
+                    <div>
+                        <label>Territorios disponibles</label>
+                        <input type="text" id="fr-territorios" placeholder="San Salvador, Santa Ana, La Libertad">
+                    </div>
+                    <div class="full">
+                        <label>Link de referencia (opcional)</label>
+                        <input type="url" id="fr-link" placeholder="https://...">
+                    </div>
+                    <div class="full">
+                        <label>Beneficios / soporte incluido (uno por línea)</label>
+                        <textarea id="fr-beneficios" style="min-height:70px;" placeholder="Capacitación inicial de 2 semanas&#10;Apoyo en marketing y campañas&#10;Manual de operaciones y proveedores homologados"></textarea>
+                    </div>
+                    <div class="full">
+                        <label>Descripción original (breve resumen del negocio)</label>
+                        <textarea id="fr-desc" placeholder="Contá de qué trata la franquicia, su propuesta de valor..."></textarea>
+                    </div>
+                    <div class="full">
+                        <label>Fotos / logo (una URL por línea)</label>
+                        <textarea id="fr-fotos" placeholder="https://...jpg&#10;https://...jpg" style="min-height: 60px;" oninput="previsualizarFotosFr()"></textarea>
+                        <div id="fotos-preview-fr" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;"></div>
+                    </div>
+                </div>
+
+                <div class="actions-row">
+                    <button class="btn-action btn-secondary" onclick="limpiarFormFr()">Limpiar</button>
+                    <button class="btn-action btn-secondary" onclick="generarCopyFr()">Mantener tal cual</button>
+                    <button class="btn-action btn-secondary" id="btn-mejorar-ia-fr" onclick="mejorarConIAFr()">✨ Mejorar con IA</button>
+                    <button class="btn-action btn-primary" onclick="agregarFranquicia()">⬆️ Subir a la web</button>
+                </div>
+
+                <div id="comparar-textos-fr" style="display:none; margin-top:24px; grid-template-columns:1fr 1fr; gap:20px;">
+                    <div class="cmp-vs">VS</div>
+                    <div class="cmp-card cmp-original">
+                        <div class="cmp-label cmp-label-original"><i class="fas fa-file-lines"></i> Original</div>
+                        <div class="cmp-text" id="cmp-original-fr"></div>
+                        <button class="btn-usar btn-usar-original" onclick="usarTextoFr('original')"><i class="fas fa-check"></i> Usar este</button>
+                    </div>
+                    <div class="cmp-card cmp-ia">
+                        <div class="cmp-label cmp-label-ia"><i class="fas fa-wand-magic-sparkles"></i> Mejorado con IA</div>
+                        <div class="cmp-text" id="cmp-mejorado-fr"></div>
+                        <button class="btn-usar btn-usar-ia" onclick="usarTextoFr('mejorado')"><i class="fas fa-check"></i> Usar este</button>
+                    </div>
+                </div>
+
+                <div class="copy-preview" id="copy-preview-fr">
+                    <span class="mini-tag">Vista previa — así saldría publicado</span>
+                    <div id="cp-fotos-fr" style="display:flex; gap:8px; margin:10px 0; flex-wrap:wrap;"></div>
+                    <div class="prop-title-preview" id="cp-titulo-fr"></div>
+                    <div class="prop-price-preview" id="cp-precio-fr"></div>
+                    <textarea id="cp-texto-fr" readonly></textarea>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>Franquicias publicadas</h2>
+                <div id="added-list-fr" class="added-grid"></div>
+                <div id="empty-hint-fr" class="empty-hint">Cargando...</div>
+            </div>
+        </div>
+
         <!-- ===== TAB: LEADS ===== -->
         <div class="tab-panel" id="tab-leads">
             <div class="panel-manual">
@@ -390,7 +513,7 @@
         const SUPA_URL = window.SITE_CONFIG.SUPABASE_URL;
 
         function cambiarTab(nombre) {
-            ['propiedades', 'leads'].forEach(t => {
+            ['propiedades', 'franquicias', 'leads'].forEach(t => {
                 document.getElementById('tab-' + t).classList.toggle('active', t === nombre);
                 document.getElementById('btn-tab-' + t).classList.toggle('active', t === nombre);
             });
@@ -713,6 +836,182 @@
             previsualizarFotos();
         }
 
+        // ---------- Franquicias ----------
+        function obtenerUrlsFotosFr() {
+            return document.getElementById('fr-fotos').value.split('\n').map(s => s.trim()).filter(Boolean);
+        }
+
+        function previsualizarFotosFr() {
+            const cont = document.getElementById('fotos-preview-fr');
+            const urls = obtenerUrlsFotosFr();
+            cont.innerHTML = urls.map((u, i) => `
+                <div style="width:120px; border:1px solid var(--border); border-radius:8px; overflow:hidden; background:white;">
+                    <img src="${u}" style="width:100%;height:80px;object-fit:cover; display:block;"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div style="display:none; width:100%; height:80px; align-items:center; justify-content:center; background:#fef2f2; color:#b91c1c; font-size:0.65rem; text-align:center; padding:4px;">No se pudo cargar</div>
+                    <div style="display:flex; gap:3px; padding:4px;">
+                        <button onclick="borrarFotoFr(${i})" title="Borrar foto" style="flex:1; font-size:0.65rem; padding:4px; border:1px solid var(--border); background:#fef2f2; color:#b91c1c; border-radius:4px; cursor:pointer;"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function borrarFotoFr(i) {
+            const urls = obtenerUrlsFotosFr();
+            urls.splice(i, 1);
+            document.getElementById('fr-fotos').value = urls.join('\n');
+            previsualizarFotosFr();
+        }
+
+        function mostrarPreviewFr(titulo, inversion, texto) {
+            document.getElementById('cp-titulo-fr').textContent = titulo;
+            document.getElementById('cp-precio-fr').textContent = inversion;
+            document.getElementById('cp-texto-fr').value = texto;
+            const urls = obtenerUrlsFotosFr();
+            document.getElementById('cp-fotos-fr').innerHTML = urls.length
+                ? urls.map(u => `<img src="${u}" style="width:110px;height:80px;object-fit:cover;border-radius:6px;border:1px solid var(--border);" onerror="this.style.display='none'">`).join('')
+                : '<span style="font-size:0.8rem;color:var(--text-light);font-style:italic;">Sin fotos cargadas todavía</span>';
+            document.getElementById('copy-preview-fr').classList.add('show');
+        }
+
+        function generarCopyFr() {
+            const nombre = document.getElementById('fr-nombre').value.trim() || 'Franquicia sin nombre';
+            const inversion = document.getElementById('fr-inversion').value.trim() || 'Inversión a consultar';
+            const desc = document.getElementById('fr-desc').value.trim();
+            mostrarPreviewFr(nombre, inversion, desc || `${nombre}. Inversión: ${inversion}. Contactanos para más información.`);
+        }
+
+        async function mejorarConIAFr() {
+            const btn = document.getElementById('btn-mejorar-ia-fr');
+            const nombre = document.getElementById('fr-nombre').value.trim() || 'Franquicia sin nombre';
+            const payload = {
+                tipo: 'franquicia',
+                nombre,
+                aliado: document.getElementById('fr-aliado').value.trim(),
+                categoria: document.getElementById('fr-categoria').value,
+                inversion_total: document.getElementById('fr-inversion').value.trim(),
+                cuota_franquicia: document.getElementById('fr-cuota').value.trim(),
+                regalias: document.getElementById('fr-regalias').value.trim(),
+                retorno_estimado: document.getElementById('fr-retorno').value.trim(),
+                espacio_requerido: document.getElementById('fr-espacio').value.trim(),
+                unidades_actuales: document.getElementById('fr-unidades').value.trim(),
+                anos_en_mercado: document.getElementById('fr-anos').value.trim(),
+                territorios_disponibles: document.getElementById('fr-territorios').value.trim(),
+                descripcion_original: document.getElementById('fr-desc').value.trim(),
+            };
+            btn.textContent = 'Redactando...';
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/generar-copy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'No se pudo generar el copy');
+
+                const original = payload.descripcion_original || `${nombre}. Inversión: ${payload.inversion_total || 'a consultar'}.`;
+                document.getElementById('cmp-original-fr').textContent = original;
+                document.getElementById('cmp-mejorado-fr').textContent = data.copy;
+                document.getElementById('comparar-textos-fr').style.display = 'grid';
+                document.getElementById('comparar-textos-fr').scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                cargarUsoIA();
+            } catch (ex) {
+                alert(ex.message);
+            } finally {
+                btn.textContent = '✨ Mejorar con IA';
+                btn.disabled = false;
+            }
+        }
+
+        function usarTextoFr(cual) {
+            const nombre = document.getElementById('fr-nombre').value.trim() || 'Franquicia sin nombre';
+            const inversion = document.getElementById('fr-inversion').value.trim() || 'Inversión a consultar';
+            const texto = cual === 'original'
+                ? document.getElementById('cmp-original-fr').textContent
+                : document.getElementById('cmp-mejorado-fr').textContent;
+            mostrarPreviewFr(nombre, inversion, texto);
+        }
+
+        async function agregarFranquicia() {
+            const body = {
+                nombre: document.getElementById('fr-nombre').value.trim() || 'Franquicia sin nombre',
+                aliado: document.getElementById('fr-aliado').value.trim() || 'Retail Solutions',
+                categoria: document.getElementById('fr-categoria').value,
+                inversion_total: document.getElementById('fr-inversion').value.trim() || null,
+                cuota_franquicia: document.getElementById('fr-cuota').value.trim() || null,
+                regalias: document.getElementById('fr-regalias').value.trim() || null,
+                retorno_estimado: document.getElementById('fr-retorno').value.trim() || null,
+                espacio_requerido: document.getElementById('fr-espacio').value.trim() || null,
+                empleados_requeridos: document.getElementById('fr-empleados').value.trim() || null,
+                unidades_actuales: document.getElementById('fr-unidades').value.trim() || null,
+                anos_en_mercado: document.getElementById('fr-anos').value.trim() || null,
+                territorios_disponibles: document.getElementById('fr-territorios').value.trim() || null,
+                link_referencia: document.getElementById('fr-link').value.trim() || null,
+                beneficios: document.getElementById('fr-beneficios').value.split('\n').map(s => s.trim()).filter(Boolean),
+                descripcion_original: document.getElementById('fr-desc').value.trim() || null,
+                copy_venta: document.getElementById('cp-texto-fr').value.trim() || null,
+                fotos: obtenerUrlsFotosFr(),
+            };
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/franquicias`, {
+                    method: 'POST', headers: { ...headers, Prefer: 'return=minimal' }, body: JSON.stringify(body),
+                });
+                if (!res.ok) throw new Error('El servidor rechazó el guardado (' + res.status + ')');
+                await cargarFranquicias();
+                limpiarFormFr();
+            } catch (ex) {
+                alert('No se pudo guardar: ' + ex.message);
+            }
+        }
+
+        async function cargarFranquicias() {
+            const cont = document.getElementById('added-list-fr');
+            const hint = document.getElementById('empty-hint-fr');
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/franquicias?select=nombre,aliado,categoria,inversion_total,fotos,copy_venta,descripcion_original&order=created_at.desc`, { headers });
+                const franquicias = await res.json();
+                cont.innerHTML = '';
+                hint.style.display = franquicias.length ? 'none' : 'block';
+                hint.textContent = 'Todavía no hay franquicias cargadas.';
+                franquicias.forEach(f => {
+                    const foto = (f.fotos && f.fotos[0]) || '';
+                    const descripcion = f.copy_venta || f.descripcion_original || '';
+                    const card = document.createElement('div');
+                    card.className = 'mini-card';
+                    card.innerHTML = `
+                        ${foto ? `<img src="${foto}" style="width:100%;height:120px;object-fit:cover;" onerror="this.style.display='none'">` : ''}
+                        <div class="mini-body">
+                            <span class="mini-tag">${f.categoria}${f.aliado ? ' · ' + f.aliado : ''}</span>
+                            <div class="mini-title">${f.nombre}</div>
+                            <div class="mini-price">${f.inversion_total || 'Inversión a consultar'}</div>
+                            ${descripcion ? `<div style="font-size:0.8rem; color:var(--text-light); margin-top:8px; line-height:1.4;">${descripcion}</div>` : '<div style="font-size:0.75rem; color:var(--text-light); font-style:italic; margin-top:8px;">Sin descripción</div>'}
+                        </div>
+                    `;
+                    cont.appendChild(card);
+                });
+            } catch (ex) {
+                hint.textContent = 'No se pudo cargar: ' + ex.message;
+                hint.style.display = 'block';
+            }
+        }
+
+        function limpiarFormFr() {
+            ['fr-nombre','fr-inversion','fr-cuota','fr-regalias','fr-retorno','fr-espacio','fr-empleados',
+             'fr-unidades','fr-anos','fr-territorios','fr-link','fr-beneficios','fr-desc','fr-fotos']
+                .forEach(id => document.getElementById(id).value = '');
+            document.getElementById('fr-aliado').value = 'Retail Solutions';
+            document.getElementById('fr-categoria').value = 'Alimentos y Bebidas';
+            document.getElementById('copy-preview-fr').classList.remove('show');
+            document.getElementById('comparar-textos-fr').style.display = 'none';
+            document.getElementById('cmp-original-fr').textContent = '';
+            document.getElementById('cmp-mejorado-fr').textContent = '';
+            previsualizarFotosFr();
+        }
+
         // ---------- Leads ----------
         let leadsData = [];
         const origenLabels = { whatsapp: 'WhatsApp', formulario_web: 'Sitio Web', marketplace: 'Marketplace', referido: 'Referido', otro: 'Otro' };
@@ -871,6 +1170,7 @@
 
         CostoSVAuth.requireLogin(() => {
             cargarPropiedades();
+            cargarFranquicias();
             cargarLeads();
             cargarUsoIA();
         });

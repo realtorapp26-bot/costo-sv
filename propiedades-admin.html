@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow, noarchive">
-    <title>Gestionar Propiedades | CostoSV</title>
+    <title>Gestionar Publicaciones | CostoSV</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap">
@@ -27,12 +27,21 @@
         .estado-chip.oculta { background: #f3f4f6; color: #6b7280; }
         .btn-eliminar { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: var(--radius-sm); padding: 6px 12px; font-size: 0.8rem; cursor: pointer; }
         .btn-eliminar:hover { background: #fee2e2; }
+        .tab-switch { display: flex; gap: 10px; margin-bottom: 16px; }
+        .tab-btn {
+            flex: 1; text-align: center; padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border);
+            background: var(--bg-alt); color: var(--text-main); font-weight: 700; cursor: pointer;
+            font-family: 'Outfit', sans-serif; font-size: 0.9rem;
+        }
+        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
     </style>
 </head>
 <body>
     <header class="admin-header">
         <div class="container">
-            <h1>🗂️ Gestionar Propiedades</h1>
+            <h1>🗂️ Gestionar Publicaciones</h1>
             <p>Ver, publicar/ocultar y eliminar lo ya subido</p>
         </div>
     </header>
@@ -43,23 +52,51 @@
             <button onclick="CostoSVAuth.signOut()" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 14px;font-size:0.8rem;cursor:pointer;">Cerrar sesión</button>
         </div>
 
-        <div class="scroll-x" style="overflow-x:auto;">
-            <table class="gestion-table">
-                <thead>
-                    <tr>
-                        <th>Foto</th>
-                        <th>Título</th>
-                        <th>Precio</th>
-                        <th>Categoría</th>
-                        <th>Fecha</th>
-                        <th>Estado</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody id="tabla-body">
-                    <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-light);">Cargando...</td></tr>
-                </tbody>
-            </table>
+        <div class="tab-switch">
+            <button class="tab-btn active" id="btn-tab-prop" onclick="cambiarTabGestion('prop')">🏠 Propiedades</button>
+            <button class="tab-btn" id="btn-tab-fr" onclick="cambiarTabGestion('fr')">🏪 Franquicias</button>
+        </div>
+
+        <div class="tab-panel active" id="tab-prop">
+            <div class="scroll-x" style="overflow-x:auto;">
+                <table class="gestion-table">
+                    <thead>
+                        <tr>
+                            <th>Foto</th>
+                            <th>Título</th>
+                            <th>Precio</th>
+                            <th>Categoría</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-body">
+                        <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-light);">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-panel" id="tab-fr">
+            <div class="scroll-x" style="overflow-x:auto;">
+                <table class="gestion-table">
+                    <thead>
+                        <tr>
+                            <th>Foto</th>
+                            <th>Nombre</th>
+                            <th>Inversión</th>
+                            <th>Rubro</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-body-fr">
+                        <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-light);">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -68,6 +105,14 @@
     <script>
         const SUPA_URL = window.SITE_CONFIG.SUPABASE_URL;
         let propiedades = [];
+        let franquicias = [];
+
+        function cambiarTabGestion(nombre) {
+            ['prop', 'fr'].forEach(t => {
+                document.getElementById('tab-' + t).classList.toggle('active', t === nombre);
+                document.getElementById('btn-tab-' + t).classList.toggle('active', t === nombre);
+            });
+        }
 
         async function cargarTodas() {
             const body = document.getElementById('tabla-body');
@@ -137,7 +182,79 @@
             }
         }
 
-        CostoSVAuth.requireLogin(cargarTodas);
+        // ---------- Franquicias ----------
+        async function cargarTodasFr() {
+            const body = document.getElementById('tabla-body-fr');
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/franquicias?select=id,nombre,inversion_total,categoria,fotos,publicada,created_at&order=created_at.desc`, { headers });
+                if (!res.ok) throw new Error('No se pudieron cargar (' + res.status + ')');
+                franquicias = await res.json();
+                renderFr();
+            } catch (ex) {
+                body.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#b91c1c; padding:20px;">${ex.message}</td></tr>`;
+            }
+        }
+
+        function renderFr() {
+            const body = document.getElementById('tabla-body-fr');
+            if (!franquicias.length) {
+                body.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-light);">Todavía no hay franquicias cargadas.</td></tr>';
+                return;
+            }
+            body.innerHTML = franquicias.map(f => {
+                const foto = (f.fotos && f.fotos[0]) || '';
+                const fecha = new Date(f.created_at).toLocaleDateString('es-SV', { day: '2-digit', month: 'short', year: 'numeric' });
+                return `
+                    <tr>
+                        <td>${foto ? `<img src="${foto}" class="gestion-thumb" onerror="this.style.display='none'">` : ''}</td>
+                        <td class="gestion-titulo">${f.nombre}</td>
+                        <td>${f.inversion_total || '—'}</td>
+                        <td>${f.categoria}</td>
+                        <td>${fecha}</td>
+                        <td><button class="estado-chip ${f.publicada ? 'publicada' : 'oculta'}" onclick="cambiarEstadoFr('${f.id}', ${!f.publicada})">${f.publicada ? '✓ Publicada' : 'Oculta'}</button></td>
+                        <td><button class="btn-eliminar" onclick="eliminarFr('${f.id}')"><i class="fas fa-trash"></i> Eliminar</button></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function cambiarEstadoFr(id, nuevoValor) {
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/franquicias?id=eq.${id}`, {
+                    method: 'PATCH', headers: { ...headers, Prefer: 'return=minimal' },
+                    body: JSON.stringify({ publicada: nuevoValor }),
+                });
+                if (!res.ok) throw new Error('No se pudo actualizar (' + res.status + ')');
+                const f = franquicias.find(x => x.id === id);
+                if (f) f.publicada = nuevoValor;
+                renderFr();
+            } catch (ex) {
+                alert(ex.message);
+            }
+        }
+
+        async function eliminarFr(id) {
+            const f = franquicias.find(x => x.id === id);
+            if (!confirm(`¿Eliminar "${f ? f.nombre : 'esta franquicia'}"? Esto no se puede deshacer.`)) return;
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/franquicias?id=eq.${id}`, {
+                    method: 'DELETE', headers: { ...headers, Prefer: 'return=minimal' },
+                });
+                if (!res.ok) throw new Error('No se pudo eliminar (' + res.status + ')');
+                franquicias = franquicias.filter(x => x.id !== id);
+                renderFr();
+            } catch (ex) {
+                alert(ex.message);
+            }
+        }
+
+        CostoSVAuth.requireLogin(() => {
+            cargarTodas();
+            cargarTodasFr();
+        });
     </script>
 </body>
 </html>
