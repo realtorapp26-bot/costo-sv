@@ -65,6 +65,7 @@ function jsonld(file, title, desc, label) {
 function bloque(file, title, desc, label) {
   const t = esc(title), d = esc(desc);
   return `    <!-- SEO-META:START (generado por build-seo.mjs — no editar a mano) -->
+    <meta name="robots" content="index, follow">
     <link rel="canonical" href="%%SITE_URL%%/${file}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="${esc(BIZ.siteName)}">
