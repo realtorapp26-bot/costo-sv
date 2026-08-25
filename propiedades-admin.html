@@ -58,9 +58,12 @@
         .btn-modal-cancel { background: none; border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm); padding: 10px 20px; cursor: pointer; }
         .btn-modal-guardar { background: var(--gold); color: var(--primary); border: none; border-radius: var(--radius-sm); padding: 10px 20px; font-weight: 700; cursor: pointer; }
         .fotos-edit-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-        .fotos-edit-thumb { width: 90px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: white; }
+        .fotos-edit-thumb { width: 90px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: white; position: relative; }
         .fotos-edit-thumb img { width: 100%; height: 65px; object-fit: cover; display: block; }
-        .fotos-edit-thumb button { width: 100%; border: none; background: #fef2f2; color: #b91c1c; font-size: 0.65rem; padding: 3px; cursor: pointer; }
+        .fotos-edit-thumb .fotos-edit-principal { position: absolute; top: 3px; left: 3px; z-index: 2; background: var(--gold); color: var(--primary); font-size: 0.52rem; font-weight: 700; padding: 1px 4px; border-radius: 3px; }
+        .fotos-edit-thumb .fotos-edit-actions { display: flex; }
+        .fotos-edit-thumb .fotos-edit-actions button { flex: 1; border: none; background: #f1f5f9; color: var(--text-main); font-size: 0.65rem; padding: 3px; cursor: pointer; }
+        .fotos-edit-thumb .fotos-edit-actions button.quitar { background: #fef2f2; color: #b91c1c; }
         .fotos-edit-count { font-size: 0.75rem; color: var(--text-light); margin-top: 4px; }
         .modal-form-grid textarea[id$="-fotos"] { min-height: 50px; }
         .modal-checks { display: flex; gap: 16px; flex-wrap: wrap; }
@@ -409,11 +412,15 @@
         function previsualizarFotos(textareaId, previewId) {
             const cont = document.getElementById(previewId);
             const urls = obtenerUrlsFotosDe(textareaId);
-            const cabecera = `<div class="fotos-edit-count">${urls.length} foto${urls.length === 1 ? '' : 's'} cargada${urls.length === 1 ? '' : 's'}</div>`;
+            const cabecera = `<div class="fotos-edit-count">${urls.length} foto${urls.length === 1 ? '' : 's'} cargada${urls.length === 1 ? '' : 's'}${urls.length > 1 ? ' — la primera es la principal (la que se ve en la tarjeta)' : ''}</div>`;
             const miniaturas = urls.map((u, i) => `
                 <div class="fotos-edit-thumb">
+                    ${i === 0 ? '<span class="fotos-edit-principal"><i class="fas fa-star"></i> Principal</span>' : ''}
                     <img src="${u}" onerror="this.style.display='none'">
-                    <button type="button" onclick="quitarFoto('${textareaId}', '${previewId}', ${i})"><i class="fas fa-trash"></i></button>
+                    <div class="fotos-edit-actions">
+                        ${i !== 0 ? `<button type="button" onclick="hacerFotoPrincipal('${textareaId}', '${previewId}', ${i})" title="Usar como foto principal"><i class="fas fa-star"></i></button>` : ''}
+                        <button type="button" class="quitar" onclick="quitarFoto('${textareaId}', '${previewId}', ${i})" title="Borrar foto"><i class="fas fa-trash"></i></button>
+                    </div>
                 </div>
             `).join('');
             cont.innerHTML = cabecera + '<div class="fotos-edit-preview">' + miniaturas + '</div>';
@@ -422,6 +429,14 @@
         function quitarFoto(textareaId, previewId, indice) {
             const urls = obtenerUrlsFotosDe(textareaId);
             urls.splice(indice, 1);
+            document.getElementById(textareaId).value = urls.join('\n');
+            previsualizarFotos(textareaId, previewId);
+        }
+
+        function hacerFotoPrincipal(textareaId, previewId, indice) {
+            const urls = obtenerUrlsFotosDe(textareaId);
+            const [foto] = urls.splice(indice, 1);
+            urls.unshift(foto);
             document.getElementById(textareaId).value = urls.join('\n');
             previsualizarFotos(textareaId, previewId);
         }
