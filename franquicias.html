@@ -377,7 +377,6 @@
                     const doc = new jsPDF({ unit: 'mm', format: 'a4' });
                     const margenX = 20;
                     const anchoUtil = 210 - margenX * 2;
-                    const alturaPagina = 297;
                     let y;
 
                     const DORADO = [212, 175, 55];
@@ -385,85 +384,82 @@
                     const GRIS = [100, 116, 139];
                     const OSCURO = [30, 41, 59];
 
-                    function espacioSuficiente(alturaNecesaria) {
-                        if (y + alturaNecesaria > alturaPagina - 20) {
-                            doc.addPage();
-                            y = 20;
-                        }
-                    }
+                    const franjaAlto = 14;
+                    const fotoAlto = 58;
 
                     // Franja superior
                     doc.setFillColor(...NAVY);
-                    doc.rect(0, 0, 210, 16, 'F');
+                    doc.rect(0, 0, 210, franjaAlto, 'F');
                     doc.setTextColor(255, 255, 255);
                     doc.setFont('helvetica', 'bold');
                     doc.setFontSize(11);
-                    doc.text('COSTO SV', margenX, 10);
+                    doc.text('COSTO SV', margenX, 9);
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(8.5);
                     doc.setTextColor(...DORADO);
-                    doc.text('Alianza con ' + (f.aliado || 'Retail Solutions'), 210 - margenX, 10, { align: 'right' });
+                    doc.text('Alianza con ' + (f.aliado || 'Retail Solutions'), 210 - margenX, 9, { align: 'right' });
 
                     // Foto de portada (o franja navy de respaldo si no hay foto)
                     if (fotoHero) {
-                        doc.addImage(fotoHero, 'JPEG', 0, 16, 210, 80);
+                        doc.addImage(fotoHero, 'JPEG', 0, franjaAlto, 210, fotoAlto);
                     } else {
                         doc.setFillColor(...NAVY);
-                        doc.rect(0, 16, 210, 80, 'F');
+                        doc.rect(0, franjaAlto, 210, fotoAlto, 'F');
                     }
+                    const fotoFinY = franjaAlto + fotoAlto;
 
                     // Insignia dorada superior derecha, sobre la foto
                     doc.setFillColor(...DORADO);
-                    doc.roundedRect(210 - margenX - 66, 24, 66, 10, 2, 2, 'F');
+                    doc.roundedRect(210 - margenX - 66, franjaAlto + 8, 66, 10, 2, 2, 'F');
                     doc.setFont('helvetica', 'bold');
                     doc.setFontSize(8.5);
                     doc.setTextColor(...NAVY);
-                    doc.text('OPORTUNIDAD DE FRANQUICIA', 210 - margenX - 33, 30.3, { align: 'center' });
+                    doc.text('OPORTUNIDAD DE FRANQUICIA', 210 - margenX - 33, franjaAlto + 14.3, { align: 'center' });
 
                     // Insignia de inversión, esquina inferior izquierda sobre la foto
                     if (f.inversion_total) {
                         doc.setFont('helvetica', 'bold');
-                        doc.setFontSize(12.5);
+                        doc.setFontSize(12);
                         const lineasInv = doc.splitTextToSize(String(f.inversion_total), 122);
-                        const altoBadgeInv = 8 + lineasInv.length * 5.5 + 4;
+                        const altoBadgeInv = 7 + lineasInv.length * 5 + 3;
                         doc.setGState(new doc.GState({ opacity: 0.78 }));
                         doc.setFillColor(...NAVY);
-                        doc.rect(0, 96 - altoBadgeInv, 138, altoBadgeInv, 'F');
+                        doc.rect(0, fotoFinY - altoBadgeInv, 138, altoBadgeInv, 'F');
                         doc.setGState(new doc.GState({ opacity: 1 }));
                         doc.setFont('helvetica', 'normal');
-                        doc.setFontSize(7.5);
+                        doc.setFontSize(7);
                         doc.setTextColor(...DORADO);
-                        doc.text('INVERSIÓN TOTAL', margenX, 96 - altoBadgeInv + 7);
+                        doc.text('INVERSIÓN TOTAL', margenX, fotoFinY - altoBadgeInv + 6.5);
                         doc.setFont('helvetica', 'bold');
-                        doc.setFontSize(12.5);
+                        doc.setFontSize(12);
                         doc.setTextColor(255, 255, 255);
-                        doc.text(lineasInv, margenX, 96 - altoBadgeInv + 13);
+                        doc.text(lineasInv, margenX, fotoFinY - altoBadgeInv + 12);
                     }
 
-                    y = 106;
+                    y = fotoFinY + 8;
                     doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(21);
+                    doc.setFontSize(19);
                     doc.setTextColor(...NAVY);
                     doc.text(f.nombre || 'Franquicia', margenX, y);
-                    y += 7;
+                    y += 6;
 
                     doc.setFont('helvetica', 'normal');
-                    doc.setFontSize(10);
+                    doc.setFontSize(9.5);
                     doc.setTextColor(...GRIS);
                     doc.text((f.categoria || '') + (f.anos_en_mercado ? '   ·   ' + f.anos_en_mercado + ' años en el mercado' : ''), margenX, y);
-                    y += 8;
+                    y += 6;
 
                     doc.setDrawColor(226, 232, 240);
                     doc.line(margenX, y, margenX + anchoUtil, y);
-                    y += 9;
+                    y += 7;
 
                     if (f.descripcion_original) {
                         doc.setTextColor(...OSCURO);
                         doc.setFont('helvetica', 'normal');
-                        doc.setFontSize(10.5);
+                        doc.setFontSize(9.5);
                         const lineas = doc.splitTextToSize(f.descripcion_original, anchoUtil);
                         doc.text(lineas, margenX, y);
-                        y += lineas.length * 5 + 8;
+                        y += lineas.length * 4.6 + 6;
                     }
 
                     const specs = [
@@ -479,22 +475,21 @@
                     ].filter(([, v]) => v);
 
                     if (specs.length) {
-                        espacioSuficiente(20);
                         doc.setDrawColor(226, 232, 240);
                         doc.line(margenX, y, margenX + anchoUtil, y);
-                        y += 8;
+                        y += 6;
                         doc.setFont('helvetica', 'bold');
-                        doc.setFontSize(11);
+                        doc.setFontSize(10.5);
                         doc.setTextColor(...NAVY);
                         doc.text('Datos de la franquicia', margenX, y);
-                        y += 7;
+                        y += 6;
 
                         // Alto de fila variable: si un valor es largo y se envuelve en varias
                         // lineas, la fila crece para no pisar la siguiente (con ambas columnas
                         // a alto fijo, un valor largo tapaba la fila de abajo).
                         const colAncho = anchoUtil / 2;
                         const colTexto = colAncho - 6;
-                        doc.setFontSize(10.5);
+                        doc.setFontSize(10);
                         const specsConLineas = specs.map(([label, valor]) => ({
                             label, lineas: doc.splitTextToSize(String(valor), colTexto),
                         }));
@@ -502,36 +497,34 @@
                         for (let i = 0; i < specsConLineas.length; i += 2) {
                             const izq = specsConLineas[i];
                             const der = specsConLineas[i + 1];
-                            const altoFila = Math.max(izq.lineas.length, der ? der.lineas.length : 0) * 5 + 9;
-                            espacioSuficiente(altoFila);
+                            const altoFila = Math.max(izq.lineas.length, der ? der.lineas.length : 0) * 4.6 + 6.5;
 
                             [izq, der].forEach((item, col) => {
                                 if (!item) return;
                                 const x = margenX + col * colAncho;
                                 doc.setFont('helvetica', 'normal');
-                                doc.setFontSize(8.5);
+                                doc.setFontSize(8);
                                 doc.setTextColor(...GRIS);
                                 doc.text(item.label, x, y);
                                 doc.setFont('helvetica', 'bold');
-                                doc.setFontSize(10.5);
+                                doc.setFontSize(10);
                                 doc.setTextColor(...OSCURO);
-                                doc.text(item.lineas, x, y + 5);
+                                doc.text(item.lineas, x, y + 4.6);
                             });
                             y += altoFila;
                         }
-                        y += 4;
+                        y += 2;
                     }
 
                     // Fotos adicionales (si la ficha tiene más de una)
                     if (fotoExtra1 || fotoExtra2) {
-                        espacioSuficiente(64);
                         doc.setFont('helvetica', 'bold');
-                        doc.setFontSize(11);
+                        doc.setFontSize(10.5);
                         doc.setTextColor(...NAVY);
                         doc.text('Más fotos', margenX, y);
-                        y += 6;
+                        y += 5;
                         const thumbAncho = (anchoUtil - 8) / 2;
-                        const thumbAlto = 50;
+                        const thumbAlto = 30;
                         [fotoExtra1, fotoExtra2].forEach((imgData, i) => {
                             if (!imgData) return;
                             const x = margenX + i * (thumbAncho + 8);
@@ -539,57 +532,54 @@
                             doc.setDrawColor(226, 232, 240);
                             doc.rect(x, y, thumbAncho, thumbAlto);
                         });
-                        y += thumbAlto + 10;
+                        y += thumbAlto + 7;
                     }
 
                     const beneficios = f.beneficios || [];
                     if (beneficios.length) {
-                        espacioSuficiente(20);
                         doc.setDrawColor(226, 232, 240);
                         doc.line(margenX, y, margenX + anchoUtil, y);
-                        y += 8;
+                        y += 6;
                         doc.setFont('helvetica', 'bold');
-                        doc.setFontSize(11);
+                        doc.setFontSize(10.5);
                         doc.setTextColor(...NAVY);
                         doc.text('Qué incluye', margenX, y);
-                        y += 7;
+                        y += 6;
                         doc.setFont('helvetica', 'normal');
-                        doc.setFontSize(10);
+                        doc.setFontSize(9.5);
                         doc.setTextColor(...OSCURO);
                         beneficios.forEach((b) => {
                             const lineas = doc.splitTextToSize('•  ' + b, anchoUtil);
-                            espacioSuficiente(lineas.length * 5.5 + 2);
                             doc.text(lineas, margenX, y);
-                            y += lineas.length * 5.5 + 2;
+                            y += lineas.length * 4.6 + 1.5;
                         });
-                        y += 4;
+                        y += 2;
                     }
 
                     // Tarjeta de contacto, con foto del agente
-                    const altoTarjeta = 34;
-                    espacioSuficiente(altoTarjeta + 4);
+                    const altoTarjeta = 27;
                     doc.setFillColor(245, 247, 250);
                     doc.roundedRect(margenX, y, anchoUtil, altoTarjeta, 3, 3, 'F');
                     if (fotoAgente) {
-                        doc.addImage(fotoAgente, 'JPEG', margenX + 6, y + 4, 26, 26);
+                        doc.addImage(fotoAgente, 'JPEG', margenX + 5, y + 3.5, 20, 20);
                     }
-                    const txtX = margenX + 6 + (fotoAgente ? 26 + 8 : 0);
+                    const txtX = margenX + 5 + (fotoAgente ? 20 + 7 : 0);
                     doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(12);
+                    doc.setFontSize(11.5);
                     doc.setTextColor(...NAVY);
-                    doc.text('Walter Guerrero', txtX, y + 11);
-                    doc.setFont('helvetica', 'normal');
-                    doc.setFontSize(9);
-                    doc.setTextColor(...GRIS);
-                    doc.text('Agente Inmobiliario · RE/MAX El Salvador', txtX, y + 16.5);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(9.5);
-                    doc.setTextColor(...OSCURO);
-                    doc.text('WhatsApp: +' + (CFG.WHATSAPP_NUMBER || ''), txtX, y + 23);
+                    doc.text('Walter Guerrero', txtX, y + 9.5);
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(8.5);
                     doc.setTextColor(...GRIS);
-                    doc.text('guerrero-properties.com/franquicias.html', txtX, y + 28.5);
+                    doc.text('Agente Inmobiliario · RE/MAX El Salvador', txtX, y + 14.5);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(9);
+                    doc.setTextColor(...OSCURO);
+                    doc.text('WhatsApp: +' + (CFG.WHATSAPP_NUMBER || ''), txtX, y + 19.5);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(8);
+                    doc.setTextColor(...GRIS);
+                    doc.text('guerrero-properties.com/franquicias.html', txtX, y + 24);
 
                     const nombreArchivo = 'Dossier - ' + (f.nombre || 'Franquicia') + '.pdf';
                     doc.save(nombreArchivo);
