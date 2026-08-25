@@ -87,6 +87,7 @@
         .estado-perdido { color: #9ca3af; font-weight: 600; }
         .estado-cerrado { color: #7c3aed; font-weight: 600; }
         .btn-nota { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 5px 10px; font-size: 0.8rem; cursor: pointer; }
+        .btn-eliminar-lead { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: var(--radius-sm); padding: 5px 10px; font-size: 0.8rem; cursor: pointer; margin-left: 6px; }
         .contacto-nombre { font-weight: 600; color: var(--primary); }
         .contacto-tel { font-size: 0.8rem; color: var(--text-light); }
         .panel-manual { background: var(--bg-alt); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: 20px 24px; margin-bottom: 20px; }
@@ -1126,7 +1127,10 @@
                         </select>
                     </td>
                     <td>${formatearFecha(l.created_at)}</td>
-                    <td><button class="btn-nota" onclick="agregarNota('${l.id}', '${(contacto.nombre || '').replace(/'/g, "\\'")}')"><i class="fas fa-note-sticky"></i></button></td>
+                    <td>
+                        <button class="btn-nota" onclick="agregarNota('${l.id}', '${(contacto.nombre || '').replace(/'/g, "\\'")}')"><i class="fas fa-note-sticky"></i></button>
+                        <button class="btn-eliminar-lead" onclick="eliminarLead('${l.id}', '${(contacto.nombre || 'este lead').replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
+                    </td>
                 `;
                 body.appendChild(tr);
             });
@@ -1152,6 +1156,21 @@
                 alert(ex.message);
                 select.className = claseAnterior;
                 select.disabled = false;
+            }
+        }
+
+        async function eliminarLead(id, nombre) {
+            if (!confirm(`¿Eliminar el lead de "${nombre}"? Esto también borra sus notas de seguimiento. No se puede deshacer.`)) return;
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/leads?id=eq.${id}`, {
+                    method: 'DELETE', headers: { ...headers, Prefer: 'return=minimal' },
+                });
+                if (!res.ok) throw new Error('No se pudo eliminar (' + res.status + ')');
+                leadsData = leadsData.filter(l => l.id !== id);
+                renderLeads();
+            } catch (ex) {
+                alert(ex.message);
             }
         }
 
