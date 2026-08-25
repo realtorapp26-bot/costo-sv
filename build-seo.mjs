@@ -33,6 +33,7 @@ const PAGES = {
   'invertir.html': 'Invertir',
   'propiedades.html': 'Propiedades',
   'franquicias.html': 'Franquicias',
+  'centro-historico.html': 'Centro Histórico',
   'menajes.html': 'Menajes',
   'costo-vida.html': 'Costo de Vida',
   'sobre-mi.html': 'Sobre mí',
