@@ -200,14 +200,19 @@
                 return `
                     <div class="prop-card">
                         <div class="prop-img" id="${carruselId}" data-idx="0" data-fotos="${fotos.join(',').replace(/"/g, '&quot;')}">
-                            <span class="prop-badge">${p.ubicacion || p.categoria}</span>
+                            <span class="prop-badge">${p.categoria}</span>
+                            ${p.tipo_contrato ? `<span class="prop-badge-estado">${p.tipo_contrato}</span>` : ''}
                             <img loading="lazy" decoding="async" src="${fotos[0]}" alt="${p.titulo}" onerror="this.src='${FOTO_RESPALDO}'">
                             ${controlesCarrusel}
                         </div>
                         <div class="prop-content">
-                            <div class="prop-price">${p.precio}</div>
                             <h3 class="prop-title">${p.titulo}</h3>
+                            ${p.ubicacion ? `<p class="prop-ubicacion"><i class="fas fa-location-dot"></i> ${p.ubicacion}</p>` : ''}
                             <div class="prop-meta">${meta}</div>
+                            <div class="prop-footer">
+                                <div class="prop-price-label">Precio</div>
+                                <div class="prop-price">${p.precio}</div>
+                            </div>
                             <a href="https://wa.me/${String(CFG.WHATSAPP_NUMBER || '').replace(/\D/g, '')}?text=${mensaje}" target="_blank" rel="noopener" class="btn btn-gold" style="width: 100%;"><i class="fab fa-whatsapp"></i> ${cta}</a>
                         </div>
                     </div>

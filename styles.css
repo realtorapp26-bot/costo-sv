@@ -579,26 +579,49 @@ img {
     letter-spacing: 1px;
 }
 
+.prop-badge-estado {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 3;
+    background: rgba(37, 99, 235, 0.92);
+    backdrop-filter: blur(4px);
+    color: white;
+    padding: 6px 14px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
 .prop-content {
-    padding: 30px;
+    padding: 26px 30px 30px;
     flex: 1;
     display: flex;
     flex-direction: column;
 }
 
-.prop-price {
-    font-size: 1.75rem;
-    font-weight: 600;
-    color: var(--primary);
-    margin-bottom: 10px;
-    font-family: 'Playfair Display', serif;
-}
-
 .prop-title {
     font-size: 1.15rem;
-    margin-bottom: 15px;
+    margin-bottom: 8px;
     line-height: 1.4;
-    flex: 1;
+}
+
+.prop-ubicacion {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    color: var(--text-light);
+    font-size: 0.85rem;
+    line-height: 1.4;
+    margin-bottom: 16px;
+}
+
+.prop-ubicacion i {
+    color: var(--gold);
+    margin-top: 3px;
+    flex-shrink: 0;
 }
 
 .prop-meta {
@@ -606,9 +629,10 @@ img {
     gap: 20px;
     color: var(--text-light);
     font-size: 0.9rem;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     padding-bottom: 20px;
     border-bottom: 1px solid var(--border);
+    flex: 1;
 }
 
 .prop-meta span {
@@ -619,6 +643,25 @@ img {
 
 .prop-meta i {
     color: var(--gold);
+}
+
+.prop-footer {
+    margin-bottom: 16px;
+}
+
+.prop-price-label {
+    font-size: 0.72rem;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 3px;
+}
+
+.prop-price {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary);
+    font-family: 'Playfair Display', serif;
 }
 
 /* Formularios Premium */

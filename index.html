@@ -198,20 +198,25 @@
                 return `
                     <div class="prop-card">
                         <div class="prop-img">
-                            <span class="prop-badge">${p.ubicacion || p.categoria}</span>
+                            <span class="prop-badge">${p.categoria}</span>
+                            ${p.tipo_contrato ? `<span class="prop-badge-estado">${p.tipo_contrato}</span>` : ''}
                             <img loading="lazy" decoding="async" src="${foto}" alt="${p.titulo}" onerror="this.src='${FOTO_RESPALDO}'">
                         </div>
                         <div class="prop-content">
-                            <div class="prop-price">${p.precio}</div>
                             <h3 class="prop-title">${p.titulo}</h3>
+                            ${p.ubicacion ? `<p class="prop-ubicacion"><i class="fas fa-location-dot"></i> ${p.ubicacion}</p>` : ''}
                             <div class="prop-meta">${meta}</div>
+                            <div class="prop-footer">
+                                <div class="prop-price-label">Precio</div>
+                                <div class="prop-price">${p.precio}</div>
+                            </div>
                             <a href="propiedades.html" class="btn btn-outline" style="width: 100%;">Ver detalles</a>
                         </div>
                     </div>
                 `;
             }
 
-            fetch(`${SUPA_URL}/rest/v1/propiedades?select=titulo,precio,ubicacion,categoria,fotos,habitaciones,banos,m2&publicada=eq.true&order=created_at.desc&limit=3`, {
+            fetch(`${SUPA_URL}/rest/v1/propiedades?select=titulo,precio,ubicacion,categoria,tipo_contrato,fotos,habitaciones,banos,m2&publicada=eq.true&order=created_at.desc&limit=3`, {
                 headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
             })
                 .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
