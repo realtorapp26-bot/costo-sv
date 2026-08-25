@@ -176,8 +176,19 @@
     <!-- WhatsApp Global (Se maneja en JS) -->
     <a data-whatsapp href="#" class="floating-whatsapp"><i class="fab fa-whatsapp"></i></a>
 
+    <!-- Visor de fotos ampliado (lightbox) -->
+    <div class="lightbox-overlay" id="lightbox-overlay" onclick="if(event.target===this) cerrarLightbox()">
+        <button class="lightbox-cerrar" onclick="cerrarLightbox()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+        <button class="lightbox-compartir" onclick="compartirLightbox()"><i class="fas fa-share-nodes"></i> <span>Compartir</span></button>
+        <button class="lightbox-prev" id="lightbox-prev" onclick="moverLightbox(-1)" aria-label="Foto anterior"><i class="fas fa-chevron-left"></i></button>
+        <button class="lightbox-next" id="lightbox-next" onclick="moverLightbox(1)" aria-label="Foto siguiente"><i class="fas fa-chevron-right"></i></button>
+        <img id="lightbox-img" src="" alt="">
+        <div class="lightbox-contador" id="lightbox-contador"></div>
+        <div class="lightbox-toast" id="lightbox-toast"></div>
+    </div>
+
     <script src="config.js?v=2"></script>
-    <script src="app.js?v=2"></script>
+    <script src="app.js?v=3"></script>
     <script>
         (function () {
             const CFG = window.SITE_CONFIG || {};
@@ -189,7 +200,7 @@
             const FOTO_RESPALDO = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
 
             function tarjetaHome(p) {
-                const foto = (p.fotos && p.fotos[0]) || FOTO_RESPALDO;
+                const fotos = (p.fotos && p.fotos.length) ? p.fotos : [FOTO_RESPALDO];
                 const meta = [
                     p.habitaciones ? `<span><i class="fas fa-bed"></i> ${p.habitaciones} Hab</span>` : '',
                     p.banos ? `<span><i class="fas fa-bath"></i> ${p.banos} Baños</span>` : '',
@@ -197,10 +208,12 @@
                 ].filter(Boolean).join('');
                 return `
                     <div class="prop-card">
-                        <div class="prop-img">
+                        <div class="prop-img" data-idx="0" data-fotos="${fotos.join(',').replace(/"/g, '&quot;')}">
                             <span class="prop-badge">${p.categoria}</span>
                             ${p.tipo_contrato ? `<span class="prop-badge-estado">${p.tipo_contrato}</span>` : ''}
-                            <img loading="lazy" decoding="async" src="${foto}" alt="${p.titulo}" onerror="this.src='${FOTO_RESPALDO}'">
+                            <img loading="lazy" decoding="async" src="${fotos[0]}" alt="${p.titulo}" onerror="this.src='${FOTO_RESPALDO}'"
+                                 data-share-titulo="${p.titulo.replace(/"/g, '&quot;')}" data-share-id="${p.id}"
+                                 onclick="abrirLightboxImg(this, 'propiedad', 'propiedades.html')">
                         </div>
                         <div class="prop-content">
                             <h3 class="prop-title">${p.titulo}</h3>
@@ -216,7 +229,7 @@
                 `;
             }
 
-            fetch(`${SUPA_URL}/rest/v1/propiedades?select=titulo,precio,ubicacion,categoria,tipo_contrato,fotos,habitaciones,banos,m2&publicada=eq.true&order=created_at.desc&limit=3`, {
+            fetch(`${SUPA_URL}/rest/v1/propiedades?select=id,titulo,precio,ubicacion,categoria,tipo_contrato,fotos,habitaciones,banos,m2&publicada=eq.true&order=created_at.desc&limit=3`, {
                 headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
             })
                 .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))

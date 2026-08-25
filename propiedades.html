@@ -162,9 +162,20 @@
     <!-- Botón Flotante WA -->
     <a data-whatsapp href="#" class="floating-whatsapp"><i class="fab fa-whatsapp"></i></a>
 
+    <!-- Visor de fotos ampliado (lightbox) -->
+    <div class="lightbox-overlay" id="lightbox-overlay" onclick="if(event.target===this) cerrarLightbox()">
+        <button class="lightbox-cerrar" onclick="cerrarLightbox()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+        <button class="lightbox-compartir" onclick="compartirLightbox()"><i class="fas fa-share-nodes"></i> <span>Compartir</span></button>
+        <button class="lightbox-prev" id="lightbox-prev" onclick="moverLightbox(-1)" aria-label="Foto anterior"><i class="fas fa-chevron-left"></i></button>
+        <button class="lightbox-next" id="lightbox-next" onclick="moverLightbox(1)" aria-label="Foto siguiente"><i class="fas fa-chevron-right"></i></button>
+        <img id="lightbox-img" src="" alt="">
+        <div class="lightbox-contador" id="lightbox-contador"></div>
+        <div class="lightbox-toast" id="lightbox-toast"></div>
+    </div>
+
     <!-- Scripts -->
     <script src="config.js?v=2"></script>
-    <script src="app.js?v=2"></script>
+    <script src="app.js?v=3"></script>
     <script>
         (function () {
             const CFG = window.SITE_CONFIG || {};
@@ -202,7 +213,9 @@
                         <div class="prop-img" id="${carruselId}" data-idx="0" data-fotos="${fotos.join(',').replace(/"/g, '&quot;')}">
                             <span class="prop-badge">${p.categoria}</span>
                             ${p.tipo_contrato ? `<span class="prop-badge-estado">${p.tipo_contrato}</span>` : ''}
-                            <img loading="lazy" decoding="async" src="${fotos[0]}" alt="${p.titulo}" onerror="this.src='${FOTO_RESPALDO}'">
+                            <img loading="lazy" decoding="async" src="${fotos[0]}" alt="${p.titulo}" onerror="this.src='${FOTO_RESPALDO}'"
+                                 data-share-titulo="${p.titulo.replace(/"/g, '&quot;')}" data-share-id="${p.id}"
+                                 onclick="abrirLightboxImg(this, 'propiedad', 'propiedades.html')">
                             ${controlesCarrusel}
                         </div>
                         <div class="prop-content">
@@ -252,9 +265,28 @@
                     if (!res.ok) return;
                     todasLasPropiedades = await res.json();
                     renderGrid();
+                    abrirDesdeQueryString();
                 } catch (err) {
                     console.error('No se pudieron cargar las propiedades:', err);
                 }
+            }
+
+            // Si llegan con un link compartido (?propiedad=<id>), le muestran esa
+            // propiedad en grande apenas carga, sin tener que buscarla en la grilla.
+            function abrirDesdeQueryString() {
+                const id = new URLSearchParams(window.location.search).get('propiedad');
+                if (!id || !todasLasPropiedades.some(p => p.id === id)) return;
+                if (filtroActivo !== 'todas') {
+                    document.querySelectorAll('.filtro-categoria').forEach(b => b.classList.toggle('activo', b.getAttribute('data-categoria') === 'todas'));
+                    filtroActivo = 'todas';
+                    renderGrid();
+                }
+                setTimeout(() => {
+                    const img = document.querySelector(`[data-share-id="${id}"]`);
+                    if (!img) return;
+                    img.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    abrirLightboxImg(img, 'propiedad', 'propiedades.html');
+                }, 300);
             }
 
             document.addEventListener('DOMContentLoaded', () => {

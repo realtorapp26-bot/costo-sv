@@ -75,7 +75,7 @@
             cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center;
         }
         .modal-detalle-fotos { position: relative; height: 400px; background: #e2e8f0; }
-        .modal-detalle-fotos img { width: 100%; height: 100%; object-fit: cover; object-position: center 25%; }
+        .modal-detalle-fotos img { width: 100%; height: 100%; object-fit: cover; object-position: center 25%; cursor: zoom-in; }
         .modal-detalle-body { padding: 30px 34px 34px; }
         .modal-detalle-categoria { color: var(--text-light); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; margin: 2px 0 14px; }
         .modal-detalle-desc { color: var(--text-main); line-height: 1.7; margin: 16px 0 22px; }
@@ -190,7 +190,7 @@
         <div class="modal-detalle-box">
             <button class="modal-cerrar" onclick="cerrarDetalleFr()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
             <div class="modal-detalle-fotos" id="md-carrusel-img" data-idx="0" data-fotos="">
-                <img src="" alt="">
+                <img src="" alt="" onclick="abrirLightboxImg(this, 'franquicia', 'franquicias.html')">
                 <div id="md-carrusel-controls"></div>
             </div>
             <div class="modal-detalle-body">
@@ -215,10 +215,21 @@
     <!-- Botón Flotante WA -->
     <a data-whatsapp href="#" class="floating-whatsapp"><i class="fab fa-whatsapp"></i></a>
 
+    <!-- Visor de fotos ampliado (lightbox) -->
+    <div class="lightbox-overlay" id="lightbox-overlay" onclick="if(event.target===this) cerrarLightbox()">
+        <button class="lightbox-cerrar" onclick="cerrarLightbox()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+        <button class="lightbox-compartir" onclick="compartirLightbox()"><i class="fas fa-share-nodes"></i> <span>Compartir</span></button>
+        <button class="lightbox-prev" id="lightbox-prev" onclick="moverLightbox(-1)" aria-label="Foto anterior"><i class="fas fa-chevron-left"></i></button>
+        <button class="lightbox-next" id="lightbox-next" onclick="moverLightbox(1)" aria-label="Foto siguiente"><i class="fas fa-chevron-right"></i></button>
+        <img id="lightbox-img" src="" alt="">
+        <div class="lightbox-contador" id="lightbox-contador"></div>
+        <div class="lightbox-toast" id="lightbox-toast"></div>
+    </div>
+
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="config.js?v=2"></script>
-    <script src="app.js?v=2"></script>
+    <script src="app.js?v=3"></script>
     <script>
         (function () {
             const CFG = window.SITE_CONFIG || {};
@@ -250,7 +261,9 @@
                         <div class="prop-img" id="${carruselId}" data-idx="0" data-fotos="${fotos.join(',').replace(/"/g, '&quot;')}">
                             <span class="prop-badge">${f.categoria}</span>
                             <span class="fr-aliado-badge">${f.aliado || 'Retail Solutions'}</span>
-                            <img loading="lazy" decoding="async" src="${fotos[0]}" alt="${f.nombre}" onerror="this.src='${FOTO_RESPALDO}'">
+                            <img loading="lazy" decoding="async" src="${fotos[0]}" alt="${f.nombre}" onerror="this.src='${FOTO_RESPALDO}'"
+                                 data-share-titulo="${f.nombre.replace(/"/g, '&quot;')}" data-share-id="${f.id}"
+                                 onclick="abrirLightboxImg(this, 'franquicia', 'franquicias.html')">
                             ${controlesCarrusel}
                         </div>
                         <div class="prop-content">
@@ -294,6 +307,8 @@
                 cont.setAttribute('data-idx', '0');
                 cont.querySelector('img').src = fotos[0];
                 cont.querySelector('img').alt = f.nombre;
+                cont.querySelector('img').setAttribute('data-share-titulo', f.nombre);
+                cont.querySelector('img').setAttribute('data-share-id', f.id);
                 document.getElementById('md-carrusel-controls').innerHTML = fotos.length > 1 ? `
                     <button type="button" class="prop-carrusel-btn prop-carrusel-prev" onclick="moverCarruselFr('md-carrusel-img', -1)" aria-label="Foto anterior"><i class="fas fa-chevron-left"></i></button>
                     <button type="button" class="prop-carrusel-btn prop-carrusel-next" onclick="moverCarruselFr('md-carrusel-img', 1)" aria-label="Foto siguiente"><i class="fas fa-chevron-right"></i></button>
@@ -622,9 +637,18 @@
                     if (!res.ok) return;
                     todasLasFranquicias = await res.json();
                     renderGrid();
+                    abrirDesdeQueryString();
                 } catch (err) {
                     console.error('No se pudieron cargar las franquicias:', err);
                 }
+            }
+
+            // Si llegan con un link compartido (?franquicia=<id>), le abren esa
+            // ficha directo apenas carga, sin tener que buscarla en la grilla.
+            function abrirDesdeQueryString() {
+                const id = new URLSearchParams(window.location.search).get('franquicia');
+                if (!id || !todasLasFranquicias.some(f => f.id === id)) return;
+                setTimeout(() => abrirDetalleFr(id), 300);
             }
 
             document.addEventListener('DOMContentLoaded', () => {

@@ -183,3 +183,97 @@
     });
   }
 })();
+
+// ============================================================
+//  Visor de fotos ampliado (lightbox), compartido en todas las
+//  páginas que muestran tarjetas de propiedades/franquicias.
+//  Requiere el markup #lightbox-overlay (ver franquicias.html /
+//  propiedades.html / index.html) — si no está en la página, no hace nada.
+// ============================================================
+(function () {
+  let fotosActuales = [];
+  let idxActual = 0;
+  let compartirInfo = null;
+
+  function renderLightbox() {
+    const img = document.getElementById('lightbox-img');
+    const contador = document.getElementById('lightbox-contador');
+    const prev = document.getElementById('lightbox-prev');
+    const next = document.getElementById('lightbox-next');
+    if (img) img.src = fotosActuales[idxActual] || '';
+    const varias = fotosActuales.length > 1;
+    if (contador) contador.textContent = varias ? `${idxActual + 1} / ${fotosActuales.length}` : '';
+    if (prev) prev.style.display = varias ? 'flex' : 'none';
+    if (next) next.style.display = varias ? 'flex' : 'none';
+  }
+
+  function mostrarToastLightbox(texto) {
+    const toast = document.getElementById('lightbox-toast');
+    if (!toast) return;
+    toast.textContent = texto;
+    toast.classList.add('show');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  window.abrirLightbox = function (fotos, idx, compartir) {
+    const overlay = document.getElementById('lightbox-overlay');
+    fotosActuales = (fotos || []).filter(Boolean);
+    if (!overlay || !fotosActuales.length) return;
+    idxActual = idx || 0;
+    compartirInfo = compartir || null;
+    overlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    renderLightbox();
+  };
+
+  // Atajo para abrir el lightbox directo desde una miniatura de tarjeta:
+  // lee las fotos/índice actual del carrusel contenedor y los datos de
+  // compartir desde atributos data- en la propia imagen.
+  window.abrirLightboxImg = function (imgEl, tipoEntidad, paginaDestino) {
+    const cont = imgEl.closest('[data-fotos]');
+    if (!cont) return;
+    const fotos = cont.getAttribute('data-fotos').split(',').filter(Boolean);
+    const idx = parseInt(cont.getAttribute('data-idx'), 10) || 0;
+    const titulo = imgEl.getAttribute('data-share-titulo') || '';
+    const id = imgEl.getAttribute('data-share-id') || '';
+    const param = tipoEntidad === 'franquicia' ? 'franquicia' : 'propiedad';
+    const url = id ? `${location.origin}/${paginaDestino}?${param}=${id}` : `${location.origin}/${paginaDestino}`;
+    window.abrirLightbox(fotos, idx, { titulo, url });
+  };
+
+  window.cerrarLightbox = function () {
+    const overlay = document.getElementById('lightbox-overlay');
+    if (overlay) overlay.classList.remove('show');
+    document.body.style.overflow = '';
+  };
+
+  window.moverLightbox = function (dir) {
+    if (!fotosActuales.length) return;
+    idxActual = (idxActual + dir + fotosActuales.length) % fotosActuales.length;
+    renderLightbox();
+  };
+
+  window.compartirLightbox = async function () {
+    if (!compartirInfo) return;
+    const { titulo, url } = compartirInfo;
+    if (navigator.share) {
+      try { await navigator.share({ title: titulo, text: titulo, url }); } catch (e) { /* el usuario cerró el share sheet */ }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      mostrarToastLightbox('Link copiado');
+    } catch (e) {
+      mostrarToastLightbox('No se pudo copiar el link');
+    }
+  };
+
+  document.addEventListener('keydown', (e) => {
+    const overlay = document.getElementById('lightbox-overlay');
+    if (!overlay || !overlay.classList.contains('show')) return;
+    if (e.key === 'Escape') window.cerrarLightbox();
+    if (e.key === 'ArrowLeft') window.moverLightbox(-1);
+    if (e.key === 'ArrowRight') window.moverLightbox(1);
+  });
+})();

@@ -665,6 +665,52 @@ img {
     font-family: 'Playfair Display', serif;
 }
 
+/* Lightbox de fotos: tocar la imagen de una tarjeta la muestra en grande,
+   con navegación entre fotos y botón de compartir. */
+.prop-img img { cursor: zoom-in; }
+
+.lightbox-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 5000;
+    background: rgba(5, 8, 15, 0.96);
+    align-items: center; justify-content: center; flex-direction: column;
+    padding: 20px;
+}
+.lightbox-overlay.show { display: flex; }
+.lightbox-overlay img {
+    max-width: 92vw; max-height: 78vh; object-fit: contain;
+    border-radius: 6px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.lightbox-cerrar, .lightbox-compartir {
+    position: absolute; top: 20px;
+    background: rgba(255,255,255,0.12); color: white; border: none;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+}
+.lightbox-cerrar { right: 20px; width: 44px; height: 44px; border-radius: 50%; font-size: 1.05rem; }
+.lightbox-compartir { right: 76px; height: 44px; padding: 0 18px; border-radius: 22px; font-size: 0.88rem; font-weight: 600; gap: 8px; }
+.lightbox-prev, .lightbox-next {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    background: rgba(255,255,255,0.12); color: white; border: none;
+    width: 48px; height: 48px; border-radius: 50%; cursor: pointer; font-size: 1.15rem;
+    display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);
+}
+.lightbox-prev { left: 20px; }
+.lightbox-next { right: 20px; }
+.lightbox-contador { margin-top: 16px; color: rgba(255,255,255,0.7); font-size: 0.85rem; letter-spacing: 0.03em; }
+.lightbox-toast {
+    position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+    background: white; color: var(--primary); padding: 10px 22px; border-radius: 30px;
+    font-size: 0.85rem; font-weight: 600; opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+    box-shadow: var(--shadow-md);
+}
+.lightbox-toast.show { opacity: 1; }
+@media (max-width: 600px) {
+    .lightbox-prev, .lightbox-next { width: 40px; height: 40px; }
+    .lightbox-compartir span { display: none; }
+    .lightbox-compartir { right: 72px; width: 44px; padding: 0; border-radius: 50%; }
+}
+
 /* Formularios Premium */
 .form-wrapper {
     background: var(--bg-alt);
