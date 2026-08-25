@@ -566,9 +566,25 @@
             }
         }
 
-        CostoSVAuth.requireLogin(() => {
-            cargarTodas();
-            cargarTodasFr();
+        // Permite llegar directo al formulario de edición de una ficha puntual
+        // desde el panel principal, con ?editar=<id> (y &tipo=fr para franquicias).
+        function abrirEdicionDesdeQueryString() {
+            const params = new URLSearchParams(window.location.search);
+            const editarId = params.get('editar');
+            if (!editarId) return;
+            if (params.get('tipo') === 'fr') {
+                cambiarTabGestion('fr');
+                abrirEdicionFr(editarId);
+            } else {
+                cambiarTabGestion('prop');
+                abrirEdicionProp(editarId);
+            }
+        }
+
+        CostoSVAuth.requireLogin(async () => {
+            await cargarTodas();
+            await cargarTodasFr();
+            abrirEdicionDesdeQueryString();
         });
     </script>
 </body>

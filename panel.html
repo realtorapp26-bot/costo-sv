@@ -763,7 +763,7 @@
             const hint = document.getElementById('empty-hint');
             try {
                 const headers = await CostoSVAuth.authHeaders();
-                const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?select=titulo,precio,categoria,fotos,copy_venta,descripcion_original&order=created_at.desc`, { headers });
+                const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?select=id,titulo,precio,categoria,fotos,copy_venta,descripcion_original&order=created_at.desc`, { headers });
                 const propiedades = await res.json();
                 cont.innerHTML = '';
                 hint.style.display = propiedades.length ? 'none' : 'block';
@@ -780,6 +780,7 @@
                             <div class="mini-title">${p.titulo}</div>
                             <div class="mini-price">${p.precio}</div>
                             ${descripcion ? `<div style="font-size:0.8rem; color:var(--text-light); margin-top:8px; line-height:1.4;">${descripcion}</div>` : '<div style="font-size:0.75rem; color:var(--text-light); font-style:italic; margin-top:8px;">Sin descripción</div>'}
+                            <a href="propiedades-admin.html?editar=${p.id}" style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:12px; padding:8px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-weight:600; color:var(--primary); text-decoration:none;"><i class="fas fa-pen"></i> Editar</a>
                         </div>
                     `;
                     cont.appendChild(card);
@@ -972,7 +973,7 @@
             const hint = document.getElementById('empty-hint-fr');
             try {
                 const headers = await CostoSVAuth.authHeaders();
-                const res = await fetch(`${SUPA_URL}/rest/v1/franquicias?select=nombre,aliado,categoria,inversion_total,fotos,copy_venta,descripcion_original&order=created_at.desc`, { headers });
+                const res = await fetch(`${SUPA_URL}/rest/v1/franquicias?select=id,nombre,aliado,categoria,inversion_total,fotos,copy_venta,descripcion_original&order=created_at.desc`, { headers });
                 const franquicias = await res.json();
                 cont.innerHTML = '';
                 hint.style.display = franquicias.length ? 'none' : 'block';
@@ -989,6 +990,7 @@
                             <div class="mini-title">${f.nombre}</div>
                             <div class="mini-price">${f.inversion_total || 'Inversión a consultar'}</div>
                             ${descripcion ? `<div style="font-size:0.8rem; color:var(--text-light); margin-top:8px; line-height:1.4;">${descripcion}</div>` : '<div style="font-size:0.75rem; color:var(--text-light); font-style:italic; margin-top:8px;">Sin descripción</div>'}
+                            <a href="propiedades-admin.html?editar=${f.id}&tipo=fr" style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:12px; padding:8px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-weight:600; color:var(--primary); text-decoration:none;"><i class="fas fa-pen"></i> Editar</a>
                         </div>
                     `;
                     cont.appendChild(card);
