@@ -161,7 +161,11 @@
                 <div class="full"><label>Beneficios / soporte (uno por línea)</label><textarea id="ed-beneficios"></textarea></div>
                 <div class="full"><label>Descripción</label><textarea id="ed-desc"></textarea></div>
                 <div class="full">
-                    <label>Fotos (una URL por línea, o pegá varias separadas por coma)</label>
+                    <label>Fotos (subí archivos de tu PC, o pegá URLs una por línea o separadas por coma)</label>
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                        <input type="file" accept="image/*" multiple onchange="CostoSVAuth.subirFotosA(this, 'ed-fotos', () => previsualizarFotos('ed-fotos', 'ed-fotos-preview'))">
+                        <span style="display:none; font-size:0.8rem; color:var(--text-light);"></span>
+                    </div>
                     <textarea id="ed-fotos" oninput="previsualizarFotos('ed-fotos', 'ed-fotos-preview')"></textarea>
                     <div class="fotos-edit-preview" id="ed-fotos-preview"></div>
                 </div>
@@ -218,7 +222,11 @@
                 <div class="full"><label>Descripción original</label><textarea id="edp-desc"></textarea></div>
                 <div class="full"><label>Copy de venta (texto publicado)</label><textarea id="edp-copy"></textarea></div>
                 <div class="full">
-                    <label>Fotos (una URL por línea, o pegá varias separadas por coma)</label>
+                    <label>Fotos (subí archivos de tu PC, o pegá URLs una por línea o separadas por coma)</label>
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                        <input type="file" accept="image/*" multiple onchange="CostoSVAuth.subirFotosA(this, 'edp-fotos', () => previsualizarFotos('edp-fotos', 'edp-fotos-preview'))">
+                        <span style="display:none; font-size:0.8rem; color:var(--text-light);"></span>
+                    </div>
                     <textarea id="edp-fotos" oninput="previsualizarFotos('edp-fotos', 'edp-fotos-preview')"></textarea>
                     <div class="fotos-edit-preview" id="edp-fotos-preview"></div>
                 </div>
@@ -231,7 +239,7 @@
     </div>
 
     <script src="config.js?v=2"></script>
-    <script src="login.js?v=3"></script>
+    <script src="login.js?v=4"></script>
     <script>
         const SUPA_URL = window.SITE_CONFIG.SUPABASE_URL;
         let propiedades = [];

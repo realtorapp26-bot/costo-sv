@@ -65,6 +65,50 @@
     return { apikey: SUPA_KEY, Authorization: `Bearer ${s.access_token}`, 'Content-Type': 'application/json' };
   }
 
+  const BUCKET_FOTOS = 'fichas-fotos';
+
+  async function subirFoto(file) {
+    const headers = await authHeaders();
+    const nombreLimpio = file.name.replace(/[^a-zA-Z0-9.\-]/g, '_');
+    const ruta = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${nombreLimpio}`;
+    const res = await fetch(`${SUPA_URL}/storage/v1/object/${BUCKET_FOTOS}/${ruta}`, {
+      method: 'POST',
+      headers: { apikey: SUPA_KEY, Authorization: headers.Authorization, 'Content-Type': file.type || 'application/octet-stream' },
+      body: file,
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || data.error || `No se pudo subir la foto (${res.status})`);
+    }
+    return `${SUPA_URL}/storage/v1/object/public/${BUCKET_FOTOS}/${ruta}`;
+  }
+
+  // Sube uno o varios archivos elegidos en un <input type="file">, agrega cada
+  // URL resultante al textarea de fotos indicado y llama a alTerminar() para
+  // refrescar la vista previa. Pensado para usarse como onchange del input.
+  async function subirFotosA(inputEl, textareaId, alTerminar) {
+    const archivos = Array.from(inputEl.files || []);
+    if (!archivos.length) return;
+    const textarea = document.getElementById(textareaId);
+    const status = inputEl.nextElementSibling;
+    if (status) status.style.display = 'inline';
+    for (let i = 0; i < archivos.length; i++) {
+      const file = archivos[i];
+      if (status) status.textContent = `Subiendo ${i + 1} de ${archivos.length}...`;
+      try {
+        const url = await subirFoto(file);
+        const actuales = textarea.value.split('\n').map(s => s.trim()).filter(Boolean);
+        actuales.push(url);
+        textarea.value = actuales.join('\n');
+      } catch (ex) {
+        alert(`No se pudo subir "${file.name}": ${ex.message}`);
+      }
+    }
+    inputEl.value = '';
+    if (status) { status.style.display = 'none'; status.textContent = ''; }
+    if (typeof alTerminar === 'function') alTerminar();
+  }
+
   function renderLoginGate(onSuccess) {
     const gate = document.createElement('div');
     gate.id = 'login-gate';
@@ -144,5 +188,5 @@
     renderLoginGate(onReady);
   }
 
-  window.CostoSVAuth = { signIn, signOut, getSession, authHeaders, requireLogin, recoverPassword };
+  window.CostoSVAuth = { signIn, signOut, getSession, authHeaders, requireLogin, recoverPassword, subirFoto, subirFotosA };
 })();
