@@ -300,6 +300,7 @@
                 const f = todasLasFranquicias.find(x => x.id === id);
                 if (!f) return;
                 franquiciaAbierta = f;
+                if (window.CostoSVMetricas) window.CostoSVMetricas.registrarEvento('ficha_view', f.nombre);
                 const fotos = (f.fotos && f.fotos.length) ? f.fotos : [FOTO_RESPALDO];
 
                 const cont = document.getElementById('md-carrusel-img');
@@ -598,6 +599,7 @@
 
                     const nombreArchivo = 'Dossier - ' + (f.nombre || 'Franquicia') + '.pdf';
                     doc.save(nombreArchivo);
+                    if (window.CostoSVMetricas) window.CostoSVMetricas.registrarEvento('dossier_download', f.nombre);
                 } finally {
                     btn.innerHTML = textoBtnOriginal;
                     btn.disabled = false;

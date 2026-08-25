@@ -169,6 +169,7 @@
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
         });
         if (res.ok) {                              // ÚNICA confirmación real
+          if (window.CostoSVMetricas) window.CostoSVMetricas.registrarEvento('lead_submit');
           show('¡Información enviada con éxito! Walter se pondrá en contacto pronto.', true);
           form.reset();                            // limpiar SOLO con confirmación del webhook
         } else {
@@ -182,6 +183,41 @@
       }
     });
   }
+})();
+
+// ============================================================
+//  Métricas propias: pageviews y clics clave, guardados en la tabla
+//  "eventos" de Supabase para verlos en el panel (pestaña Métricas).
+//  Todo el tracking es best-effort (fetch sin await, sin bloquear la
+//  UX) y no guarda ningún dato personal del visitante.
+// ============================================================
+(function () {
+  const CFG = window.SITE_CONFIG || {};
+  const SUPA_URL = CFG.SUPABASE_URL || '';
+  const SUPA_KEY = CFG.SUPABASE_ANON_KEY || '';
+  if (!SUPA_URL || !SUPA_KEY) return;
+
+  // Se registra vía RPC (función de base de datos) y no con un INSERT directo
+  // a la tabla: así el sitio público nunca tiene acceso de escritura directo.
+  function registrarEvento(tipo, detalle) {
+    try {
+      const pagina = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+      fetch(`${SUPA_URL}/rest/v1/rpc/registrar_evento_publico`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, Prefer: 'return=minimal' },
+        body: JSON.stringify({ p_tipo: tipo, p_pagina: pagina, p_detalle: detalle || null }),
+      }).catch(() => {});
+    } catch (e) { /* nunca romper la pagina por esto */ }
+  }
+
+  window.CostoSVMetricas = { registrarEvento };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    registrarEvento('pageview');
+    document.querySelectorAll('a[data-whatsapp]').forEach((a) => {
+      a.addEventListener('click', () => registrarEvento('whatsapp_click'));
+    });
+  });
 })();
 
 // ============================================================
@@ -240,6 +276,7 @@
     const param = tipoEntidad === 'franquicia' ? 'franquicia' : 'propiedad';
     const url = id ? `${location.origin}/${paginaDestino}?${param}=${id}` : `${location.origin}/${paginaDestino}`;
     window.abrirLightbox(fotos, idx, { titulo, url });
+    if (window.CostoSVMetricas && titulo) window.CostoSVMetricas.registrarEvento('ficha_view', titulo);
   };
 
   window.cerrarLightbox = function () {

@@ -67,6 +67,13 @@
         .kpi-card { background: var(--bg-alt); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: 20px; text-align: center; }
         .kpi-card .kpi-num { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--primary); }
         .kpi-card .kpi-label { font-size: 0.8rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+        .km-barras { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+        .km-barra-row { display: flex; align-items: center; gap: 12px; }
+        .km-barra-nombre { flex: 0 0 220px; font-size: 0.85rem; color: var(--text-main); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .km-barra-track { flex: 1; height: 10px; background: var(--gold-light); border-radius: 6px; overflow: hidden; }
+        .km-barra-fill { height: 100%; background: var(--primary); border-radius: 6px; }
+        .km-barra-num { flex: 0 0 34px; text-align: right; font-size: 0.85rem; font-weight: 700; color: var(--primary); }
+        .km-vacio { color: var(--text-light); font-size: 0.85rem; font-style: italic; }
         .filters-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; align-items: center; }
         .filter-group { display: flex; gap: 6px; flex-wrap: wrap; }
         .chip {
@@ -165,6 +172,7 @@
             <button class="tab-btn active" id="btn-tab-propiedades" onclick="cambiarTab('propiedades')">🏠 Propiedades</button>
             <button class="tab-btn" id="btn-tab-franquicias" onclick="cambiarTab('franquicias')">🏪 Franquicias</button>
             <button class="tab-btn" id="btn-tab-leads" onclick="cambiarTab('leads')">📋 Leads</button>
+            <button class="tab-btn" id="btn-tab-metricas" onclick="cambiarTab('metricas')">📊 Métricas</button>
             <a class="tab-btn" href="propiedades-admin.html" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">🗂️ Administrar Publicaciones</a>
         </div>
 
@@ -514,6 +522,33 @@
                 <tbody id="leads-body"></tbody>
             </table>
         </div>
+
+        <!-- ===== TAB: METRICAS ===== -->
+        <div class="tab-panel" id="tab-metricas">
+            <div class="kpi-row">
+                <div class="kpi-card"><div class="kpi-num" id="km-visitas-7d">-</div><div class="kpi-label">Visitas (7 días)</div></div>
+                <div class="kpi-card"><div class="kpi-num" id="km-visitas-30d">-</div><div class="kpi-label">Visitas (30 días)</div></div>
+                <div class="kpi-card"><div class="kpi-num" id="km-whatsapp-7d">-</div><div class="kpi-label">Clics WhatsApp (7 días)</div></div>
+                <div class="kpi-card"><div class="kpi-num" id="km-leads-7d">-</div><div class="kpi-label">Formularios enviados (7 días)</div></div>
+            </div>
+
+            <div class="panel">
+                <h2>Páginas más visitadas <span style="font-weight:400; font-size:0.8rem; color:var(--text-light);">(últimos 30 días)</span></h2>
+                <div id="km-paginas-lista" class="km-barras"></div>
+            </div>
+
+            <div class="panel">
+                <h2>Fichas más vistas <span style="font-weight:400; font-size:0.8rem; color:var(--text-light);">(propiedades y franquicias, últimos 30 días)</span></h2>
+                <div id="km-fichas-lista" class="km-barras"></div>
+            </div>
+
+            <div class="panel">
+                <h2>Dossiers descargados <span style="font-weight:400; font-size:0.8rem; color:var(--text-light);">(últimos 30 días)</span></h2>
+                <div id="km-dossiers-lista" class="km-barras"></div>
+            </div>
+
+            <p id="metricas-hint" style="color:var(--text-light); font-size:0.85rem; margin-top:6px;">Se registra solo qué páginas/fichas se visitan y qué botones se tocan — nada de datos personales del visitante.</p>
+        </div>
     </div>
 
     <script src="config.js?v=2"></script>
@@ -522,10 +557,11 @@
         const SUPA_URL = window.SITE_CONFIG.SUPABASE_URL;
 
         function cambiarTab(nombre) {
-            ['propiedades', 'franquicias', 'leads'].forEach(t => {
+            ['propiedades', 'franquicias', 'leads', 'metricas'].forEach(t => {
                 document.getElementById('tab-' + t).classList.toggle('active', t === nombre);
                 document.getElementById('btn-tab-' + t).classList.toggle('active', t === nombre);
             });
+            if (nombre === 'metricas' && !metricasCargadas) cargarMetricas();
         }
 
         // ---------- Propiedades ----------
@@ -1045,6 +1081,7 @@
 
         // ---------- Leads ----------
         let leadsData = [];
+        let metricasCargadas = false;
         const origenLabels = { whatsapp: 'WhatsApp', formulario_web: 'Sitio Web', marketplace: 'Marketplace', referido: 'Referido', otro: 'Otro' };
         const estados = ['nuevo', 'contactado', 'calificado', 'perdido', 'cerrado'];
         const origenes = ['whatsapp', 'formulario_web', 'marketplace', 'referido'];
@@ -1214,6 +1251,72 @@
                 await cargarLeads();
             } catch (ex) {
                 alert(ex.message);
+            }
+        }
+
+        // ---------- Métricas ----------
+        const PAGINA_LABELS = {
+            'index.html': 'Inicio', '': 'Inicio',
+            'propiedades.html': 'Propiedades',
+            'franquicias.html': 'Franquicias',
+            'vender.html': 'Vender', 'comprar.html': 'Comprar', 'invertir.html': 'Invertir',
+            'menajes.html': 'Menajes', 'costo-vida.html': 'Costo de Vida', 'contacto.html': 'Contacto',
+            'sobre-mi.html': 'Sobre mí',
+        };
+
+        function contarPor(eventos, obtenerClave) {
+            const conteo = {};
+            eventos.forEach(e => {
+                const clave = obtenerClave(e);
+                conteo[clave] = (conteo[clave] || 0) + 1;
+            });
+            return Object.entries(conteo).sort((a, b) => b[1] - a[1]).slice(0, 8);
+        }
+
+        function renderBarras(cont, pares) {
+            if (!cont) return;
+            if (!pares.length) { cont.innerHTML = '<p class="km-vacio">Todavía no hay datos suficientes.</p>'; return; }
+            const max = pares[0][1];
+            cont.innerHTML = pares.map(([nombre, num]) => `
+                <div class="km-barra-row">
+                    <div class="km-barra-nombre" title="${nombre}">${nombre}</div>
+                    <div class="km-barra-track"><div class="km-barra-fill" style="width:${Math.max(6, (num / max) * 100)}%"></div></div>
+                    <div class="km-barra-num">${num}</div>
+                </div>
+            `).join('');
+        }
+
+        async function cargarMetricas() {
+            metricasCargadas = true;
+            const contPaginas = document.getElementById('km-paginas-lista');
+            const contFichas = document.getElementById('km-fichas-lista');
+            const contDossiers = document.getElementById('km-dossiers-lista');
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const desde30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+                const res = await fetch(`${SUPA_URL}/rest/v1/eventos?select=tipo,pagina,detalle,created_at&created_at=gte.${desde30}&order=created_at.desc&limit=10000`, { headers });
+                if (!res.ok) throw new Error('No se pudieron cargar las métricas (' + res.status + ')');
+                const eventos = await res.json();
+
+                const desde7 = Date.now() - 7 * 24 * 60 * 60 * 1000;
+                const esUltimos7 = (e) => new Date(e.created_at).getTime() >= desde7;
+
+                const pageviews = eventos.filter(e => e.tipo === 'pageview');
+                const whatsappClicks = eventos.filter(e => e.tipo === 'whatsapp_click');
+                const leadSubmits = eventos.filter(e => e.tipo === 'lead_submit');
+                const fichaViews = eventos.filter(e => e.tipo === 'ficha_view');
+                const dossierDownloads = eventos.filter(e => e.tipo === 'dossier_download');
+
+                document.getElementById('km-visitas-7d').textContent = pageviews.filter(esUltimos7).length;
+                document.getElementById('km-visitas-30d').textContent = pageviews.length;
+                document.getElementById('km-whatsapp-7d').textContent = whatsappClicks.filter(esUltimos7).length;
+                document.getElementById('km-leads-7d').textContent = leadSubmits.filter(esUltimos7).length;
+
+                renderBarras(contPaginas, contarPor(pageviews, e => PAGINA_LABELS[e.pagina] || e.pagina || 'Otra'));
+                renderBarras(contFichas, contarPor(fichaViews, e => e.detalle || 'Sin nombre'));
+                renderBarras(contDossiers, contarPor(dossierDownloads, e => e.detalle || 'Sin nombre'));
+            } catch (ex) {
+                [contPaginas, contFichas, contDossiers].forEach(el => { if (el) el.innerHTML = `<p class="km-vacio">${ex.message}</p>`; });
             }
         }
 
