@@ -35,6 +35,19 @@
     location.reload();
   }
 
+  async function recoverPassword(email) {
+    const redirectTo = new URL('restablecer-password.html', window.location.href).href;
+    const res = await fetch(`${SUPA_URL}/auth/v1/recover?redirect_to=${encodeURIComponent(redirectTo)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SUPA_KEY },
+      body: JSON.stringify({ email }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error_description || data.msg || 'No se pudo enviar el correo de recuperación.');
+    }
+  }
+
   async function authHeaders() {
     let s = getSession();
     if (!s) throw new Error('No hay sesión activa.');
@@ -65,9 +78,14 @@
         <input type="password" id="login-password" placeholder="Contraseña" required autocomplete="current-password"
                style="width:100%;padding:10px 12px;margin-bottom:14px;border:1px solid #d1d5db;border-radius:6px;font-size:0.95rem;">
         <div id="login-error" style="color:#b91c1c;font-size:0.85rem;margin-bottom:10px;display:none;"></div>
+        <div id="login-recover-msg" style="font-size:0.8rem;margin-bottom:10px;display:none;"></div>
         <button type="submit" id="login-submit"
                 style="width:100%;padding:11px;background:#d4af37;color:#0a0f1c;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:0.95rem;">
           Entrar
+        </button>
+        <button type="button" id="login-recover"
+                style="width:100%;padding:8px;margin-top:8px;background:none;border:none;color:#64748b;font-size:0.8rem;cursor:pointer;text-decoration:underline;">
+          ¿Olvidaste tu contraseña?
         </button>
       </form>
     `;
@@ -93,6 +111,32 @@
         btn.disabled = false;
       }
     });
+
+    document.getElementById('login-recover').addEventListener('click', async () => {
+      const email = document.getElementById('login-email').value.trim();
+      const recoverBtn = document.getElementById('login-recover');
+      const recoverMsg = document.getElementById('login-recover-msg');
+      if (!email) {
+        recoverMsg.style.color = '#b91c1c';
+        recoverMsg.textContent = 'Escribí primero tu correo arriba.';
+        recoverMsg.style.display = 'block';
+        return;
+      }
+      recoverBtn.disabled = true;
+      recoverBtn.textContent = 'Enviando...';
+      try {
+        await recoverPassword(email);
+        recoverMsg.style.color = '#1b5e20';
+        recoverMsg.textContent = 'Listo — revisá tu correo (' + email + ') para el link de recuperación.';
+      } catch (ex) {
+        recoverMsg.style.color = '#b91c1c';
+        recoverMsg.textContent = ex.message;
+      } finally {
+        recoverMsg.style.display = 'block';
+        recoverBtn.disabled = false;
+        recoverBtn.textContent = '¿Olvidaste tu contraseña?';
+      }
+    });
   }
 
   function requireLogin(onReady) {
@@ -100,5 +144,5 @@
     renderLoginGate(onReady);
   }
 
-  window.CostoSVAuth = { signIn, signOut, getSession, authHeaders, requireLogin };
+  window.CostoSVAuth = { signIn, signOut, getSession, authHeaders, requireLogin, recoverPassword };
 })();

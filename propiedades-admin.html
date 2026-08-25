@@ -58,7 +58,13 @@
         .btn-modal-cancel { background: none; border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm); padding: 10px 20px; cursor: pointer; }
         .btn-modal-guardar { background: var(--gold); color: var(--primary); border: none; border-radius: var(--radius-sm); padding: 10px 20px; font-weight: 700; cursor: pointer; }
         .fotos-edit-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-        .fotos-edit-preview img { width: 90px; height: 65px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
+        .fotos-edit-thumb { width: 90px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: white; }
+        .fotos-edit-thumb img { width: 100%; height: 65px; object-fit: cover; display: block; }
+        .fotos-edit-thumb button { width: 100%; border: none; background: #fef2f2; color: #b91c1c; font-size: 0.65rem; padding: 3px; cursor: pointer; }
+        .fotos-edit-count { font-size: 0.75rem; color: var(--text-light); margin-top: 4px; }
+        .modal-form-grid textarea[id$="-fotos"] { min-height: 50px; }
+        .modal-checks { display: flex; gap: 16px; flex-wrap: wrap; }
+        .modal-checks label { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 500; color: var(--text-main); margin: 0; }
     </style>
 </head>
 <body>
@@ -155,8 +161,8 @@
                 <div class="full"><label>Beneficios / soporte (uno por línea)</label><textarea id="ed-beneficios"></textarea></div>
                 <div class="full"><label>Descripción</label><textarea id="ed-desc"></textarea></div>
                 <div class="full">
-                    <label>Fotos (una URL por línea)</label>
-                    <textarea id="ed-fotos" oninput="previsualizarFotosEdit()"></textarea>
+                    <label>Fotos (una URL por línea, o pegá varias separadas por coma)</label>
+                    <textarea id="ed-fotos" oninput="previsualizarFotos('ed-fotos', 'ed-fotos-preview')"></textarea>
                     <div class="fotos-edit-preview" id="ed-fotos-preview"></div>
                 </div>
             </div>
@@ -167,8 +173,65 @@
         </div>
     </div>
 
+    <!-- ===== MODAL: Editar propiedad ===== -->
+    <div class="modal-overlay" id="modal-editar-prop">
+        <div class="modal-box" style="max-width: 860px;">
+            <h3>Editar propiedad</h3>
+            <div class="modal-form-grid">
+                <div class="full"><label>Link RE/MAX (referencia)</label><input type="url" id="edp-link"></div>
+                <div><label>Título</label><input type="text" id="edp-titulo"></div>
+                <div><label>Precio</label><input type="text" id="edp-precio"></div>
+                <div><label>Ubicación</label><input type="text" id="edp-ubicacion"></div>
+                <div>
+                    <label>Categoría</label>
+                    <select id="edp-categoria">
+                        <option>Vivienda Residencial</option>
+                        <option>RE/MAX Exclusive (Lujo)</option>
+                        <option>Comercial / Industrial</option>
+                        <option>Proyectos y Desarrollos</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Tipo de contrato</label>
+                    <select id="edp-tipo-contrato">
+                        <option value="venta">Venta</option>
+                        <option value="alquiler">Alquiler</option>
+                    </select>
+                </div>
+                <div><label>Tipo de propiedad</label><input type="text" id="edp-tipo-propiedad"></div>
+                <div><label>ID externo</label><input type="text" id="edp-id-externo"></div>
+                <div><label>Habitaciones</label><input type="text" id="edp-hab"></div>
+                <div><label>Baños</label><input type="text" id="edp-banos"></div>
+                <div><label>m² (general)</label><input type="text" id="edp-m2"></div>
+                <div><label>Tamaño de lote</label><input type="text" id="edp-tamano-lote"></div>
+                <div><label>Tamaño de construcción</label><input type="text" id="edp-tamano-construccion"></div>
+                <div><label>Latitud</label><input type="text" id="edp-latitud"></div>
+                <div><label>Longitud</label><input type="text" id="edp-longitud"></div>
+                <div><label>Tour virtual (URL)</label><input type="url" id="edp-tour"></div>
+                <div><label>Video (URL)</label><input type="url" id="edp-video"></div>
+                <div class="full modal-checks">
+                    <label><input type="checkbox" id="edp-garage" style="width:auto;"> Garage</label>
+                    <label><input type="checkbox" id="edp-hoa" style="width:auto;"> Cuota de mantenimiento (HOA)</label>
+                    <label><input type="checkbox" id="edp-comunidad-cerrada" style="width:auto;"> Comunidad cerrada</label>
+                    <label><input type="checkbox" id="edp-nueva" style="width:auto;"> Propiedad nueva</label>
+                </div>
+                <div class="full"><label>Descripción original</label><textarea id="edp-desc"></textarea></div>
+                <div class="full"><label>Copy de venta (texto publicado)</label><textarea id="edp-copy"></textarea></div>
+                <div class="full">
+                    <label>Fotos (una URL por línea, o pegá varias separadas por coma)</label>
+                    <textarea id="edp-fotos" oninput="previsualizarFotos('edp-fotos', 'edp-fotos-preview')"></textarea>
+                    <div class="fotos-edit-preview" id="edp-fotos-preview"></div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal-cancel" onclick="cerrarEdicionProp()">Cancelar</button>
+                <button class="btn-modal-guardar" onclick="guardarEdicionProp()">Guardar cambios</button>
+            </div>
+        </div>
+    </div>
+
     <script src="config.js?v=2"></script>
-    <script src="login.js?v=2"></script>
+    <script src="login.js?v=3"></script>
     <script>
         const SUPA_URL = window.SITE_CONFIG.SUPABASE_URL;
         let propiedades = [];
@@ -185,7 +248,7 @@
             const body = document.getElementById('tabla-body');
             try {
                 const headers = await CostoSVAuth.authHeaders();
-                const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?select=id,titulo,precio,categoria,fotos,publicada,created_at&order=created_at.desc`, { headers });
+                const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?select=*&order=created_at.desc`, { headers });
                 if (!res.ok) throw new Error('No se pudieron cargar (' + res.status + ')');
                 propiedades = await res.json();
                 render();
@@ -211,7 +274,10 @@
                         <td>${p.categoria}</td>
                         <td>${fecha}</td>
                         <td><button class="estado-chip ${p.publicada ? 'publicada' : 'oculta'}" onclick="cambiarEstado('${p.id}', ${!p.publicada})">${p.publicada ? '✓ Publicada' : 'Oculta'}</button></td>
-                        <td><button class="btn-eliminar" onclick="eliminar('${p.id}')"><i class="fas fa-trash"></i> Eliminar</button></td>
+                        <td>
+                            <button class="btn-editar" onclick="abrirEdicionProp('${p.id}')"><i class="fas fa-pen"></i> Editar</button>
+                            <button class="btn-eliminar" onclick="eliminar('${p.id}')"><i class="fas fa-trash"></i> Eliminar</button>
+                        </td>
                     </tr>
                 `;
             }).join('');
@@ -321,18 +387,39 @@
             }
         }
 
+        // ---------- Edicion (helpers compartidos) ----------
+        // Acepta una URL por linea Y/O varias separadas por coma en la misma linea,
+        // para que pegar un bloque de texto con varios links no obligue a acomodarlos a mano.
+        function parsearFotos(texto) {
+            return texto.split(/[\n,]/).map(s => s.trim()).filter(Boolean);
+        }
+
+        function obtenerUrlsFotosDe(textareaId) {
+            return parsearFotos(document.getElementById(textareaId).value);
+        }
+
+        function previsualizarFotos(textareaId, previewId) {
+            const cont = document.getElementById(previewId);
+            const urls = obtenerUrlsFotosDe(textareaId);
+            const cabecera = `<div class="fotos-edit-count">${urls.length} foto${urls.length === 1 ? '' : 's'} cargada${urls.length === 1 ? '' : 's'}</div>`;
+            const miniaturas = urls.map((u, i) => `
+                <div class="fotos-edit-thumb">
+                    <img src="${u}" onerror="this.style.display='none'">
+                    <button type="button" onclick="quitarFoto('${textareaId}', '${previewId}', ${i})"><i class="fas fa-trash"></i></button>
+                </div>
+            `).join('');
+            cont.innerHTML = cabecera + '<div class="fotos-edit-preview">' + miniaturas + '</div>';
+        }
+
+        function quitarFoto(textareaId, previewId, indice) {
+            const urls = obtenerUrlsFotosDe(textareaId);
+            urls.splice(indice, 1);
+            document.getElementById(textareaId).value = urls.join('\n');
+            previsualizarFotos(textareaId, previewId);
+        }
+
         // ---------- Edicion de franquicias ----------
         let edicionActualId = null;
-
-        function obtenerUrlsFotosEdit() {
-            return document.getElementById('ed-fotos').value.split('\n').map(s => s.trim()).filter(Boolean);
-        }
-
-        function previsualizarFotosEdit() {
-            const cont = document.getElementById('ed-fotos-preview');
-            const urls = obtenerUrlsFotosEdit();
-            cont.innerHTML = urls.map(u => `<img src="${u}" onerror="this.style.display='none'">`).join('');
-        }
 
         function abrirEdicionFr(id) {
             const f = franquicias.find(x => x.id === id);
@@ -354,7 +441,7 @@
             document.getElementById('ed-beneficios').value = (f.beneficios || []).join('\n');
             document.getElementById('ed-desc').value = f.descripcion_original || '';
             document.getElementById('ed-fotos').value = (f.fotos || []).join('\n');
-            previsualizarFotosEdit();
+            previsualizarFotos('ed-fotos', 'ed-fotos-preview');
             document.getElementById('modal-editar-fr').classList.add('show');
         }
 
@@ -381,7 +468,7 @@
                 link_referencia: document.getElementById('ed-link').value.trim() || null,
                 beneficios: document.getElementById('ed-beneficios').value.split('\n').map(s => s.trim()).filter(Boolean),
                 descripcion_original: document.getElementById('ed-desc').value.trim() || null,
-                fotos: obtenerUrlsFotosEdit(),
+                fotos: obtenerUrlsFotosDe('ed-fotos'),
             };
             try {
                 const headers = await CostoSVAuth.authHeaders();
@@ -392,6 +479,88 @@
                 Object.assign(franquicias.find(x => x.id === edicionActualId), body);
                 renderFr();
                 cerrarEdicionFr();
+            } catch (ex) {
+                alert(ex.message);
+            }
+        }
+
+        // ---------- Edicion de propiedades ----------
+        let edicionPropActualId = null;
+
+        function abrirEdicionProp(id) {
+            const p = propiedades.find(x => x.id === id);
+            if (!p) return;
+            edicionPropActualId = id;
+            document.getElementById('edp-link').value = p.link_referencia || '';
+            document.getElementById('edp-titulo').value = p.titulo || '';
+            document.getElementById('edp-precio').value = p.precio || '';
+            document.getElementById('edp-ubicacion').value = p.ubicacion || '';
+            document.getElementById('edp-categoria').value = p.categoria || 'Vivienda Residencial';
+            document.getElementById('edp-tipo-contrato').value = p.tipo_contrato || 'venta';
+            document.getElementById('edp-tipo-propiedad').value = p.tipo_propiedad_detalle || '';
+            document.getElementById('edp-id-externo').value = p.id_externo || '';
+            document.getElementById('edp-hab').value = p.habitaciones || '';
+            document.getElementById('edp-banos').value = p.banos || '';
+            document.getElementById('edp-m2').value = p.m2 || '';
+            document.getElementById('edp-tamano-lote').value = p.tamano_lote || '';
+            document.getElementById('edp-tamano-construccion').value = p.tamano_construccion || '';
+            document.getElementById('edp-latitud').value = p.latitud ?? '';
+            document.getElementById('edp-longitud').value = p.longitud ?? '';
+            document.getElementById('edp-tour').value = p.tour_virtual_url || '';
+            document.getElementById('edp-video').value = p.video_url || '';
+            document.getElementById('edp-garage').checked = !!p.garage;
+            document.getElementById('edp-hoa').checked = !!p.hoa;
+            document.getElementById('edp-comunidad-cerrada').checked = !!p.comunidad_cerrada;
+            document.getElementById('edp-nueva').checked = !!p.propiedad_nueva;
+            document.getElementById('edp-desc').value = p.descripcion_original || '';
+            document.getElementById('edp-copy').value = p.copy_venta || '';
+            document.getElementById('edp-fotos').value = (p.fotos || []).join('\n');
+            previsualizarFotos('edp-fotos', 'edp-fotos-preview');
+            document.getElementById('modal-editar-prop').classList.add('show');
+        }
+
+        function cerrarEdicionProp() {
+            document.getElementById('modal-editar-prop').classList.remove('show');
+            edicionPropActualId = null;
+        }
+
+        async function guardarEdicionProp() {
+            if (!edicionPropActualId) return;
+            const body = {
+                link_referencia: document.getElementById('edp-link').value.trim() || null,
+                titulo: document.getElementById('edp-titulo').value.trim() || 'Propiedad sin título',
+                precio: document.getElementById('edp-precio').value.trim() || 'Precio a consultar',
+                ubicacion: document.getElementById('edp-ubicacion').value.trim() || null,
+                categoria: document.getElementById('edp-categoria').value,
+                tipo_contrato: document.getElementById('edp-tipo-contrato').value,
+                tipo_propiedad_detalle: document.getElementById('edp-tipo-propiedad').value.trim() || null,
+                id_externo: document.getElementById('edp-id-externo').value.trim() || null,
+                habitaciones: document.getElementById('edp-hab').value.trim() || null,
+                banos: document.getElementById('edp-banos').value.trim() || null,
+                m2: document.getElementById('edp-m2').value.trim() || null,
+                tamano_lote: document.getElementById('edp-tamano-lote').value.trim() || null,
+                tamano_construccion: document.getElementById('edp-tamano-construccion').value.trim() || null,
+                latitud: parseFloat(document.getElementById('edp-latitud').value) || null,
+                longitud: parseFloat(document.getElementById('edp-longitud').value) || null,
+                tour_virtual_url: document.getElementById('edp-tour').value.trim() || null,
+                video_url: document.getElementById('edp-video').value.trim() || null,
+                garage: document.getElementById('edp-garage').checked,
+                hoa: document.getElementById('edp-hoa').checked,
+                comunidad_cerrada: document.getElementById('edp-comunidad-cerrada').checked,
+                propiedad_nueva: document.getElementById('edp-nueva').checked,
+                descripcion_original: document.getElementById('edp-desc').value.trim() || null,
+                copy_venta: document.getElementById('edp-copy').value.trim() || null,
+                fotos: obtenerUrlsFotosDe('edp-fotos'),
+            };
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?id=eq.${edicionPropActualId}`, {
+                    method: 'PATCH', headers: { ...headers, Prefer: 'return=minimal' }, body: JSON.stringify(body),
+                });
+                if (!res.ok) throw new Error('No se pudo guardar (' + res.status + ')');
+                Object.assign(propiedades.find(x => x.id === edicionPropActualId), body);
+                render();
+                cerrarEdicionProp();
             } catch (ex) {
                 alert(ex.message);
             }

@@ -204,7 +204,10 @@
                     <h4 style="font-family:'Playfair Display', serif; color: var(--primary); margin-bottom: 10px;">Qué incluye</h4>
                     <ul class="modal-beneficios-list" id="md-beneficios"></ul>
                 </div>
-                <a href="#" id="md-whatsapp" target="_blank" rel="noopener" class="btn btn-gold" style="width:100%; margin-top:24px;"><i class="fab fa-whatsapp"></i> Quiero más información</a>
+                <div style="display:flex; gap:12px; margin-top:24px; flex-wrap:wrap;">
+                    <button type="button" id="md-dossier" class="btn btn-outline" style="flex:1; min-width:180px;" onclick="descargarDossier()"><i class="fas fa-file-pdf"></i> Descargar dossier (PDF)</button>
+                    <a href="#" id="md-whatsapp" target="_blank" rel="noopener" class="btn btn-gold" style="flex:1; min-width:180px;"><i class="fab fa-whatsapp"></i> Quiero más información</a>
+                </div>
             </div>
         </div>
     </div>
@@ -213,6 +216,7 @@
     <a data-whatsapp href="#" class="floating-whatsapp"><i class="fab fa-whatsapp"></i></a>
 
     <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="config.js?v=2"></script>
     <script src="app.js?v=2"></script>
     <script>
@@ -277,9 +281,12 @@
                 return specs.filter(([, v]) => v).map(([label, v]) => `<div>${label}<strong>${v}</strong></div>`).join('');
             }
 
+            let franquiciaAbierta = null;
+
             window.abrirDetalleFr = function (id) {
                 const f = todasLasFranquicias.find(x => x.id === id);
                 if (!f) return;
+                franquiciaAbierta = f;
                 const fotos = (f.fotos && f.fotos.length) ? f.fotos : [FOTO_RESPALDO];
 
                 const cont = document.getElementById('md-carrusel-img');
@@ -318,6 +325,142 @@
             window.cerrarDetalleFr = function () {
                 document.getElementById('modal-detalle-fr').classList.remove('show');
                 document.body.style.overflow = '';
+            };
+
+            // Dossier PDF generado al vuelo con los datos ya cargados de la ficha
+            // (no hace falta un PDF subido a mano por cada franquicia).
+            window.descargarDossier = function () {
+                const f = franquiciaAbierta;
+                if (!f || !window.jspdf) return;
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+                const margenX = 20;
+                const anchoUtil = 210 - margenX * 2;
+                let y = 22;
+
+                const DORADO = [212, 175, 55];
+                const NAVY = [10, 15, 28];
+                const GRIS = [100, 116, 139];
+
+                doc.setFillColor(...NAVY);
+                doc.rect(0, 0, 210, 34, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(11);
+                doc.text('COSTO SV', margenX, 15);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(9);
+                doc.setTextColor(...DORADO);
+                doc.text('Oportunidades de Franquicia · Alianza con ' + (f.aliado || 'Retail Solutions'), margenX, 22);
+                y = 46;
+
+                doc.setTextColor(...NAVY);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(20);
+                doc.text(f.nombre || 'Franquicia', margenX, y);
+                y += 7;
+
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(10);
+                doc.setTextColor(...GRIS);
+                doc.text((f.categoria || '') + (f.inversion_total ? '   ·   Inversión: ' + f.inversion_total : ''), margenX, y);
+                y += 10;
+
+                if (f.descripcion_original) {
+                    doc.setTextColor(30, 41, 59);
+                    doc.setFontSize(10.5);
+                    const lineas = doc.splitTextToSize(f.descripcion_original, anchoUtil);
+                    doc.text(lineas, margenX, y);
+                    y += lineas.length * 5 + 8;
+                }
+
+                const specs = [
+                    ['Inversión total', f.inversion_total],
+                    ['Cuota de franquicia', f.cuota_franquicia],
+                    ['Regalías', f.regalias],
+                    ['Retorno estimado', f.retorno_estimado],
+                    ['Espacio requerido', f.espacio_requerido],
+                    ['Empleados requeridos', f.empleados_requeridos],
+                    ['Unidades actuales', f.unidades_actuales],
+                    ['Años en el mercado', f.anos_en_mercado],
+                    ['Territorios disponibles', f.territorios_disponibles],
+                ].filter(([, v]) => v);
+
+                if (specs.length) {
+                    doc.setDrawColor(226, 232, 240);
+                    doc.line(margenX, y, margenX + anchoUtil, y);
+                    y += 8;
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(11);
+                    doc.setTextColor(...NAVY);
+                    doc.text('Datos de la franquicia', margenX, y);
+                    y += 7;
+
+                    // Alto de fila variable: si un valor es largo y se envuelve en varias
+                    // lineas, la fila crece para no pisar la siguiente (con ambas columnas
+                    // a alto fijo, un valor largo tapaba la fila de abajo).
+                    const colAncho = anchoUtil / 2;
+                    const colTexto = colAncho - 6;
+                    doc.setFontSize(10.5);
+                    const specsConLineas = specs.map(([label, valor]) => ({
+                        label, lineas: doc.splitTextToSize(String(valor), colTexto),
+                    }));
+
+                    for (let i = 0; i < specsConLineas.length; i += 2) {
+                        const izq = specsConLineas[i];
+                        const der = specsConLineas[i + 1];
+                        const altoFila = Math.max(izq.lineas.length, der ? der.lineas.length : 0) * 5 + 9;
+
+                        [izq, der].forEach((item, col) => {
+                            if (!item) return;
+                            const x = margenX + col * colAncho;
+                            doc.setFont('helvetica', 'normal');
+                            doc.setFontSize(8.5);
+                            doc.setTextColor(...GRIS);
+                            doc.text(item.label, x, y);
+                            doc.setFont('helvetica', 'bold');
+                            doc.setFontSize(10.5);
+                            doc.setTextColor(30, 41, 59);
+                            doc.text(item.lineas, x, y + 5);
+                        });
+                        y += altoFila;
+                    }
+                    y += 4;
+                }
+
+                const beneficios = f.beneficios || [];
+                if (beneficios.length) {
+                    doc.setDrawColor(226, 232, 240);
+                    doc.line(margenX, y, margenX + anchoUtil, y);
+                    y += 8;
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(11);
+                    doc.setTextColor(...NAVY);
+                    doc.text('Qué incluye', margenX, y);
+                    y += 7;
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(10);
+                    doc.setTextColor(30, 41, 59);
+                    beneficios.forEach((b) => {
+                        const lineas = doc.splitTextToSize('•  ' + b, anchoUtil);
+                        doc.text(lineas, margenX, y);
+                        y += lineas.length * 5.5 + 2;
+                    });
+                }
+
+                const alturaPagina = doc.internal.pageSize.getHeight();
+                doc.setDrawColor(226, 232, 240);
+                doc.line(margenX, alturaPagina - 24, margenX + anchoUtil, alturaPagina - 24);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(9);
+                doc.setTextColor(...GRIS);
+                doc.text('Walter Guerrero · Agente Inmobiliario RE/MAX El Salvador', margenX, alturaPagina - 17);
+                const waTexto = 'WhatsApp: +' + (CFG.WHATSAPP_NUMBER || '') + '   ·   guerrero-properties.com/franquicias.html';
+                doc.text(waTexto, margenX, alturaPagina - 12);
+
+                const nombreArchivo = 'Dossier - ' + (f.nombre || 'Franquicia') + '.pdf';
+                doc.save(nombreArchivo);
             };
 
             window.moverCarruselFr = function (id, direccion) {
