@@ -1,4 +1,11 @@
 {
+  "redirects": [
+    {
+      "source": "/franquicias.html",
+      "destination": "https://franquicias-retailsolutions.vercel.app/",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/panel.html",
