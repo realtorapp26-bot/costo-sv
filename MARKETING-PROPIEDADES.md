@@ -156,23 +156,40 @@ migraciones** — se creó a mano en el dashboard; las migraciones solo le hacen
 el trigger; se puede sobreescribir con un `UPDATE` manual (el trigger respeta un
 slug no vacío).
 
+### Estado del slug a 2026-09-02 (HECHO)
+
+- La migración `20260902000000_propiedades_slug.sql` **se corrió** en el SQL
+  Editor de Supabase (columna + trigger + índice único).
+- El trigger se ajustó después: recorta a **50 caracteres** y limpia el guion
+  final (`btrim(left(btrim(base,'-'),50),'-')`). El archivo de migración del repo
+  refleja la versión final.
+- A las 6 propiedades actuales se les puso **slug corto a mano** (`UPDATE`):
+
+  | slug | propiedad |
+  |---|---|
+  | `rancho-santorini` | Rancho Santorini, Amatecampo |
+  | `terreno-golden-lake-costa-del-sol` | Terreno en Golden Lake, Costa del Sol |
+  | `terreno-residencial-ahuachapan` | Terreno Residencial Privada, Ahuachapán |
+  | `finca-suchitoto` | Finca 14,000 m², Ruta a Suchitoto |
+  | `terreno-quintas-montecristo` | Terreno Quintas Montecristo, Nahuizalco |
+  | `propiedad-sin-titulo` | "Propiedad sin título" (falta titularla) |
+
+- Verificado en vivo: las 6 páginas → `200`; el link viejo por UUID → `301` al
+  slug; `canonical` / `og:url` usan el slug corto.
+- Las **propiedades nuevas** que cargue Walter en el panel reciben slug
+  automático del trigger (ya recortado); no hay que hacer nada.
+
 ---
 
 ## Pendiente
 
-1. **Correr la migración `20260902000000_propiedades_slug.sql` en el SQL Editor
-   de Supabase** (no hay CLI ni service key en el repo). Sin esto, las páginas
-   funcionan igual pero las URLs usan el UUID en vez del slug legible.
-   > Estado a 2026-09-02: el usuario lo estaba corriendo. Verificar que
-   > `select slug, titulo from propiedades` devuelva un slug por fila.
-2. Opcional: acortar a mano los slugs de las propiedades actuales (el trigger
-   genera slugs largos con el título completo). Seguro de hacer ahora porque
-   todavía no hay campañas con esas URLs.
-3. `"Propiedad sin título"`: ponerle un título real en el panel; si se deja el
-   `slug` en NULL, el trigger lo regenera.
-4. Opcional a futuro: sitemap de propiedades, y catálogo de Meta para
-   dynamic ads de inmuebles (la base ya sirve para armar el feed:
-   `id`, `content_type: home_listing`, precio, foto).
+1. `"Propiedad sin título"`: ponerle un título real en el panel. Si además se
+   deja el `slug` en NULL al guardar, el trigger lo regenera desde el título.
+2. **Subir los videos de YouTube** desde el panel (campo "Video de YouTube (URL)"
+   por propiedad). La ficha y el badge del grid aparecen solos al guardar.
+3. Opcional a futuro: sitemap de propiedades (`/propiedad/*` no está en
+   `sitemap.xml`), y catálogo de Meta para dynamic ads de inmuebles (la base ya
+   sirve para armar el feed: `id`, `content_type: home_listing`, precio, foto).
 
 ## Qué NO tocar por esto
 

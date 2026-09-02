@@ -23,9 +23,9 @@ begin
     'áàäâãéèëêíìïîóòöôõúùüûñç',
     'aaaaaeeeeiiiiooooouuuunc');
   base := regexp_replace(base, '[^a-z0-9]+', '-', 'g');
-  base := btrim(base, '-');
+  -- recorta a 50 y limpia el guion que pueda quedar colgando tras el corte
+  base := btrim(left(btrim(base, '-'), 50), '-');
   if base = '' then base := 'propiedad'; end if;
-  base := left(base, 70);
 
   candidato := base;
   while exists (select 1 from propiedades where slug = candidato and id <> new.id) loop
