@@ -596,6 +596,25 @@ img {
     letter-spacing: 1px;
 }
 
+.prop-badge-video {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    z-index: 3;
+    background: rgba(220, 38, 38, 0.95);
+    backdrop-filter: blur(4px);
+    color: white;
+    padding: 5px 11px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .prop-content {
     padding: 26px 30px 30px;
     flex: 1;

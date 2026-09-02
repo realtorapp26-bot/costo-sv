@@ -28,6 +28,17 @@ const precioNumero = (p) => {
   return Number.isFinite(n) && n > 0 ? n : null;
 };
 
+// Extrae el ID de 11 caracteres de un video de YouTube en cualquiera de sus
+// formatos (watch?v=, youtu.be/, embed/, shorts/, live/). Devuelve null si la
+// URL no es un video (p. ej. el link a un canal) — en ese caso se deja como enlace.
+const youtubeId = (u) => {
+  if (!u) return null;
+  const m = String(u).trim().match(
+    /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/
+  );
+  return m ? m[1] : null;
+};
+
 async function buscarPropiedad(valor) {
   const base = `${SUPA_URL}/rest/v1/propiedades`;
   const headers = { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` };
@@ -106,11 +117,23 @@ function render(p) {
     ? `<ul class="ficha-features">${features.map((f) => `<li><i class="fas fa-check"></i> ${f}</li>`).join('')}</ul>`
     : '';
 
+  const ytId = youtubeId(p.video_url);
+  const videoHtml = ytId ? `<div class="ficha-seccion">
+                    <h2>Video de la propiedad</h2>
+                    <div class="ficha-video">
+                        <button type="button" class="yt-facade" data-yt="${esc(ytId)}" onclick="cargarYt(this)"
+                                style="background-image:url('https://i.ytimg.com/vi/${esc(ytId)}/hqdefault.jpg')"
+                                aria-label="Reproducir el video de ${esc(p.titulo)}">
+                            <span class="yt-play"><i class="fas fa-play"></i></span>
+                        </button>
+                    </div>
+                </div>` : '';
+
   const tieneMapa = p.latitud != null && p.longitud != null;
   const enlacesExtra = [
     tieneMapa ? `<a href="https://www.google.com/maps/search/?api=1&query=${p.latitud},${p.longitud}" target="_blank" rel="noopener"><i class="fas fa-map-location-dot"></i> Ver ubicación en el mapa</a>` : '',
     p.tour_virtual_url ? `<a href="${esc(p.tour_virtual_url)}" target="_blank" rel="noopener"><i class="fas fa-vr-cardboard"></i> Tour virtual 360°</a>` : '',
-    p.video_url ? `<a href="${esc(p.video_url)}" target="_blank" rel="noopener"><i class="fas fa-play-circle"></i> Video de la propiedad</a>` : '',
+    (p.video_url && !ytId) ? `<a href="${esc(p.video_url)}" target="_blank" rel="noopener"><i class="fas fa-play-circle"></i> Video de la propiedad</a>` : '',
   ].filter(Boolean).join('');
 
   const waMsg = `Hola Walter, me interesa "${p.titulo}" (${p.precio || ''}) que vi en ${url}. ¿Me das más información?`;
@@ -227,6 +250,12 @@ function render(p) {
         .ficha-precio { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--primary); margin: 4px 0 20px; }
         .ficha-aside .btn { width: 100%; }
         .ficha-aside .aside-nota { font-size: 0.82rem; color: var(--text-light); margin-top: 14px; text-align: center; }
+        .ficha-video { position: relative; aspect-ratio: 16 / 9; border-radius: var(--radius-md); overflow: hidden; background: #000; }
+        .ficha-video iframe, .ficha-video .yt-facade { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+        .yt-facade { display: flex; align-items: center; justify-content: center; background-size: cover; background-position: center; cursor: pointer; padding: 0; }
+        .yt-facade::after { content: ''; position: absolute; inset: 0; background: rgba(10, 15, 28, 0.28); transition: background 0.25s ease; }
+        .yt-facade:hover::after { background: rgba(10, 15, 28, 0.12); }
+        .yt-play { position: relative; z-index: 1; width: 66px; height: 66px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; padding-left: 4px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35); }
         @media (max-width: 880px) {
             .ficha-layout { flex-direction: column; }
             .ficha-aside { position: static; width: 100%; flex-basis: auto; }
@@ -269,6 +298,7 @@ function render(p) {
                 ${chips ? `<div class="ficha-chips">${chips}</div>` : ''}
 
                 ${descripcion ? `<div class="ficha-seccion"><h2>Descripción</h2><div class="ficha-desc">${esc(descripcion)}</div></div>` : ''}
+                ${videoHtml}
                 ${featuresHtml ? `<div class="ficha-seccion"><h2>Características</h2>${featuresHtml}</div>` : ''}
                 ${enlacesExtra ? `<div class="ficha-seccion"><h2>Más información</h2><div class="ficha-enlaces">${enlacesExtra}</div></div>` : ''}
             </div>
@@ -330,6 +360,7 @@ function render(p) {
     <script>
         var FICHA_FOTOS = ${JSON.stringify(fotos)};
         var FICHA_SHARE = { titulo: ${JSON.stringify(p.titulo)}, url: ${JSON.stringify(url)} };
+        var FICHA_ID = ${JSON.stringify(p.id)};
         var FICHA_IDX = 0;
         function verFoto(i) {
             FICHA_IDX = i;
@@ -340,10 +371,25 @@ function render(p) {
         function abrirGaleria() {
             window.abrirLightbox(FICHA_FOTOS, FICHA_IDX, FICHA_SHARE);
         }
+        // El video de YouTube se carga solo al hacer clic (más rápido y sin
+        // cookies de terceros hasta que el visitante decide verlo).
+        function cargarYt(el) {
+            var id = el.getAttribute('data-yt');
+            var f = document.createElement('iframe');
+            f.src = 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0&modestbranding=1';
+            f.title = 'Video de la propiedad';
+            f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+            f.allowFullscreen = true;
+            el.replaceWith(f);
+            try { if (typeof window.fbq === 'function') window.fbq('trackCustom', 'PlayPropertyVideo', { content_ids: [FICHA_ID], content_name: FICHA_SHARE.titulo }); } catch (e) {}
+            if (window.CostoSVMetricas) window.CostoSVMetricas.registrarEvento('ficha_view', 'video: ' + FICHA_SHARE.titulo);
+        }
     </script>
 </body>
 </html>`;
 }
+
+export { render, youtubeId };
 
 export default async function handler(req, res) {
   const raw = (req.query && (req.query.slug || req.query.propiedad)) || '';

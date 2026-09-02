@@ -71,6 +71,22 @@ No hace falta construir nada más para eso.
   título **solo al insertar** (no lo regenera si después se edita el título → las
   URLs publicadas quedan estables; para forzar, poné `slug = NULL` y guardá).
 
+### 3b. Video de YouTube por propiedad
+
+- Campo `propiedades.video_url` (ya existía, editable en el panel: "Video de
+  YouTube (URL)"). Acepta cualquier formato: `watch?v=`, `youtu.be/`, `shorts/`,
+  `embed/`, `live/`. Si la URL no es un video (p. ej. link a un canal) se deja
+  como enlace de texto, no rompe.
+- En `api/propiedad.js`: `youtubeId()` saca el ID; se muestra un reproductor
+  **con fachada** (miniatura de YouTube + botón play) que **solo carga el iframe
+  al hacer clic** (`youtube-nocookie.com`, sin cookies de terceros hasta que el
+  visitante decide ver). Sección "Video de la propiedad" debajo de la descripción.
+- Al darle play dispara `fbq('trackCustom', 'PlayPropertyVideo', {content_ids})`
+  → sirve para audiencias de engagement / retargeting de "vio el video".
+- En el grid (`propiedades.html` e `index.html`): badge **"▶ Video"** en las
+  tarjetas que tienen `video_url` (clase `.prop-badge-video` en `styles.css`).
+- `render` y `youtubeId` se exportan desde `api/propiedad.js` para poder testear.
+
 ### 4. Anclas `#<slug>` en el catálogo — `9ee4a1c`
 - En `propiedades.html`: cada `.prop-card` del grid lleva `id="<slug>"`.
 - `propiedades.html#<slug>` → scrollea a la tarjeta y la **resalta** ~2.5 s
@@ -132,8 +148,9 @@ migraciones** — se creó a mano en el dashboard; las migraciones solo le hacen
 `ubicacion`, `categoria`, `tipo_contrato`, `habitaciones`, `banos`, `m2`,
 `tamano_lote`, `tamano_construccion`, `latitud`, `longitud`, `garage`, `hoa`,
 `comunidad_cerrada`, `propiedad_nueva`, `tipo_propiedad_detalle`,
-`tour_virtual_url`, `video_url`, `copy_venta`, `descripcion_original`, `fotos`
-(array de URLs), `publicada` (bool), **`slug`** (nuevo), `created_at`.
+`tour_virtual_url`, `video_url` (URL de YouTube — se embebe en la ficha),
+`copy_venta`, `descripcion_original`, `fotos` (array de URLs), `publicada` (bool),
+**`slug`** (nuevo), `created_at`.
 
 `slug`: `[a-z0-9-]`, único (índice parcial `where slug is not null`). Lo genera
 el trigger; se puede sobreescribir con un `UPDATE` manual (el trigger respeta un

@@ -228,6 +228,7 @@
                         <div class="prop-img" data-idx="0" data-fotos="${fotos.join(',').replace(/"/g, '&quot;')}">
                             <span class="prop-badge">${p.categoria}</span>
                             ${p.tipo_contrato ? `<span class="prop-badge-estado">${p.tipo_contrato}</span>` : ''}
+                            ${p.video_url ? `<span class="prop-badge-video"><i class="fas fa-play"></i> Video</span>` : ''}
                             <img loading="lazy" decoding="async" src="${fotos[0]}" alt="${p.titulo}" onerror="this.src='${FOTO_RESPALDO}'"
                                  data-share-titulo="${p.titulo.replace(/"/g, '&quot;')}" data-share-id="${p.id}"
                                  data-share-slug="${slug}"
