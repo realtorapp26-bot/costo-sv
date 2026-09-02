@@ -277,6 +277,18 @@
     const url = id ? `${location.origin}/${paginaDestino}?${param}=${id}` : `${location.origin}/${paginaDestino}`;
     window.abrirLightbox(fotos, idx, { titulo, url });
     if (window.CostoSVMetricas && titulo) window.CostoSVMetricas.registrarEvento('ficha_view', titulo);
+
+    // Meta Pixel — ViewContent por propiedad: permite optimizar la pauta
+    // hacia "vio ESTE inmueble" y armar publicos de retargeting por listing.
+    // Best-effort; nunca romper la UI si el Pixel no cargo.
+    if (tipoEntidad === 'propiedad' && id && typeof window.fbq === 'function') {
+      try {
+        const precioNum = Number(String(imgEl.getAttribute('data-share-precio') || '').replace(/[^0-9.]/g, ''));
+        const params = { content_type: 'home_listing', content_ids: [id], content_name: titulo };
+        if (precioNum > 0) { params.value = precioNum; params.currency = 'USD'; }
+        window.fbq('track', 'ViewContent', params);
+      } catch (e) { /* noop */ }
+    }
   };
 
   window.cerrarLightbox = function () {

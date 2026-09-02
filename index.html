@@ -228,6 +228,7 @@
                             ${p.tipo_contrato ? `<span class="prop-badge-estado">${p.tipo_contrato}</span>` : ''}
                             <img loading="lazy" decoding="async" src="${fotos[0]}" alt="${p.titulo}" onerror="this.src='${FOTO_RESPALDO}'"
                                  data-share-titulo="${p.titulo.replace(/"/g, '&quot;')}" data-share-id="${p.id}"
+                                 data-share-precio="${String(p.precio || '').replace(/"/g, '&quot;')}"
                                  onclick="abrirLightboxImg(this, 'propiedad', 'propiedades.html')">
                         </div>
                         <div class="prop-content">
