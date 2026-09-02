@@ -256,7 +256,7 @@ function render(p) {
     </header>
 
     <div class="ficha-wrap">
-        <a href="/propiedades.html" class="ficha-volver"><i class="fas fa-arrow-left"></i> Volver al inventario</a>
+        <a href="/propiedades.html#${esc(slug)}" class="ficha-volver"><i class="fas fa-arrow-left"></i> Volver al inventario</a>
 
         <img id="ficha-hero" class="ficha-hero-img" src="${esc(foto0)}" alt="${esc(p.titulo)}" onerror="this.src='${FOTO_RESPALDO}'" onclick="abrirGaleria()">
         ${galeriaThumbs}

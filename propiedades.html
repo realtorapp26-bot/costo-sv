@@ -70,6 +70,10 @@
             display: flex; flex-wrap: wrap; justify-content: center; gap: 40px;
         }
         #grid-todas .prop-card { flex: 0 1 360px; }
+        /* Deep-link por ancla (#slug): compensar el navbar sticky y resaltar la tarjeta al llegar */
+        .prop-card { scroll-margin-top: 104px; }
+        .prop-card--destacada { outline: 3px solid var(--gold); outline-offset: 5px; box-shadow: var(--shadow-gold); }
+        .prop-card--destacada.prop-card--apagar { outline-color: transparent; box-shadow: none; transition: outline-color 1.6s ease, box-shadow 1.6s ease; }
         .filtro-categoria { background: none; border: 1px solid var(--border); color: var(--text-main); transition: var(--transition); }
         .filtro-categoria.activo { background: var(--primary); color: white; border-color: var(--primary); }
         .category-header {
@@ -226,7 +230,7 @@
                 ` : '';
 
                 return `
-                    <div class="prop-card">
+                    <div class="prop-card" id="${slug}">
                         <div class="prop-img" id="${carruselId}" data-idx="0" data-fotos="${fotos.join(',').replace(/"/g, '&quot;')}">
                             <span class="prop-badge">${p.categoria}</span>
                             ${p.tipo_contrato ? `<span class="prop-badge-estado">${p.tipo_contrato}</span>` : ''}
@@ -285,27 +289,51 @@
                     if (!res.ok) return;
                     todasLasPropiedades = await res.json();
                     renderGrid();
-                    abrirDesdeQueryString();
+                    enfocarPropiedadDesdeUrl();
                 } catch (err) {
                     console.error('No se pudieron cargar las propiedades:', err);
                 }
             }
 
-            // Si llegan con un link compartido (?propiedad=<id>), le muestran esa
-            // propiedad en grande apenas carga, sin tener que buscarla en la grilla.
-            function abrirDesdeQueryString() {
+            function resetearFiltroATodas() {
+                if (filtroActivo === 'todas') return;
+                document.querySelectorAll('.filtro-categoria').forEach(b => b.classList.toggle('activo', b.getAttribute('data-categoria') === 'todas'));
+                filtroActivo = 'todas';
+                renderGrid();
+            }
+
+            function destacarTarjeta(card) {
+                document.querySelectorAll('.prop-card--destacada').forEach(c => c.classList.remove('prop-card--destacada', 'prop-card--apagar'));
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                card.classList.add('prop-card--destacada');
+                setTimeout(() => card.classList.add('prop-card--apagar'), 2600);
+            }
+
+            // Enfoca una propiedad concreta según la URL:
+            //  - ?propiedad=<id>  -> la abre en grande (visor), para links viejos ya compartidos
+            //  - #<slug>          -> scrollea a su tarjeta y la resalta, sin sacar del catálogo
+            // Para pauta / preview propio se usa /propiedad/<slug> (página aparte).
+            function enfocarPropiedadDesdeUrl() {
                 const id = new URLSearchParams(window.location.search).get('propiedad');
-                if (!id || !todasLasPropiedades.some(p => p.id === id)) return;
-                if (filtroActivo !== 'todas') {
-                    document.querySelectorAll('.filtro-categoria').forEach(b => b.classList.toggle('activo', b.getAttribute('data-categoria') === 'todas'));
-                    filtroActivo = 'todas';
-                    renderGrid();
+                if (id && todasLasPropiedades.some(p => p.id === id)) {
+                    resetearFiltroATodas();
+                    setTimeout(() => {
+                        const img = document.querySelector(`[data-share-id="${id}"]`);
+                        if (!img) return;
+                        img.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        abrirLightboxImg(img, 'propiedad', 'propiedades.html');
+                    }, 300);
+                    return;
                 }
+
+                const slug = decodeURIComponent((window.location.hash || '').replace(/^#/, '')).trim();
+                if (!slug) return;
+                const prop = todasLasPropiedades.find(p => (p.slug || p.id) === slug);
+                if (!prop) return;
+                if (filtroActivo !== 'todas' && prop.categoria !== filtroActivo) resetearFiltroATodas();
                 setTimeout(() => {
-                    const img = document.querySelector(`[data-share-id="${id}"]`);
-                    if (!img) return;
-                    img.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    abrirLightboxImg(img, 'propiedad', 'propiedades.html');
+                    const card = document.getElementById(slug);
+                    if (card) destacarTarjeta(card);
                 }, 300);
             }
 
@@ -319,6 +347,11 @@
                         renderGrid();
                     });
                 });
+            });
+
+            // Si ya está en la página y cambia el #hash (link interno), re-enfocar.
+            window.addEventListener('hashchange', () => {
+                if (todasLasPropiedades.length) enfocarPropiedadDesdeUrl();
             });
         })();
     </script>
