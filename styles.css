@@ -954,6 +954,27 @@ footer {
     font-size: 0.95rem;
 }
 
+.footer-yt {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 18px;
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.92rem;
+    transition: var(--transition);
+}
+
+.footer-yt i {
+    color: #ff0000;
+    font-size: 1.4rem;
+}
+
+.footer-yt:hover {
+    color: var(--gold);
+}
+
 /* Floating WhatsApp */
 .floating-whatsapp {
     position: fixed;

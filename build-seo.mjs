@@ -23,6 +23,7 @@ const BIZ = {
   email: 'walter.guerrero@remax.com.sv',
   siteName: 'Walter Guerrero · RE/MAX Elite',
   ogImage: '%%SITE_URL%%/assets/walter-guerrero-retocada.png',
+  sameAs: ['https://www.youtube.com/@WalterGuerreroSV'],
 };
 
 // file -> etiqueta corta para el breadcrumb (index no lleva breadcrumb)
@@ -50,7 +51,7 @@ function jsonld(file, title, desc, label) {
     { '@type': 'RealEstateAgent', '@id': '%%SITE_URL%%/#agent',
       name: `${BIZ.name} — ${BIZ.affiliation}`, url: '%%SITE_URL%%/',
       image: BIZ.ogImage, telephone: BIZ.telephone, email: BIZ.email,
-      areaServed: BIZ.areaServed,
+      areaServed: BIZ.areaServed, sameAs: BIZ.sameAs,
       employee: { '@type': 'Person', name: BIZ.name, jobTitle: BIZ.jobTitle, worksFor: BIZ.affiliation } },
   ];
   if (label) {
