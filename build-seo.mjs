@@ -17,11 +17,11 @@ if (!SITE) {
 const BIZ = {
   name: 'Walter Guerrero',
   jobTitle: 'Agente Inmobiliario',
-  affiliation: 'RE/MAX El Salvador',
+  affiliation: 'RE/MAX Elite',
   areaServed: 'El Salvador',
   telephone: '+503 7038-1941',
   email: 'walter.guerrero@remax.com.sv',
-  siteName: 'Walter Guerrero · RE/MAX El Salvador',
+  siteName: 'Walter Guerrero · RE/MAX Elite',
   ogImage: '%%SITE_URL%%/assets/walter-guerrero-retocada.png',
 };
 

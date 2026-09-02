@@ -70,7 +70,7 @@ function paginaNoEncontrada() {
   return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
-<title>Propiedad no disponible | Walter Guerrero RE/MAX</title>
+<title>Propiedad no disponible | Walter Guerrero RE/MAX Elite</title>
 <link rel="stylesheet" href="/styles.css"><link rel="icon" href="/favicon.svg" type="image/svg+xml">
 </head><body><div class="container" style="text-align:center;padding:120px 20px;">
 <h1 class="hero-title-sm">Esta propiedad ya no está disponible</h1>
@@ -96,7 +96,7 @@ function render(p) {
   };
   const metaDesc = descripcion
     ? recorte(descripcion, 158)
-    : recorte(`${p.titulo} en ${contrato.toLowerCase()}${p.ubicacion ? ' — ' + p.ubicacion : ''}. ${p.precio || ''}. Contactá a Walter Guerrero, RE/MAX El Salvador.`, 158);
+    : recorte(`${p.titulo} en ${contrato.toLowerCase()}${p.ubicacion ? ' — ' + p.ubicacion : ''}. ${p.precio || ''}. Contactá a Walter Guerrero, RE/MAX Elite.`, 158);
 
   const chips = [
     p.habitaciones ? `<span><i class="fas fa-bed"></i> ${esc(p.habitaciones)} hab</span>` : '',
@@ -153,7 +153,7 @@ function render(p) {
         image: fotos,
         url,
         ...(p.ubicacion ? { address: { '@type': 'PostalAddress', addressLocality: p.ubicacion, addressCountry: 'SV' } } : {}),
-        ...(precioN ? { offers: { '@type': 'Offer', price: precioN, priceCurrency: 'USD', availability: 'https://schema.org/InStock', url, seller: { '@type': 'RealEstateAgent', name: 'Walter Guerrero — RE/MAX El Salvador' } } } : {}),
+        ...(precioN ? { offers: { '@type': 'Offer', price: precioN, priceCurrency: 'USD', availability: 'https://schema.org/InStock', url, seller: { '@type': 'RealEstateAgent', name: 'Walter Guerrero — RE/MAX Elite' } } } : {}),
       },
       {
         '@type': 'BreadcrumbList',
@@ -196,12 +196,12 @@ function render(p) {
     src="https://www.facebook.com/tr?id=${PIXEL_ID}&ev=PageView&noscript=1"
     /></noscript>
     <!-- End Meta Pixel Code -->
-    <title>${esc(p.titulo)} — ${esc(p.precio || contrato)} | Walter Guerrero RE/MAX</title>
+    <title>${esc(p.titulo)} — ${esc(p.precio || contrato)} | Walter Guerrero RE/MAX Elite</title>
     <meta name="description" content="${esc(metaDesc)}">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="${esc(url)}">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Walter Guerrero · RE/MAX El Salvador">
+    <meta property="og:site_name" content="Walter Guerrero · RE/MAX Elite">
     <meta property="og:locale" content="es_SV">
     <meta property="og:title" content="${esc(p.titulo)} — ${esc(p.precio || '')}">
     <meta property="og:description" content="${esc(metaDesc)}">
@@ -308,7 +308,7 @@ function render(p) {
                 <div class="ficha-precio">${esc(p.precio || 'Consultar')}</div>
                 <a data-whatsapp data-wa="${esc(waMsg)}" href="${esc(waHref)}" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> Consultar por WhatsApp</a>
                 <a href="/propiedades.html" class="btn btn-outline" style="margin-top:12px;">Ver otras propiedades</a>
-                <p class="aside-nota">Atención directa de Walter Guerrero, agente RE/MAX El Salvador.</p>
+                <p class="aside-nota">Atención directa de Walter Guerrero, agente RE/MAX Elite.</p>
             </aside>
         </div>
     </div>
@@ -317,7 +317,7 @@ function render(p) {
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col">
-                    <h4>Walter Guerrero | RE/MAX</h4>
+                    <h4>Walter Guerrero | RE/MAX Elite</h4>
                     <p style="color: #cbd5e1; max-width: 300px;">Agente inmobiliario profesional dedicado a tu éxito financiero a través de bienes raíces en El Salvador.</p>
                 </div>
                 <div class="footer-col">
@@ -338,7 +338,7 @@ function render(p) {
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 Walter Guerrero - Agente Inmobiliario RE/MAX El Salvador. Todos los derechos reservados.</p>
+                <p>&copy; 2026 Walter Guerrero - Agente Inmobiliario RE/MAX Elite. Todos los derechos reservados.</p>
             </div>
         </div>
     </footer>
