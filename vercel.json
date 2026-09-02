@@ -1,9 +1,17 @@
 {
+  "rewrites": [
+    { "source": "/propiedad/:slug", "destination": "/api/propiedad?slug=:slug" }
+  ],
   "redirects": [
     {
       "source": "/franquicias.html",
       "destination": "https://franquicias-retailsolutions.vercel.app/",
       "permanent": true
+    },
+    {
+      "source": "/propiedad",
+      "destination": "/propiedades.html",
+      "permanent": false
     }
   ],
   "headers": [

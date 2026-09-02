@@ -216,6 +216,8 @@
 
             function tarjetaHome(p) {
                 const fotos = (p.fotos && p.fotos.length) ? p.fotos : [FOTO_RESPALDO];
+                const slug = p.slug || p.id;
+                const fichaUrl = `/propiedad/${encodeURIComponent(slug)}`;
                 const meta = [
                     p.habitaciones ? `<span><i class="fas fa-bed"></i> ${p.habitaciones} Hab</span>` : '',
                     p.banos ? `<span><i class="fas fa-bath"></i> ${p.banos} Baños</span>` : '',
@@ -228,24 +230,25 @@
                             ${p.tipo_contrato ? `<span class="prop-badge-estado">${p.tipo_contrato}</span>` : ''}
                             <img loading="lazy" decoding="async" src="${fotos[0]}" alt="${p.titulo}" onerror="this.src='${FOTO_RESPALDO}'"
                                  data-share-titulo="${p.titulo.replace(/"/g, '&quot;')}" data-share-id="${p.id}"
+                                 data-share-slug="${slug}"
                                  data-share-precio="${String(p.precio || '').replace(/"/g, '&quot;')}"
                                  onclick="abrirLightboxImg(this, 'propiedad', 'propiedades.html')">
                         </div>
                         <div class="prop-content">
-                            <h3 class="prop-title">${p.titulo}</h3>
+                            <h3 class="prop-title"><a href="${fichaUrl}" style="color: inherit; text-decoration: none;">${p.titulo}</a></h3>
                             ${p.ubicacion ? `<p class="prop-ubicacion"><i class="fas fa-location-dot"></i> ${p.ubicacion}</p>` : ''}
                             <div class="prop-meta">${meta}</div>
                             <div class="prop-footer">
                                 <div class="prop-price-label">Precio</div>
                                 <div class="prop-price">${p.precio}</div>
                             </div>
-                            <a href="propiedades.html" class="btn btn-outline" style="width: 100%;">Ver detalles</a>
+                            <a href="${fichaUrl}" class="btn btn-outline" style="width: 100%;">Ver detalles</a>
                         </div>
                     </div>
                 `;
             }
 
-            fetch(`${SUPA_URL}/rest/v1/propiedades?select=id,titulo,precio,ubicacion,categoria,tipo_contrato,fotos,habitaciones,banos,m2&publicada=eq.true&order=created_at.desc&limit=3`, {
+            fetch(`${SUPA_URL}/rest/v1/propiedades?select=*&publicada=eq.true&order=created_at.desc&limit=3`, {
                 headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
             })
                 .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))

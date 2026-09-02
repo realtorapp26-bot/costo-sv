@@ -208,6 +208,8 @@
 
             function tarjeta(p, idx) {
                 const fotos = (p.fotos && p.fotos.length) ? p.fotos : [FOTO_RESPALDO];
+                const slug = p.slug || p.id;
+                const fichaUrl = `/propiedad/${encodeURIComponent(slug)}`;
                 const meta = [
                     p.habitaciones ? `<span><i class="fas fa-bed"></i> ${p.habitaciones} Hab</span>` : '',
                     p.banos ? `<span><i class="fas fa-bath"></i> ${p.banos} Baños</span>` : '',
@@ -230,19 +232,21 @@
                             ${p.tipo_contrato ? `<span class="prop-badge-estado">${p.tipo_contrato}</span>` : ''}
                             <img loading="lazy" decoding="async" src="${fotos[0]}" alt="${p.titulo}" onerror="this.src='${FOTO_RESPALDO}'"
                                  data-share-titulo="${p.titulo.replace(/"/g, '&quot;')}" data-share-id="${p.id}"
+                                 data-share-slug="${slug}"
                                  data-share-precio="${String(p.precio || '').replace(/"/g, '&quot;')}"
                                  onclick="abrirLightboxImg(this, 'propiedad', 'propiedades.html')">
                             ${controlesCarrusel}
                         </div>
                         <div class="prop-content">
-                            <h3 class="prop-title">${p.titulo}</h3>
+                            <h3 class="prop-title"><a href="${fichaUrl}" style="color: inherit; text-decoration: none;">${p.titulo}</a></h3>
                             ${p.ubicacion ? `<p class="prop-ubicacion"><i class="fas fa-location-dot"></i> ${p.ubicacion}</p>` : ''}
                             <div class="prop-meta">${meta}</div>
                             <div class="prop-footer">
                                 <div class="prop-price-label">Precio</div>
                                 <div class="prop-price">${p.precio}</div>
                             </div>
-                            <a href="https://wa.me/${String(CFG.WHATSAPP_NUMBER || '').replace(/\D/g, '')}?text=${mensaje}" target="_blank" rel="noopener" class="btn btn-gold" style="width: 100%;"><i class="fab fa-whatsapp"></i> ${cta}</a>
+                            <a href="${fichaUrl}" class="btn btn-gold" style="width: 100%;">Ver ficha completa</a>
+                            <a href="https://wa.me/${String(CFG.WHATSAPP_NUMBER || '').replace(/\D/g, '')}?text=${mensaje}" target="_blank" rel="noopener" class="btn btn-whatsapp" style="width: 100%; margin-top: 10px;"><i class="fab fa-whatsapp"></i> ${cta}</a>
                         </div>
                     </div>
                 `;

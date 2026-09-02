@@ -273,8 +273,13 @@
     const idx = parseInt(cont.getAttribute('data-idx'), 10) || 0;
     const titulo = imgEl.getAttribute('data-share-titulo') || '';
     const id = imgEl.getAttribute('data-share-id') || '';
+    const slug = imgEl.getAttribute('data-share-slug') || '';
     const param = tipoEntidad === 'franquicia' ? 'franquicia' : 'propiedad';
-    const url = id ? `${location.origin}/${paginaDestino}?${param}=${id}` : `${location.origin}/${paginaDestino}`;
+    // Para propiedades preferimos la página propia /propiedad/<slug> (preview y
+    // pixel propios); si aún no hay slug, caemos al deep-link ?propiedad=<id>.
+    let url = `${location.origin}/${paginaDestino}`;
+    if (tipoEntidad === 'propiedad' && (slug || id)) url = `${location.origin}/propiedad/${slug || id}`;
+    else if (id) url = `${location.origin}/${paginaDestino}?${param}=${id}`;
     window.abrirLightbox(fotos, idx, { titulo, url });
     if (window.CostoSVMetricas && titulo) window.CostoSVMetricas.registrarEvento('ficha_view', titulo);
 
