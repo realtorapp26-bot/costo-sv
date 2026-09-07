@@ -59,6 +59,7 @@ export default async function handler(req, res) {
                     `tipo_contrato ("venta" o "alquiler", default "venta"), tipo_propiedad_detalle (string o null, ej "Casa", "Apartamento", "Lote/Terreno"), ` +
                     `id_externo (string o null, el código/ID interno del listado si aparece), tamano_lote (string o null), tamano_construccion (string o null), ` +
                     `latitud (número o null), longitud (número o null), tour_virtual_url (string o null), video_url (string o null), ` +
+                    `fecha_publicacion (string ISO "YYYY-MM-DD" o null — la fecha en que se publicó el listado, ej. de "Publicado: septiembre 03, 2026" → "2026-09-03"), ` +
                     `garage (boolean), hoa (boolean, si tiene cuota de mantenimiento/asociación), comunidad_cerrada (boolean), propiedad_nueva (boolean), ` +
                     `copy_venta (string: un texto de venta persuasivo y profesional de 3-5 oraciones en español, con intención de venta clara y una llamada a la acción al final; ` +
                     `respetá siempre los datos reales del listado — precio, ubicación, características — pero reformulá libremente el texto para que se lea mejor que el original; ` +

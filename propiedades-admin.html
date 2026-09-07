@@ -207,6 +207,7 @@
                 </div>
                 <div><label>Tipo de propiedad</label><input type="text" id="edp-tipo-propiedad"></div>
                 <div><label>ID externo</label><input type="text" id="edp-id-externo"></div>
+                <div><label>Fecha de publicación</label><input type="date" id="edp-fecha-pub"></div>
                 <div><label>Habitaciones</label><input type="text" id="edp-hab"></div>
                 <div><label>Baños</label><input type="text" id="edp-banos"></div>
                 <div><label>m² (general)</label><input type="text" id="edp-m2"></div>
@@ -522,6 +523,7 @@
             document.getElementById('edp-tipo-contrato').value = p.tipo_contrato || 'venta';
             document.getElementById('edp-tipo-propiedad').value = p.tipo_propiedad_detalle || '';
             document.getElementById('edp-id-externo').value = p.id_externo || '';
+            document.getElementById('edp-fecha-pub').value = p.fecha_publicacion || '';
             document.getElementById('edp-hab').value = p.habitaciones || '';
             document.getElementById('edp-banos').value = p.banos || '';
             document.getElementById('edp-m2').value = p.m2 || '';
@@ -558,6 +560,7 @@
                 tipo_contrato: document.getElementById('edp-tipo-contrato').value,
                 tipo_propiedad_detalle: document.getElementById('edp-tipo-propiedad').value.trim() || null,
                 id_externo: document.getElementById('edp-id-externo').value.trim() || null,
+                fecha_publicacion: document.getElementById('edp-fecha-pub').value || null,
                 habitaciones: document.getElementById('edp-hab').value.trim() || null,
                 banos: document.getElementById('edp-banos').value.trim() || null,
                 m2: document.getElementById('edp-m2').value.trim() || null,

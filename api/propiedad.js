@@ -28,6 +28,14 @@ const precioNumero = (p) => {
   return Number.isFinite(n) && n > 0 ? n : null;
 };
 
+// "2026-09-03" -> "3 de septiembre de 2026". El mediodía evita que la zona
+// horaria corra la fecha un día hacia atrás.
+const fmtFecha = (d) => {
+  if (!d) return null;
+  const f = new Date(String(d) + 'T12:00:00');
+  return Number.isNaN(f.getTime()) ? null : f.toLocaleDateString('es-SV', { day: 'numeric', month: 'long', year: 'numeric' });
+};
+
 // Extrae el ID de 11 caracteres de un video de YouTube en cualquiera de sus
 // formatos (watch?v=, youtu.be/, embed/, shorts/, live/). Devuelve null si la
 // URL no es un video (p. ej. el link a un canal) — en ese caso se deja como enlace.
@@ -104,6 +112,7 @@ function render(p) {
     p.m2 ? `<span><i class="fas fa-vector-square"></i> ${esc(p.m2)} m²</span>` : '',
     p.tamano_lote ? `<span><i class="fas fa-ruler-combined"></i> Lote ${esc(p.tamano_lote)}</span>` : '',
     p.tamano_construccion ? `<span><i class="fas fa-drafting-compass"></i> Construcción ${esc(p.tamano_construccion)}</span>` : '',
+    fmtFecha(p.fecha_publicacion) ? `<span><i class="fas fa-calendar-day"></i> Publicado: ${esc(fmtFecha(p.fecha_publicacion))}</span>` : '',
   ].filter(Boolean).join('');
 
   const features = [
@@ -130,8 +139,16 @@ function render(p) {
                 </div>` : '';
 
   const tieneMapa = p.latitud != null && p.longitud != null;
+  const mapaHtml = tieneMapa ? `<div class="ficha-seccion">
+                    <h2>Ubicación</h2>
+                    <div class="ficha-mapa">
+                        <iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen
+                                src="https://www.google.com/maps?q=${encodeURIComponent(p.latitud + ',' + p.longitud)}&z=16&output=embed"
+                                title="Ubicación de ${esc(p.titulo)}"></iframe>
+                    </div>
+                    <a class="ficha-mapa-link" href="https://www.google.com/maps/search/?api=1&query=${p.latitud},${p.longitud}" target="_blank" rel="noopener"><i class="fas fa-map-location-dot"></i> Abrir en Google Maps</a>
+                </div>` : '';
   const enlacesExtra = [
-    tieneMapa ? `<a href="https://www.google.com/maps/search/?api=1&query=${p.latitud},${p.longitud}" target="_blank" rel="noopener"><i class="fas fa-map-location-dot"></i> Ver ubicación en el mapa</a>` : '',
     p.tour_virtual_url ? `<a href="${esc(p.tour_virtual_url)}" target="_blank" rel="noopener"><i class="fas fa-vr-cardboard"></i> Tour virtual 360°</a>` : '',
     (p.video_url && !ytId) ? `<a href="${esc(p.video_url)}" target="_blank" rel="noopener"><i class="fas fa-play-circle"></i> Video de la propiedad</a>` : '',
   ].filter(Boolean).join('');
@@ -152,6 +169,7 @@ function render(p) {
         description: descripcion || metaDesc,
         image: fotos,
         url,
+        ...(p.fecha_publicacion ? { datePosted: p.fecha_publicacion } : {}),
         ...(p.ubicacion ? { address: { '@type': 'PostalAddress', addressLocality: p.ubicacion, addressCountry: 'SV' } } : {}),
         ...(precioN ? { offers: { '@type': 'Offer', price: precioN, priceCurrency: 'USD', availability: 'https://schema.org/InStock', url, seller: { '@type': 'RealEstateAgent', name: 'Walter Guerrero — RE/MAX Elite' } } } : {}),
       },
@@ -250,6 +268,10 @@ function render(p) {
         .ficha-precio { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--primary); margin: 4px 0 20px; }
         .ficha-aside .btn { width: 100%; }
         .ficha-aside .aside-nota { font-size: 0.82rem; color: var(--text-light); margin-top: 14px; text-align: center; }
+        .ficha-mapa { position: relative; aspect-ratio: 16 / 9; border-radius: var(--radius-md); overflow: hidden; background: var(--border); }
+        .ficha-mapa iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+        .ficha-mapa-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; color: var(--primary); text-decoration: none; font-weight: 500; }
+        .ficha-mapa-link:hover { color: var(--gold); }
         .ficha-video { position: relative; aspect-ratio: 16 / 9; border-radius: var(--radius-md); overflow: hidden; background: #000; }
         .ficha-video iframe, .ficha-video .yt-facade { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
         .yt-facade { display: flex; align-items: center; justify-content: center; background-size: cover; background-position: center; cursor: pointer; padding: 0; }
@@ -300,6 +322,7 @@ function render(p) {
                 ${descripcion ? `<div class="ficha-seccion"><h2>Descripción</h2><div class="ficha-desc">${esc(descripcion)}</div></div>` : ''}
                 ${videoHtml}
                 ${featuresHtml ? `<div class="ficha-seccion"><h2>Características</h2>${featuresHtml}</div>` : ''}
+                ${mapaHtml}
                 ${enlacesExtra ? `<div class="ficha-seccion"><h2>Más información</h2><div class="ficha-enlaces">${enlacesExtra}</div></div>` : ''}
             </div>
 
@@ -307,6 +330,7 @@ function render(p) {
                 <div class="ficha-precio-label">Precio</div>
                 <div class="ficha-precio">${esc(p.precio || 'Consultar')}</div>
                 <a data-whatsapp data-wa="${esc(waMsg)}" href="${esc(waHref)}" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> Consultar por WhatsApp</a>
+                ${(Array.isArray(p.fotos) && p.fotos.length) ? `<a href="/api/fotos-zip?slug=${esc(slug)}" class="btn btn-outline" style="margin-top:12px;"><i class="fas fa-download"></i> Descargar fotos</a>` : ''}
                 <a href="/propiedades.html" class="btn btn-outline" style="margin-top:12px;">Ver otras propiedades</a>
                 <p class="aside-nota">Atención directa de Walter Guerrero, agente RE/MAX Elite.</p>
             </aside>
@@ -390,7 +414,7 @@ function render(p) {
 </html>`;
 }
 
-export { render, youtubeId };
+export { render, youtubeId, buscarPropiedad };
 
 export default async function handler(req, res) {
   const raw = (req.query && (req.query.slug || req.query.propiedad)) || '';

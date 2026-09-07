@@ -55,12 +55,17 @@
         .copy-preview .prop-price-preview { color: var(--accent); font-weight: 700; font-size: 1.1rem; margin-bottom: 10px; }
         .copy-preview textarea { min-height: 140px; background: white; }
         .btn-copy-clip { margin-top: 10px; font-size: 0.85rem; background: var(--primary); color: white; padding: 8px 16px; border-radius: var(--radius-sm); border: none; cursor: pointer; }
-        .added-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; margin-top: 20px; }
-        .mini-card { background: white; border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); }
-        .mini-card .mini-body { padding: 15px; }
+        .added-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; margin-top: 20px; align-items: stretch; }
+        .mini-card { background: white; border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; }
+        .mini-card .mini-foto { width: 100%; aspect-ratio: 3 / 2; object-fit: cover; background: var(--bg-main); display: block; }
+        .mini-card .mini-body { padding: 15px; display: flex; flex-direction: column; flex: 1; }
         .mini-card .mini-price { color: var(--accent); font-weight: 700; }
-        .mini-card .mini-title { font-size: 0.95rem; font-weight: 600; color: var(--primary); margin: 4px 0; }
-        .mini-card .mini-tag { display: inline-block; font-size: 0.7rem; background: var(--gold-light); color: #7a4a00; padding: 3px 8px; border-radius: 20px; margin-bottom: 8px; }
+        .mini-card .mini-title { font-size: 0.95rem; font-weight: 600; color: var(--primary); margin: 4px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .mini-card .mini-tag { display: inline-block; align-self: flex-start; font-size: 0.7rem; background: var(--gold-light); color: #7a4a00; padding: 3px 8px; border-radius: 20px; margin-bottom: 8px; }
+        .mini-card .mini-desc { font-size: 0.8rem; color: var(--text-light); margin-top: 8px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .mini-card .mini-desc.vacia { font-style: italic; }
+        .mini-card .mini-editar { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: auto; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.82rem; font-weight: 600; color: var(--primary); text-decoration: none; }
+        .mini-card .mini-editar:hover { background: var(--bg-main); }
         .empty-hint { color: var(--text-light); font-style: italic; text-align: center; padding: 30px; }
 
         .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 30px; }
@@ -236,6 +241,10 @@
                     <div>
                         <label>ID externo (código del listado)</label>
                         <input type="text" id="f-id-externo" placeholder="002523093004">
+                    </div>
+                    <div>
+                        <label>Fecha de publicación (del listado original)</label>
+                        <input type="date" id="f-fecha-pub">
                     </div>
                     <div>
                         <label>Habitaciones</label>
@@ -644,6 +653,43 @@
             return [...new Set(encontradas)].filter(u => !excluir.test(u));
         }
 
+        // Busca coordenadas en el código fuente pegado (Ctrl+U). La IA solo ve los
+        // primeros 8000 caracteres y las coordenadas suelen ir más abajo (embed de
+        // Google Maps, JSON del portal), así que las sacamos acá con regex.
+        function extraerCoordenadasDeTexto(texto) {
+            const enSV = (lat, lng) => lat >= 12.9 && lat <= 14.6 && lng >= -90.2 && lng <= -87.6;
+            const patrones = [
+                /!3d(-?\d{1,2}\.\d{3,})!4d(-?\d{1,3}\.\d{3,})/,                                   // URL de lugar de Google Maps
+                /[?&#](?:q|query|center|ll|sll|destination)=(-?\d{1,2}\.\d{3,})[,%2C ]+(-?\d{1,3}\.\d{3,})/i,
+                /"(?:lat|latitude)"\s*:\s*"?(-?\d{1,2}\.\d{3,})"?\s*,\s*"(?:lng|lon|long|longitude)"\s*:\s*"?(-?\d{1,3}\.\d{3,})"?/i,
+                /LatLng\(\s*(-?\d{1,2}\.\d{3,})\s*,\s*(-?\d{1,3}\.\d{3,})\s*\)/,
+                /data-lat(?:itude)?=["'](-?\d{1,2}\.\d{3,})["'][^>]*data-l(?:ng|on|ongitude)=["'](-?\d{1,3}\.\d{3,})["']/i,
+            ];
+            for (const re of patrones) {
+                const m = texto.match(re);
+                if (m) {
+                    const lat = parseFloat(m[1]), lng = parseFloat(m[2]);
+                    if (enSV(lat, lng)) return { lat, lng };
+                }
+            }
+            return null;
+        }
+
+        // Fecha de publicación del listado: primero el JSON-LD del código fuente,
+        // si no aparece, el texto "Publicado: <mes> <día>, <año>".
+        function extraerFechaPubDeTexto(texto) {
+            const iso = texto.match(/"date(?:Posted|Published|Modified)"\s*:\s*"(\d{4}-\d{2}-\d{2})/i);
+            if (iso) return iso[1];
+            const meses = { enero: '01', febrero: '02', marzo: '03', abril: '04', mayo: '05', junio: '06',
+                julio: '07', agosto: '08', septiembre: '09', setiembre: '09', octubre: '10', noviembre: '11', diciembre: '12' };
+            const m = texto.match(/Publicad[oa]\s*:?\s*([a-záéíóú]+)\s+(\d{1,2}),?\s+(\d{4})/i);
+            if (m) {
+                const mes = meses[m[1].toLowerCase()];
+                if (mes) return `${m[3]}-${mes}-${String(m[2]).padStart(2, '0')}`;
+            }
+            return null;
+        }
+
         function extraerLinkDeTexto(texto) {
             const linkTags = texto.match(/<link\b[^>]*>/gi) || [];
             for (const tag of linkTags) {
@@ -688,6 +734,17 @@
                 document.getElementById('f-link').value = linkDetectado;
             }
 
+            const coords = extraerCoordenadasDeTexto(texto);
+            if (coords) {
+                if (!document.getElementById('f-latitud').value.trim()) document.getElementById('f-latitud').value = coords.lat;
+                if (!document.getElementById('f-longitud').value.trim()) document.getElementById('f-longitud').value = coords.lng;
+            }
+
+            const fechaPub = extraerFechaPubDeTexto(texto);
+            if (fechaPub && !document.getElementById('f-fecha-pub').value) {
+                document.getElementById('f-fecha-pub').value = fechaPub;
+            }
+
             btn.textContent = 'Extrayendo...';
             btn.disabled = true;
             try {
@@ -716,8 +773,9 @@
                 if (d.id_externo) document.getElementById('f-id-externo').value = d.id_externo;
                 if (d.tamano_lote) document.getElementById('f-tamano-lote').value = d.tamano_lote;
                 if (d.tamano_construccion) document.getElementById('f-tamano-construccion').value = d.tamano_construccion;
-                if (d.latitud) document.getElementById('f-latitud').value = d.latitud;
-                if (d.longitud) document.getElementById('f-longitud').value = d.longitud;
+                if (d.latitud && !document.getElementById('f-latitud').value.trim()) document.getElementById('f-latitud').value = d.latitud;
+                if (d.longitud && !document.getElementById('f-longitud').value.trim()) document.getElementById('f-longitud').value = d.longitud;
+                if (d.fecha_publicacion && !document.getElementById('f-fecha-pub').value) document.getElementById('f-fecha-pub').value = d.fecha_publicacion;
                 if (d.tour_virtual_url) document.getElementById('f-tour').value = d.tour_virtual_url;
                 if (d.video_url) document.getElementById('f-video').value = d.video_url;
                 if (d.garage) document.getElementById('f-garage').checked = true;
@@ -779,6 +837,7 @@
                 tipo_contrato: document.getElementById('f-tipo-contrato').value,
                 tipo_propiedad_detalle: document.getElementById('f-tipo-propiedad').value.trim() || null,
                 id_externo: document.getElementById('f-id-externo').value.trim() || null,
+                fecha_publicacion: document.getElementById('f-fecha-pub').value || null,
                 tamano_lote: document.getElementById('f-tamano-lote').value.trim() || null,
                 tamano_construccion: document.getElementById('f-tamano-construccion').value.trim() || null,
                 latitud: parseFloat(document.getElementById('f-latitud').value) || null,
@@ -819,13 +878,13 @@
                     const card = document.createElement('div');
                     card.className = 'mini-card';
                     card.innerHTML = `
-                        ${foto ? `<img src="${foto}" style="width:100%;height:120px;object-fit:cover;" onerror="this.style.display='none'">` : ''}
+                        ${foto ? `<img class="mini-foto" src="${foto}" onerror="this.style.display='none'">` : ''}
                         <div class="mini-body">
                             <span class="mini-tag">${p.categoria}</span>
                             <div class="mini-title">${p.titulo}</div>
                             <div class="mini-price">${p.precio}</div>
-                            ${descripcion ? `<div style="font-size:0.8rem; color:var(--text-light); margin-top:8px; line-height:1.4;">${descripcion}</div>` : '<div style="font-size:0.75rem; color:var(--text-light); font-style:italic; margin-top:8px;">Sin descripción</div>'}
-                            <a href="propiedades-admin.html?editar=${p.id}" style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:12px; padding:8px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-weight:600; color:var(--primary); text-decoration:none;"><i class="fas fa-pen"></i> Editar</a>
+                            <div class="mini-desc${descripcion ? '' : ' vacia'}">${descripcion || 'Sin descripción'}</div>
+                            <a class="mini-editar" href="propiedades-admin.html?editar=${p.id}"><i class="fas fa-pen"></i> Editar</a>
                         </div>
                     `;
                     cont.appendChild(card);
@@ -838,7 +897,7 @@
 
         function limpiarForm() {
             ['f-link','f-titulo','f-precio','f-ubicacion','f-hab','f-banos','f-m2','f-desc','f-fotos',
-             'f-tipo-propiedad','f-id-externo','f-tamano-lote','f-tamano-construccion','f-latitud','f-longitud','f-tour','f-video','f-pegado']
+             'f-tipo-propiedad','f-id-externo','f-fecha-pub','f-tamano-lote','f-tamano-construccion','f-latitud','f-longitud','f-tour','f-video','f-pegado']
                 .forEach(id => document.getElementById(id).value = '');
             ['f-garage','f-hoa','f-comunidad-cerrada','f-nueva'].forEach(id => document.getElementById(id).checked = false);
             document.getElementById('f-tipo-contrato').value = 'venta';
@@ -1049,13 +1108,13 @@
                     const card = document.createElement('div');
                     card.className = 'mini-card';
                     card.innerHTML = `
-                        ${foto ? `<img src="${foto}" style="width:100%;height:120px;object-fit:cover;" onerror="this.style.display='none'">` : ''}
+                        ${foto ? `<img class="mini-foto" src="${foto}" onerror="this.style.display='none'">` : ''}
                         <div class="mini-body">
                             <span class="mini-tag">${f.categoria}${f.aliado ? ' · ' + f.aliado : ''}</span>
                             <div class="mini-title">${f.nombre}</div>
                             <div class="mini-price">${f.inversion_total || 'Inversión a consultar'}</div>
-                            ${descripcion ? `<div style="font-size:0.8rem; color:var(--text-light); margin-top:8px; line-height:1.4;">${descripcion}</div>` : '<div style="font-size:0.75rem; color:var(--text-light); font-style:italic; margin-top:8px;">Sin descripción</div>'}
-                            <a href="propiedades-admin.html?editar=${f.id}&tipo=fr" style="display:flex; align-items:center; justify-content:center; gap:6px; margin-top:12px; padding:8px; border:1px solid var(--border); border-radius:6px; font-size:0.82rem; font-weight:600; color:var(--primary); text-decoration:none;"><i class="fas fa-pen"></i> Editar</a>
+                            <div class="mini-desc${descripcion ? '' : ' vacia'}">${descripcion || 'Sin descripción'}</div>
+                            <a class="mini-editar" href="propiedades-admin.html?editar=${f.id}&tipo=fr"><i class="fas fa-pen"></i> Editar</a>
                         </div>
                     `;
                     cont.appendChild(card);
