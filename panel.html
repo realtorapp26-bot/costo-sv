@@ -1173,12 +1173,17 @@
             const body = document.getElementById('leads-body');
             try {
                 const headers = await CostoSVAuth.authHeaders();
-                const res = await fetch(`${SUPA_URL}/rest/v1/leads?select=id,origen,interes,propiedad_referencia,estado,created_at,oferta_pdf_path,contactos(nombre,telefono)&order=created_at.desc`, { headers });
+                // oferta_pdf_path puede no existir todavía si falta aplicar la migración: si el
+                // servidor lo rechaza, se reintenta sin esa columna para no romper la lista.
+                const base = `${SUPA_URL}/rest/v1/leads?select=`;
+                const cols = 'id,origen,interes,propiedad_referencia,estado,created_at,contactos(nombre,telefono)';
+                let res = await fetch(`${base}${cols},oferta_pdf_path&order=created_at.desc`, { headers });
+                if (res.status === 400) res = await fetch(`${base}${cols}&order=created_at.desc`, { headers });
                 if (!res.ok) throw new Error('No se pudieron cargar los leads (' + res.status + ')');
                 leadsData = await res.json();
                 renderLeads();
             } catch (ex) {
-                body.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#b91c1c; padding:20px;">${ex.message}</td></tr>`;
+                body.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#b91c1c; padding:20px;">${ex.message}</td></tr>`;
             }
         }
 
