@@ -249,11 +249,11 @@
         let propiedades = [];
         let franquicias = [];
 
-        function copiarLinkOfertaProp(rel) {
+        function copiarLinkProp(rel, nombre) {
             const base = ((window.SITE_CONFIG && window.SITE_CONFIG.SITE_URL) || location.origin).replace(/\/$/, '');
             const url = base + '/' + rel;
             navigator.clipboard.writeText(url).then(
-                () => alert('Link de la carta de oferta copiado:\n\n' + url + '\n\nMandáselo al cliente para que la complete y firme.'),
+                () => alert('Link de ' + nombre + ' copiado:\n\n' + url + '\n\nMandáselo a la persona para que la complete y firme.'),
                 () => prompt('Copiá el link:', url)
             );
         }
@@ -288,9 +288,11 @@
                 const foto = (p.fotos && p.fotos[0]) || '';
                 const fecha = new Date(p.created_at).toLocaleDateString('es-SV', { day: '2-digit', month: 'short', year: 'numeric' });
                 const montoNum = String(p.precio || '').replace(/[^0-9.]/g, '');
-                const ofertaUrl = `carta-oferta.html?tipo=${p.tipo_contrato === 'alquiler' ? 'alquiler' : 'venta'}`
-                    + `&direccion=${encodeURIComponent(p.ubicacion || p.titulo || '')}`
+                const tipoOp = p.tipo_contrato === 'alquiler' ? 'alquiler' : 'venta';
+                const direccionEnc = encodeURIComponent(p.ubicacion || p.titulo || '');
+                const ofertaUrl = `carta-oferta.html?tipo=${tipoOp}&direccion=${direccionEnc}`
                     + (montoNum ? `&monto=${encodeURIComponent(montoNum)}` : '');
+                const respuestaUrl = `carta-respuesta.html?tipo=${tipoOp}&direccion=${direccionEnc}`;
                 return `
                     <tr>
                         <td>${foto ? `<img src="${foto}" class="gestion-thumb" onerror="this.style.display='none'">` : ''}</td>
@@ -301,8 +303,10 @@
                         <td><button class="estado-chip ${p.publicada ? 'publicada' : 'oculta'}" onclick="cambiarEstado('${p.id}', ${!p.publicada})">${p.publicada ? '✓ Publicada' : 'Oculta'}</button></td>
                         <td>
                             <button class="btn-editar" onclick="abrirEdicionProp('${p.id}')"><i class="fas fa-pen"></i> Editar</button>
-                            <a class="btn-editar" href="${ofertaUrl}" target="_blank" rel="noopener"><i class="fas fa-file-signature"></i> Carta de oferta</a>
-                            <button class="btn-editar" title="Copiar link de oferta para esta propiedad" onclick="copiarLinkOfertaProp('${ofertaUrl}')"><i class="fas fa-link"></i></button>
+                            <a class="btn-editar" href="${ofertaUrl}" target="_blank" rel="noopener"><i class="fas fa-file-signature"></i> Oferta</a>
+                            <button class="btn-editar" title="Copiar link de la carta de oferta" onclick="copiarLinkProp('${ofertaUrl}', 'la carta de oferta')"><i class="fas fa-link"></i></button>
+                            <a class="btn-editar" href="${respuestaUrl}" target="_blank" rel="noopener"><i class="fas fa-file-contract"></i> Respuesta</a>
+                            <button class="btn-editar" title="Copiar link de la carta de respuesta" onclick="copiarLinkProp('${respuestaUrl}', 'la carta de respuesta')"><i class="fas fa-link"></i></button>
                             <button class="btn-eliminar" onclick="eliminar('${p.id}')"><i class="fas fa-trash"></i> Eliminar</button>
                         </td>
                     </tr>

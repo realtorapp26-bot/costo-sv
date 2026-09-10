@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <title>Carta de Respuesta | Guerrero Properties</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <style>
+        :root { --azul: #0b2d5c; --rojo: #e53935; }
+        body { background: #eef1f6; color: #0f172a; font-family: 'Outfit', system-ui, sans-serif; }
+        .co-header { background: var(--azul); color: #fff; padding: 30px 0; }
+        .co-header .container { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .co-header .co-brand { font-size: .78rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #c9d6ea; margin-bottom: 4px; }
+        .co-header h1 { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin: 0; }
+        .co-header p { margin: 2px 0 0; color: #c9d6ea; font-size: .9rem; }
+        .co-wrap { max-width: 760px; margin: 28px auto 80px; padding: 0 18px; }
+        .co-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 26px 24px; margin-bottom: 18px; box-shadow: 0 8px 24px rgba(15,23,42,.05); }
+        .co-card h2 { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--azul); margin: 0 0 4px; }
+        .co-card .hint { font-size: .82rem; color: #64748b; margin: 0 0 18px; }
+        .co-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .co-grid .full { grid-column: 1 / -1; }
+        .co-field label { display: block; font-size: .8rem; font-weight: 600; color: #475569; margin-bottom: 6px; }
+        .co-field label .en { color: #94a3b8; font-weight: 500; }
+        .co-field input, .co-field select, .co-field textarea {
+            width: 100%; padding: 12px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px;
+            font: inherit; font-size: .95rem; color: #0f172a; background: #f8fafc; box-sizing: border-box;
+        }
+        .co-field input:focus, .co-field select:focus, .co-field textarea:focus {
+            outline: 0; border-color: var(--azul); background: #fff; box-shadow: 0 0 0 3px rgba(11,45,92,.12);
+        }
+        .co-field input[readonly] { background: #eef2f7; color: #475569; }
+        .co-field textarea { min-height: 80px; resize: vertical; }
+        .co-field input.is-invalid, .co-field select.is-invalid, .co-field textarea.is-invalid { border-color: var(--rojo); background: #fef2f2; }
+        .co-help { font-size: .74rem; color: #94a3b8; margin-top: 5px; }
+        .co-sub { border-top: 1px dashed #e2e8f0; margin-top: 16px; padding-top: 16px; }
+        .co-sub-title { font-size: .8rem; font-weight: 700; color: var(--azul); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
+        .co-sign-wrap { border: 1.5px dashed #cbd5e1; border-radius: 12px; background: #fff; overflow: hidden; }
+        #signaturePad { width: 100%; height: 200px; display: block; touch-action: none; cursor: crosshair; }
+        .co-btn-clear { background: none; border: 1px solid #e2e8f0; border-radius: 8px; padding: 7px 14px; font: inherit; font-size: .82rem; cursor: pointer; color: #475569; margin-top: 8px; }
+        .co-errors { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; }
+        .co-errors h3 { color: #b91c1c; font-size: .95rem; margin: 0 0 8px; }
+        .co-errors ul { margin: 0; padding-left: 18px; color: #7f1d1d; font-size: .85rem; }
+        .co-generate { width: 100%; padding: 16px; border: 0; border-radius: 12px; background: var(--azul); color: #fff; font: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .co-generate:hover { background: #082245; }
+        .co-generate:disabled { opacity: .7; cursor: progress; }
+        .co-spin { width: 16px; height: 16px; border: 2.5px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: co-rot .7s linear infinite; display: none; }
+        .co-generate.loading .co-spin { display: block; }
+        @keyframes co-rot { to { transform: rotate(360deg); } }
+        .co-nota { font-size: .8rem; color: #64748b; background: #f1f5f9; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; }
+        .d-none { display: none !important; }
+        @media (max-width: 620px) { .co-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <header class="co-header">
+        <div class="container">
+            <div>
+                <div class="co-brand">Guerrero Properties</div>
+                <h1>Carta de Respuesta</h1>
+                <p>Aceptación condicionada de oferta o contraoferta del propietario</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="co-wrap">
+        <div class="co-nota">
+            Documento de gestión inmobiliaria. La aceptación o la contraoferta se firma en pantalla
+            y se descarga en PDF. La fecha y hora se agregan automáticamente.
+        </div>
+
+        <div class="co-errors d-none" id="errorBox">
+            <h3>Revisá la información</h3>
+            <ul id="errorList"></ul>
+        </div>
+
+        <form id="responseForm" novalidate>
+            <div class="co-card">
+                <h2>Tipo de respuesta</h2>
+                <div class="co-grid">
+                    <div class="co-field">
+                        <label for="letter_mode">¿Qué respondés?</label>
+                        <select id="letter_mode" name="letter_mode" required>
+                            <option value="ACEPTACION">Aceptación de oferta</option>
+                            <option value="CONTRAOFERTA">Contraoferta</option>
+                        </select>
+                    </div>
+                    <div class="co-field">
+                        <label for="transaction_type">Operación</label>
+                        <select id="transaction_type" name="transaction_type" required>
+                            <option value="VENTA">Venta</option>
+                            <option value="ALQUILER">Alquiler</option>
+                        </select>
+                    </div>
+                    <div class="co-field full">
+                        <label for="issue_city">Ciudad de emisión</label>
+                        <input type="text" id="issue_city" name="issue_city" placeholder="San Salvador">
+                    </div>
+                </div>
+            </div>
+
+            <div class="co-card">
+                <h2>Propietario / vendedor</h2>
+                <div class="co-grid">
+                    <div class="co-field full">
+                        <label for="owner_name">Nombre completo del propietario</label>
+                        <input type="text" id="owner_name" name="owner_name" autocomplete="name" required>
+                    </div>
+                </div>
+                <div id="ownerExtra" class="co-sub d-none">
+                    <div class="co-sub-title">Datos del propietario (contraoferta)</div>
+                    <div class="co-grid">
+                        <div class="co-field">
+                            <label for="owner_age">Edad</label>
+                            <input type="number" id="owner_age" name="owner_age" min="18" max="120">
+                        </div>
+                        <div class="co-field">
+                            <label for="owner_district">Distrito de domicilio</label>
+                            <input type="text" id="owner_district" name="owner_district">
+                        </div>
+                        <div class="co-field">
+                            <label for="owner_municipality">Municipio de domicilio</label>
+                            <input type="text" id="owner_municipality" name="owner_municipality">
+                        </div>
+                        <div class="co-field">
+                            <label for="owner_department">Departamento de domicilio</label>
+                            <input type="text" id="owner_department" name="owner_department">
+                        </div>
+                        <div class="co-field">
+                            <label for="owner_document_type">Tipo de documento</label>
+                            <select id="owner_document_type" name="owner_document_type">
+                                <option value="">Seleccioná</option>
+                                <option value="DUI">DUI</option>
+                                <option value="NIT">NIT</option>
+                                <option value="PASAPORTE">Pasaporte</option>
+                            </select>
+                        </div>
+                        <div class="co-field">
+                            <label for="owner_document_number">Número de documento</label>
+                            <input type="text" id="owner_document_number" name="owner_document_number">
+                        </div>
+                    </div>
+                </div>
+                <div class="co-sub">
+                    <div class="co-sub-title">Contacto del propietario (opcional, para el seguimiento — no sale en el PDF)</div>
+                    <div class="co-grid">
+                        <div class="co-field">
+                            <label for="owner_phone">Teléfono / WhatsApp</label>
+                            <input type="tel" id="owner_phone" name="owner_phone" inputmode="tel" autocomplete="tel">
+                        </div>
+                        <div class="co-field">
+                            <label for="owner_email">Correo</label>
+                            <input type="email" id="owner_email" name="owner_email" autocomplete="email">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="co-card">
+                <h2>Interesado</h2>
+                <div class="co-grid">
+                    <div class="co-field full">
+                        <label for="interested_name">Nombre completo del interesado</label>
+                        <input type="text" id="interested_name" name="interested_name" required>
+                    </div>
+                    <div class="co-field">
+                        <label for="interested_document_type">Tipo de documento</label>
+                        <select id="interested_document_type" name="interested_document_type" required>
+                            <option value="">Seleccioná</option>
+                            <option value="DUI">DUI</option>
+                            <option value="NIT">NIT</option>
+                            <option value="PASAPORTE">Pasaporte</option>
+                        </select>
+                    </div>
+                    <div class="co-field">
+                        <label for="interested_document_number">Número de documento</label>
+                        <input type="text" id="interested_document_number" name="interested_document_number" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="co-card">
+                <h2>Datos del inmueble</h2>
+                <div class="co-grid">
+                    <div class="co-field co-field-district d-none" id="propertyDistrictCol">
+                        <label for="property_district">Distrito</label>
+                        <input type="text" id="property_district" name="property_district">
+                    </div>
+                    <div class="co-field">
+                        <label for="property_municipality">Municipio</label>
+                        <input type="text" id="property_municipality" name="property_municipality" required>
+                    </div>
+                    <div class="co-field">
+                        <label for="property_department">Departamento</label>
+                        <input type="text" id="property_department" name="property_department" required>
+                    </div>
+                    <div class="co-field full">
+                        <label for="property_address">Dirección del inmueble</label>
+                        <input type="text" id="property_address" name="property_address" required>
+                    </div>
+                    <div class="co-field full d-none" id="registryCol">
+                        <label for="property_registry">Matrícula / número de registro (opcional)</label>
+                        <input type="text" id="property_registry" name="property_registry">
+                    </div>
+                </div>
+            </div>
+
+            <div class="co-card" id="acceptanceBlock">
+                <h2>Términos de la aceptación</h2>
+                <div class="co-grid">
+                    <div class="co-field">
+                        <label for="accepted_amount_number">Monto aceptado (US$)</label>
+                        <input type="number" id="accepted_amount_number" name="accepted_amount_number" min="1" step="0.01">
+                    </div>
+                    <div class="co-field">
+                        <label for="offer_date_view">Fecha automática</label>
+                        <input type="text" id="offer_date_view" name="offer_date_view" readonly>
+                    </div>
+                    <div class="co-field full">
+                        <label for="accepted_amount_words">Monto aceptado en letras</label>
+                        <input type="text" id="accepted_amount_words" name="accepted_amount_words" readonly>
+                    </div>
+                </div>
+                <div id="saleAcceptance" class="co-sub">
+                    <div class="co-sub-title">Venta</div>
+                    <div class="co-grid">
+                        <div class="co-field">
+                            <label for="payment_method">Forma de pago</label>
+                            <select id="payment_method" name="payment_method">
+                                <option value="">Seleccioná</option>
+                                <option value="Contado">Contado</option>
+                                <option value="Crédito">Crédito</option>
+                                <option value="Mixto">Mixto</option>
+                            </select>
+                        </div>
+                        <div class="co-field full">
+                            <label for="payment_details">Detalle de cómo recibirá el pago</label>
+                            <textarea id="payment_details" name="payment_details" placeholder="Institución financiera, plazos, condiciones."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div id="rentalAcceptance" class="co-sub d-none">
+                    <div class="co-sub-title">Alquiler</div>
+                    <div class="co-grid">
+                        <div class="co-field full">
+                            <label for="rental_term">Plazo de alquiler</label>
+                            <input type="text" id="rental_term" name="rental_term" placeholder="Ejemplo: 12 meses">
+                        </div>
+                        <div class="co-field full">
+                            <label for="additional_terms">Condiciones adicionales / observaciones</label>
+                            <textarea id="additional_terms" name="additional_terms"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="co-card d-none" id="counterofferBlock">
+                <h2>Datos de la contraoferta</h2>
+                <div class="co-grid">
+                    <div class="co-field">
+                        <label for="original_amount_number">Monto de la oferta recibida (US$)</label>
+                        <input type="number" id="original_amount_number" name="original_amount_number" min="1" step="0.01">
+                    </div>
+                    <div class="co-field full">
+                        <label for="original_amount_words">Monto recibido en letras</label>
+                        <input type="text" id="original_amount_words" name="original_amount_words" readonly>
+                    </div>
+                    <div class="co-field full">
+                        <label for="counteroffer_text">Texto de la contraoferta</label>
+                        <textarea id="counteroffer_text" name="counteroffer_text" placeholder="Ej: Contraoferto en US$ 105,000 al contado, cierre en 45 días, el inmueble se entrega desocupado."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="co-card">
+                <h2>Firma del propietario</h2>
+                <p class="hint">Firmá en el recuadro. La fecha y hora se agregan solas.</p>
+                <div class="co-sign-wrap">
+                    <canvas id="signaturePad"></canvas>
+                </div>
+                <button type="button" class="co-btn-clear" id="clearSignature">Limpiar firma</button>
+            </div>
+
+            <button type="button" class="co-generate" id="generateBtn">
+                <span class="co-spin"></span>
+                <span class="co-generate-txt">Generar carta de respuesta (PDF)</span>
+            </button>
+        </form>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="config.js?v=2"></script>
+    <script src="carta-respuesta.js?v=1"></script>
+</body>
+</html>
