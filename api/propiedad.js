@@ -17,6 +17,13 @@ const SUPA_KEY = 'sb_publishable_EWNNEWfk4DjuIGwkrbtx4g_PFMtzhSv';
 const SITE_URL = 'https://guerrero-properties.com';
 const WHATSAPP_NUMBER = '50370381941';
 const PIXEL_ID = '1592044346046889';
+const AGENTE = {
+  nombre: 'Walter Guerrero',
+  titulo: 'Asociado · RE/MAX Elite',
+  telefono: '+503 7038-1941',
+  email: 'walter.guerrero@remax.com.sv',
+  foto: '/assets/walter-guerrero-retocada.png',
+};
 const FOTO_RESPALDO = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80';
 
 const esc = (s) => String(s == null ? '' : s)
@@ -330,6 +337,7 @@ function render(p) {
                 <div class="ficha-precio-label">Precio</div>
                 <div class="ficha-precio">${esc(p.precio || 'Consultar')}</div>
                 <a data-whatsapp data-wa="${esc(waMsg)}" href="${esc(waHref)}" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> Consultar por WhatsApp</a>
+                <button type="button" class="btn btn-outline" style="margin-top:12px;" onclick="window.abrirDossier && window.abrirDossier()"><i class="fas fa-file-arrow-down"></i> Descargar dossier</button>
                 ${(Array.isArray(p.fotos) && p.fotos.length) ? `<a href="/api/fotos-zip?slug=${esc(slug)}" class="btn btn-outline" style="margin-top:12px;"><i class="fas fa-download"></i> Descargar fotos</a>` : ''}
                 <a href="/propiedades.html" class="btn btn-outline" style="margin-top:12px;">Ver otras propiedades</a>
                 <p class="aside-nota">Atención directa de Walter Guerrero, agente RE/MAX Elite.</p>
@@ -383,6 +391,26 @@ function render(p) {
     <script src="/config.js?v=2"></script>
     <script src="/app.js?v=3"></script>
     <script>
+        window.DOSSIER_DATA = ${JSON.stringify({
+          id: p.id, slug, url,
+          titulo: p.titulo, precio: p.precio || 'Consultar',
+          ubicacion: p.ubicacion || '',
+          contrato,
+          categoria: p.categoria || '',
+          idExterno: p.id_externo || '',
+          habitaciones: p.habitaciones || '', banos: p.banos || '',
+          garage: !!p.garage, m2: p.m2 || '',
+          tamanoLote: p.tamano_lote || '', tamanoConstruccion: p.tamano_construccion || '',
+          tipo: p.tipo_propiedad_detalle || '',
+          nueva: !!p.propiedad_nueva, comunidadCerrada: !!p.comunidad_cerrada, hoa: !!p.hoa,
+          fechaPublicacion: fmtFecha(p.fecha_publicacion) || null,
+          descripcion,
+          foto: foto0,
+          agente: AGENTE,
+          waNumber: WHATSAPP_NUMBER,
+        }).replace(/</g, '\\u003c')};
+    </script>
+    <script>
         var FICHA_FOTOS = ${JSON.stringify(fotos)};
         var FICHA_SHARE = { titulo: ${JSON.stringify(p.titulo)}, url: ${JSON.stringify(url)} };
         var FICHA_ID = ${JSON.stringify(p.id)};
@@ -410,6 +438,7 @@ function render(p) {
             if (window.CostoSVMetricas) window.CostoSVMetricas.registrarEvento('ficha_view', 'video: ' + FICHA_SHARE.titulo);
         }
     </script>
+    <script src="/dossier.js?v=1"></script>
 </body>
 </html>`;
 }
