@@ -228,14 +228,6 @@
   window.addEventListener('resize', initCanvas);
   el('clearSignature').addEventListener('click', function () { hasSignature = false; signatureData = ''; initCanvas(); });
 
-  // ---------- logo para el PDF ----------
-  var logoDataUri = '';
-  fetch('assets/logo-remax.png').then(function (r) { return r.blob(); }).then(function (b) {
-    var fr = new FileReader();
-    fr.onload = function () { logoDataUri = fr.result; };
-    fr.readAsDataURL(b);
-  }).catch(function () {});
-
   // ---------- PDF ----------
   function clampText(pdf, text, width, maxLines) {
     var lines = pdf.splitTextToSize(text || '', width);
@@ -320,17 +312,10 @@
     pdf.roundedRect(30, 24, pageW - 60, 106, 22, 22, 'F');
     pdf.setDrawColor(225, 232, 240);
     pdf.roundedRect(30, 24, pageW - 60, 106, 22, 22, 'S');
-    try {
-      if (logoDataUri) {
-        pdf.setFillColor(15, 23, 42);
-        pdf.roundedRect(pageW - 192, 40, 130, 54, 12, 12, 'F');
-        pdf.addImage(logoDataUri, 'JPEG', pageW - 180, 47, 106, 40, 'remaxLogo', 'FAST');
-      }
-    } catch (e) {}
     pdf.setTextColor(229, 57, 53);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(12);
-    pdf.text('RE/MAX Elite', 50, 54);
+    pdf.text('Guerrero Properties', 50, 54);
     pdf.setTextColor(11, 45, 92);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(24);
@@ -402,8 +387,8 @@
 
     y = paragraph(pdf,
       isEnglish
-        ? 'I also expressly authorize RE/MAX ELITE to notify the owner of the property of this offer in order to receive a response accepting or rejecting it.'
-        : 'Así mismo, autorizo expresamente a RE/MAX ELITE para que notifique al propietario de dicho inmueble la presente oferta, a efectos de recibir respuesta de aceptación o rechazo.',
+        ? 'I also expressly authorize GUERRERO PROPERTIES to notify the owner of the property of this offer in order to receive a response accepting or rejecting it.'
+        : 'Así mismo, autorizo expresamente a GUERRERO PROPERTIES para que notifique al propietario de dicho inmueble la presente oferta, a efectos de recibir respuesta de aceptación o rechazo.',
       x, y, width, { fontSize: 11.2, minFontSize: 10, lineHeight: 15.4, maxLines: 5 });
     y += 20;
 
@@ -533,6 +518,8 @@
       domicileDepartment: val('domicile_department'),
       documentType: documentType.value,
       documentNumber: val('document_number'),
+      clientPhone: val('client_phone'),
+      clientEmail: val('client_email'),
       propertyMunicipality: val('property_municipality'),
       propertyDepartment: val('property_department'),
       propertyAddress: val('property_address'),
@@ -564,10 +551,12 @@
     var contactoId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(16).slice(2));
     var resumen = 'Carta de oferta (' + (v.offerType === 'VENTA' ? 'venta' : 'alquiler') + ') — US$ ' + formatMoney(v.amountNumber) +
       ' — ' + v.propertyAddress +
+      ' — Cliente: ' + v.fullName + ' (' + v.documentType + ' ' + v.documentNumber + ')' +
+      (v.clientPhone ? ' — Tel: ' + v.clientPhone : '') +
       (v.offerType === 'VENTA' ? ' — Forma de pago: ' + v.paymentMethod : ' — Plazo: ' + v.rentalTerm);
     fetch(CFG.SUPABASE_URL + '/rest/v1/contactos', {
       method: 'POST', headers: headers,
-      body: JSON.stringify({ id: contactoId, nombre: v.fullName, telefono: '', correo: '' }),
+      body: JSON.stringify({ id: contactoId, nombre: v.fullName, telefono: v.clientPhone || '', correo: v.clientEmail || '' }),
     }).then(function (c) {
       if (!c.ok) return null;
       return fetch(CFG.SUPABASE_URL + '/rest/v1/leads', {

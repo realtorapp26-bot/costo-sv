@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow, noarchive">
-    <title>Carta de Oferta | RE/MAX Elite</title>
+    <title>Carta de Oferta | Guerrero Properties</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap">
@@ -15,7 +15,7 @@
         body { background: #eef1f6; color: #0f172a; font-family: 'Outfit', system-ui, sans-serif; }
         .co-header { background: var(--azul); color: #fff; padding: 30px 0; }
         .co-header .container { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-        .co-header img { height: 30px; background: #fff; border-radius: 6px; padding: 4px 8px; }
+        .co-header .co-brand { font-size: .78rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #c9d6ea; margin-bottom: 4px; }
         .co-header h1 { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin: 0; }
         .co-header p { margin: 2px 0 0; color: #c9d6ea; font-size: .9rem; }
         .co-wrap { max-width: 760px; margin: 28px auto 80px; padding: 0 18px; }
@@ -60,10 +60,10 @@
 <body>
     <header class="co-header">
         <div class="container">
-            <img src="assets/logo-remax.png" alt="RE/MAX Elite">
             <div>
+                <div class="co-brand">Guerrero Properties</div>
                 <h1>Carta de Oferta</h1>
-                <p>Oferta de compra o alquiler de inmueble — RE/MAX Elite</p>
+                <p>Oferta de compra o alquiler de inmueble</p>
             </div>
         </div>
     </header>
@@ -138,7 +138,16 @@
                         <input type="text" id="document_number" name="document_number" required>
                         <div class="co-help">DUI: 9 dígitos · NIT: 14 dígitos · Pasaporte: 6 a 20 caracteres alfanuméricos.</div>
                     </div>
+                    <div class="co-field">
+                        <label for="client_phone">Teléfono / WhatsApp <span class="en">/ Phone</span></label>
+                        <input type="tel" id="client_phone" name="client_phone" inputmode="tel" autocomplete="tel">
+                    </div>
+                    <div class="co-field">
+                        <label for="client_email">Correo <span class="en">/ Email</span></label>
+                        <input type="email" id="client_email" name="client_email" autocomplete="email">
+                    </div>
                 </div>
+                <div class="co-help" style="margin-top:10px;">El teléfono y el correo son para que el agente te dé seguimiento; no aparecen en el PDF de la oferta.</div>
             </div>
 
             <div class="co-card">
