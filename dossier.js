@@ -273,7 +273,7 @@
     var wrap = document.createElement('div');
     wrap.id = 'dsr-doc';
     wrap.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;height:1123px;background:#fff;overflow:hidden;' +
-      'display:flex;flex-direction:column;font-family:"Outfit",system-ui,sans-serif;color:#1a1a2e;padding:42px;box-sizing:border-box';
+      'font-family:"Outfit",system-ui,sans-serif;color:#1a1a2e;padding:42px 42px 118px;box-sizing:border-box';
     wrap.innerHTML =
       // barra superior
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">' +
@@ -292,33 +292,35 @@
       // chips
       '<div style="display:flex;flex-wrap:wrap;gap:9px;margin-top:12px;padding:13px 0;border-top:1px solid #ececec;border-bottom:1px solid #ececec">' + chipsHtml() + '</div>' +
       // cuerpo: descripción + características (izq) / tarjeta agente (der)
-      '<div style="display:flex;gap:22px;margin-top:16px">' +
-        '<div style="flex:1 1 auto;min-width:0">' +
+      // display:table en vez de flex -> html2canvas mide bien la altura del texto
+      '<div style="display:table;width:100%;margin-top:16px;table-layout:fixed">' +
+        '<div style="display:table-cell;vertical-align:top;padding-right:22px">' +
           (descripcion ?
             '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:14px;color:' + AZUL + ';font-weight:700;margin-bottom:7px;letter-spacing:.02em">DESCRIPCIÓN</div>' +
-            '<div style="font-size:12.5px;color:#374151;line-height:1.75">' + esc(descripcion) + '</div>'
+            '<div style="font-size:12.5px;color:#374151;line-height:1.75;padding-bottom:4px">' + esc(descripcion) + '</div>'
             : '') +
           caracteristicasHtml() +
         '</div>' +
-        '<div style="flex:0 0 224px;border:1px solid #e5e7eb;border-radius:14px;padding:18px 16px;text-align:center">' +
-          '<img src="' + esc(D.agente.foto) + '" style="width:62px;height:62px;border-radius:50%;object-fit:cover;margin:0 auto 9px;display:block" alt="">' +
-          '<div style="font-size:14.5px;font-weight:700;color:#0f172a">' + esc(D.agente.nombre) + '</div>' +
-          '<div style="font-size:11px;color:#6b7280;margin-bottom:9px">' + esc(D.agente.titulo) + '</div>' +
-          '<div style="font-size:11px;color:#374151;line-height:1.65;word-break:break-word">' + esc(D.agente.telefono) + '<br>' + esc(D.agente.email) + '</div>' +
-          '<div style="font-size:10px;font-weight:700;letter-spacing:.14em;color:' + AZUL + ';margin:13px 0 7px">VER MÁS</div>' +
-          '<div id="dsr-qr" style="display:flex;justify-content:center"></div>' +
+        '<div style="display:table-cell;vertical-align:top;width:224px">' +
+          '<div style="border:1px solid #e5e7eb;border-radius:14px;padding:18px 16px;text-align:center">' +
+            '<img src="' + esc(D.agente.foto) + '" style="width:62px;height:62px;border-radius:50%;object-fit:cover;margin:0 auto 9px;display:block" alt="">' +
+            '<div style="font-size:14.5px;font-weight:700;color:#0f172a">' + esc(D.agente.nombre) + '</div>' +
+            '<div style="font-size:11px;color:#6b7280;margin-bottom:9px">' + esc(D.agente.titulo) + '</div>' +
+            '<div style="font-size:11px;color:#374151;line-height:1.65;word-break:break-word">' + esc(D.agente.telefono) + '<br>' + esc(D.agente.email) + '</div>' +
+            '<div style="font-size:10px;font-weight:700;letter-spacing:.14em;color:' + AZUL + ';margin:13px 0 7px">VER MÁS</div>' +
+            '<div id="dsr-qr" style="display:flex;justify-content:center"></div>' +
+          '</div>' +
         '</div>' +
       '</div>' +
-      // empuja el CTA y el pie hacia abajo
-      '<div style="flex:1 1 auto;min-height:14px"></div>' +
-      // CTA
-      '<div style="background:' + AZUL + ';color:#fff;border-radius:12px;padding:15px 22px;display:flex;align-items:center;justify-content:space-between">' +
-        '<span style="font-size:13.5px;font-weight:600">¿Querés visitarla? Escribime por WhatsApp</span>' +
-        '<span style="font-size:15px;font-weight:800">' + esc(D.agente.telefono) + '</span>' +
-      '</div>' +
-      // pie
-      '<div style="padding-top:11px;margin-top:11px;border-top:1px solid #ececec;font-size:10px;color:#94a3b8;text-align:center">' +
-        esc([D.idExterno || D.slug, D.ubicacion, D.agente.email, D.agente.telefono].filter(Boolean).join('  •  ')) +
+      // CTA + pie anclados abajo (position:fixed del wrap actúa de contenedor)
+      '<div style="position:absolute;left:42px;right:42px;bottom:34px">' +
+        '<div style="background:' + AZUL + ';color:#fff;border-radius:12px;padding:15px 22px;display:flex;align-items:center;justify-content:space-between">' +
+          '<span style="font-size:13.5px;font-weight:600">¿Querés visitarla? Escribime por WhatsApp</span>' +
+          '<span style="font-size:15px;font-weight:800">' + esc(D.agente.telefono) + '</span>' +
+        '</div>' +
+        '<div style="padding-top:11px;margin-top:11px;border-top:1px solid #ececec;font-size:10px;color:#94a3b8;text-align:center">' +
+          esc([D.idExterno || D.slug, D.ubicacion, D.agente.email, D.agente.telefono].filter(Boolean).join('  •  ')) +
+        '</div>' +
       '</div>';
 
     document.body.appendChild(wrap);
