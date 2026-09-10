@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <title>Carta de Oferta | RE/MAX Elite</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <style>
+        :root { --azul: #0b2d5c; --rojo: #e53935; }
+        body { background: #eef1f6; color: #0f172a; font-family: 'Outfit', system-ui, sans-serif; }
+        .co-header { background: var(--azul); color: #fff; padding: 30px 0; }
+        .co-header .container { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .co-header img { height: 30px; background: #fff; border-radius: 6px; padding: 4px 8px; }
+        .co-header h1 { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin: 0; }
+        .co-header p { margin: 2px 0 0; color: #c9d6ea; font-size: .9rem; }
+        .co-wrap { max-width: 760px; margin: 28px auto 80px; padding: 0 18px; }
+        .co-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 26px 24px; margin-bottom: 18px; box-shadow: 0 8px 24px rgba(15,23,42,.05); }
+        .co-card h2 { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--azul); margin: 0 0 4px; }
+        .co-card .hint { font-size: .82rem; color: #64748b; margin: 0 0 18px; }
+        .co-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .co-grid .full { grid-column: 1 / -1; }
+        .co-field label { display: block; font-size: .8rem; font-weight: 600; color: #475569; margin-bottom: 6px; }
+        .co-field label .en { color: #94a3b8; font-weight: 500; }
+        .co-field input, .co-field select, .co-field textarea {
+            width: 100%; padding: 12px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px;
+            font: inherit; font-size: .95rem; color: #0f172a; background: #f8fafc; box-sizing: border-box;
+        }
+        .co-field input:focus, .co-field select:focus, .co-field textarea:focus {
+            outline: 0; border-color: var(--azul); background: #fff; box-shadow: 0 0 0 3px rgba(11,45,92,.12);
+        }
+        .co-field input[readonly] { background: #eef2f7; color: #475569; }
+        .co-field textarea { min-height: 80px; resize: vertical; }
+        .co-field input.is-invalid, .co-field select.is-invalid, .co-field textarea.is-invalid { border-color: var(--rojo); background: #fef2f2; }
+        .co-help { font-size: .74rem; color: #94a3b8; margin-top: 5px; }
+        .co-sign-wrap { border: 1.5px dashed #cbd5e1; border-radius: 12px; background: #fff; overflow: hidden; }
+        #signaturePad { width: 100%; height: 200px; display: block; touch-action: none; cursor: crosshair; }
+        .co-sign-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+        .co-btn-clear { background: none; border: 1px solid #e2e8f0; border-radius: 8px; padding: 7px 14px; font: inherit; font-size: .82rem; cursor: pointer; color: #475569; }
+        .co-check { display: flex; gap: 10px; align-items: flex-start; font-size: .86rem; color: #334155; margin-top: 4px; }
+        .co-check input { width: auto; margin-top: 3px; }
+        .co-errors { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; }
+        .co-errors h3 { color: #b91c1c; font-size: .95rem; margin: 0 0 8px; }
+        .co-errors ul { margin: 0; padding-left: 18px; color: #7f1d1d; font-size: .85rem; }
+        .co-generate { width: 100%; padding: 16px; border: 0; border-radius: 12px; background: var(--azul); color: #fff; font: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .co-generate:hover { background: #082245; }
+        .co-generate:disabled { opacity: .7; cursor: progress; }
+        .co-spin { width: 16px; height: 16px; border: 2.5px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: co-rot .7s linear infinite; display: none; }
+        .co-generate.loading .co-spin { display: block; }
+        @keyframes co-rot { to { transform: rotate(360deg); } }
+        .co-note { font-size: .8rem; color: #64748b; background: #f1f5f9; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; }
+        .d-none { display: none !important; }
+        @media (max-width: 620px) { .co-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <header class="co-header">
+        <div class="container">
+            <img src="assets/logo-remax.png" alt="RE/MAX Elite">
+            <div>
+                <h1>Carta de Oferta</h1>
+                <p>Oferta de compra o alquiler de inmueble — RE/MAX Elite</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="co-wrap">
+        <div class="co-note" id="langNote">
+            El PDF se genera con la oferta en el idioma elegido. Si elegís <strong>Inglés</strong>, se adjunta
+            además una página en español con la misma información y la misma firma, en el mismo PDF.
+        </div>
+
+        <div class="co-errors d-none" id="errorBox">
+            <h3>Revisá la información</h3>
+            <ul id="errorList"></ul>
+        </div>
+
+        <form id="offerForm" novalidate>
+            <div class="co-card">
+                <h2>Revisá la información</h2>
+                <div class="co-grid">
+                    <div class="co-field">
+                        <label for="document_language">Idioma del documento <span class="en">/ Document language</span></label>
+                        <select id="document_language" name="document_language">
+                            <option value="es">Español</option>
+                            <option value="en">Inglés + anexo en español</option>
+                        </select>
+                    </div>
+                    <div class="co-field">
+                        <label for="offer_type">Tipo de oferta <span class="en">/ Offer type</span></label>
+                        <select id="offer_type" name="offer_type" required>
+                            <option value="">Seleccioná una opción</option>
+                            <option value="VENTA">Venta</option>
+                            <option value="ALQUILER">Alquiler</option>
+                        </select>
+                    </div>
+                    <div class="co-field full">
+                        <label for="issue_city">Ciudad de emisión <span class="en">/ Place of issue</span></label>
+                        <input type="text" id="issue_city" name="issue_city" placeholder="San Salvador">
+                    </div>
+                </div>
+            </div>
+
+            <div class="co-card">
+                <h2>Datos del cliente</h2>
+                <div class="co-grid">
+                    <div class="co-field full">
+                        <label for="full_name">Nombre completo <span class="en">/ Full name</span></label>
+                        <input type="text" id="full_name" name="full_name" autocomplete="name" required>
+                    </div>
+                    <div class="co-field">
+                        <label for="age">Edad <span class="en">/ Age</span></label>
+                        <input type="number" id="age" name="age" min="18" max="120" required>
+                    </div>
+                    <div class="co-field">
+                        <label for="domicile_city">Ciudad de domicilio <span class="en">/ City of residence</span></label>
+                        <input type="text" id="domicile_city" name="domicile_city" required>
+                    </div>
+                    <div class="co-field">
+                        <label for="domicile_department">Departamento de domicilio <span class="en">/ State/department</span></label>
+                        <input type="text" id="domicile_department" name="domicile_department" required>
+                    </div>
+                    <div class="co-field">
+                        <label for="document_type">Tipo de documento <span class="en">/ ID type</span></label>
+                        <select id="document_type" name="document_type" required>
+                            <option value="">Seleccioná</option>
+                            <option value="DUI">DUI</option>
+                            <option value="NIT">NIT</option>
+                            <option value="PASAPORTE">Pasaporte</option>
+                        </select>
+                    </div>
+                    <div class="co-field full">
+                        <label for="document_number">Número de documento <span class="en">/ ID number</span></label>
+                        <input type="text" id="document_number" name="document_number" required>
+                        <div class="co-help">DUI: 9 dígitos · NIT: 14 dígitos · Pasaporte: 6 a 20 caracteres alfanuméricos.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="co-card">
+                <h2>Datos del inmueble</h2>
+                <div class="co-grid">
+                    <div class="co-field">
+                        <label for="property_municipality">Municipio <span class="en">/ Municipality</span></label>
+                        <input type="text" id="property_municipality" name="property_municipality" required>
+                    </div>
+                    <div class="co-field">
+                        <label for="property_department">Departamento <span class="en">/ State/department</span></label>
+                        <input type="text" id="property_department" name="property_department" required>
+                    </div>
+                    <div class="co-field full">
+                        <label for="property_address">Dirección del inmueble <span class="en">/ Property address</span></label>
+                        <input type="text" id="property_address" name="property_address" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="co-card">
+                <h2>Condiciones de la oferta</h2>
+                <div class="co-grid">
+                    <div class="co-field">
+                        <label for="amount_number">Monto en dólares (US$) <span class="en">/ Amount</span></label>
+                        <input type="number" id="amount_number" name="amount_number" min="1" step="0.01" required>
+                    </div>
+                    <div class="co-field">
+                        <label for="offer_date_view">Fecha automática de la oferta</label>
+                        <input type="text" id="offer_date_view" name="offer_date_view" readonly>
+                    </div>
+                    <div class="co-field full">
+                        <label for="amount_words">Monto en letras (español)</label>
+                        <input type="text" id="amount_words" name="amount_words" readonly>
+                        <div class="co-help">Se completa automáticamente.</div>
+                    </div>
+                    <div class="co-field full d-none" id="amountWordsEnglishWrap">
+                        <label for="amount_words_english">Monto en letras (inglés) <span class="en">/ Amount in words</span></label>
+                        <input type="text" id="amount_words_english" name="amount_words_english" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <div class="co-card d-none" id="rentalFields">
+                <h2>Campos adicionales para alquiler</h2>
+                <div class="co-grid">
+                    <div class="co-field full">
+                        <label for="rental_term">Plazo de alquiler <span class="en">/ Rental term</span></label>
+                        <input type="text" id="rental_term" name="rental_term" placeholder="Ejemplo: 12 meses">
+                    </div>
+                    <div class="co-field full">
+                        <label for="owner_conditions">Condiciones o solicitudes al propietario <span class="en">/ Requests to the owner</span></label>
+                        <textarea id="owner_conditions" name="owner_conditions" placeholder="Detallá solicitudes especiales o puntos importantes de la oferta."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="co-card d-none" id="saleFields">
+                <h2>Campos adicionales para venta</h2>
+                <div class="co-grid">
+                    <div class="co-field">
+                        <label for="payment_method">Forma de pago <span class="en">/ Payment method</span></label>
+                        <select id="payment_method" name="payment_method">
+                            <option value="">Seleccioná</option>
+                            <option value="Contado">Contado</option>
+                            <option value="Crédito">Crédito</option>
+                            <option value="Mixto">Mixto</option>
+                        </select>
+                    </div>
+                    <div class="co-field full">
+                        <label for="payment_details">Detalle de entrega de fondos <span class="en">/ Funding details</span></label>
+                        <textarea id="payment_details" name="payment_details" placeholder="Origen de fondos, institución financiera y plazos."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="co-card">
+                <h2>Firma</h2>
+                <p class="hint">Firma del cliente. La fecha y hora se agregan automáticamente.</p>
+                <div class="co-sign-wrap">
+                    <canvas id="signaturePad"></canvas>
+                </div>
+                <div class="co-sign-actions">
+                    <button type="button" class="co-btn-clear" id="clearSignature">Limpiar firma</button>
+                </div>
+                <div class="co-check d-none" id="englishConsentWrap" style="margin-top:16px;">
+                    <input type="checkbox" id="english_consent">
+                    <label for="english_consent" style="margin:0;font-weight:500;">
+                        Entiendo y acepto que la oferta en inglés y su versión en español anexa se incluirán juntas en el mismo PDF.
+                    </label>
+                </div>
+            </div>
+
+            <button type="button" class="co-generate" id="generateBtn">
+                <span class="co-spin"></span>
+                <span class="co-generate-txt">Generar carta de oferta (PDF)</span>
+            </button>
+        </form>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="config.js?v=2"></script>
+    <script src="carta-oferta.js?v=1"></script>
+</body>
+</html>

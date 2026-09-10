@@ -278,6 +278,10 @@
             body.innerHTML = propiedades.map(p => {
                 const foto = (p.fotos && p.fotos[0]) || '';
                 const fecha = new Date(p.created_at).toLocaleDateString('es-SV', { day: '2-digit', month: 'short', year: 'numeric' });
+                const montoNum = String(p.precio || '').replace(/[^0-9.]/g, '');
+                const ofertaUrl = `carta-oferta.html?tipo=${p.tipo_contrato === 'alquiler' ? 'alquiler' : 'venta'}`
+                    + `&direccion=${encodeURIComponent(p.ubicacion || p.titulo || '')}`
+                    + (montoNum ? `&monto=${encodeURIComponent(montoNum)}` : '');
                 return `
                     <tr>
                         <td>${foto ? `<img src="${foto}" class="gestion-thumb" onerror="this.style.display='none'">` : ''}</td>
@@ -288,6 +292,7 @@
                         <td><button class="estado-chip ${p.publicada ? 'publicada' : 'oculta'}" onclick="cambiarEstado('${p.id}', ${!p.publicada})">${p.publicada ? '✓ Publicada' : 'Oculta'}</button></td>
                         <td>
                             <button class="btn-editar" onclick="abrirEdicionProp('${p.id}')"><i class="fas fa-pen"></i> Editar</button>
+                            <a class="btn-editar" href="${ofertaUrl}" target="_blank" rel="noopener"><i class="fas fa-file-signature"></i> Carta de oferta</a>
                             <button class="btn-eliminar" onclick="eliminar('${p.id}')"><i class="fas fa-trash"></i> Eliminar</button>
                         </td>
                     </tr>

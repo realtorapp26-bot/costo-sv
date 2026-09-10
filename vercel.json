@@ -36,6 +36,14 @@
       "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
     },
     {
+      "source": "/carta-oferta.js",
+      "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
+    },
+    {
+      "source": "/carta-oferta.html",
+      "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
+    },
+    {
       "source": "/login.js",
       "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
     },
