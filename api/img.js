@@ -19,7 +19,18 @@ const HOSTS_PERMITIDOS = [
   /^images\.unsplash\.com$/i,
 ];
 
-const MAX_BYTES = 8 * 1024 * 1024;
+const MAX_BYTES = 12 * 1024 * 1024;
+
+// Detecta el tipo real por los primeros bytes. El CDN de RE/MAX (Azure) sirve
+// los PNG como application/octet-stream, así que no se puede confiar en el header.
+function sniffTipo(buf) {
+  if (buf.length < 12) return null;
+  if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return 'image/png';
+  if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return 'image/jpeg';
+  if (buf[0] === 0x47 && buf[1] === 0x49 && buf[2] === 0x46) return 'image/gif';
+  if (buf[0] === 0x52 && buf[1] === 0x49 && buf[2] === 0x46 && buf[8] === 0x57 && buf[9] === 0x45 && buf[10] === 0x42 && buf[11] === 0x50) return 'image/webp';
+  return null;
+}
 
 export default async function handler(req, res) {
   const raw = (req.query && req.query.u) || '';
@@ -48,14 +59,16 @@ export default async function handler(req, res) {
       res.status(502).json({ error: 'La imagen de origen respondió ' + r.status });
       return;
     }
-    const tipo = r.headers.get('content-type') || '';
-    if (!tipo.startsWith('image/')) {
-      res.status(415).json({ error: 'El origen no es una imagen' });
-      return;
-    }
     const buf = Buffer.from(await r.arrayBuffer());
     if (!buf.length || buf.length > MAX_BYTES) {
       res.status(413).json({ error: 'Imagen vacía o demasiado grande' });
+      return;
+    }
+
+    const headerTipo = (r.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+    const tipo = headerTipo.startsWith('image/') ? headerTipo : sniffTipo(buf);
+    if (!tipo) {
+      res.status(415).json({ error: 'El origen no es una imagen' });
       return;
     }
 
