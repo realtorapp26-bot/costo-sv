@@ -406,6 +406,7 @@ function render(p) {
           fechaPublicacion: fmtFecha(p.fecha_publicacion) || null,
           descripcion,
           foto: foto0,
+          fotos: fotos.slice(0, 5),
           agente: AGENTE,
           waNumber: WHATSAPP_NUMBER,
         }).replace(/</g, '\\u003c')};

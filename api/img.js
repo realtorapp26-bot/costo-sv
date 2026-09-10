@@ -13,6 +13,9 @@ const HOSTS_PERMITIDOS = [
   /(^|\.)supabase\.co$/i,
   /(^|\.)remax-cca\.com$/i,
   /(^|\.)cloudfront\.net$/i,
+  /(^|\.)azureedge\.net$/i,           // CDN de fotos de RE/MAX (remaxcaribbeanandcentralamerica.azureedge.net)
+  /(^|\.)blob\.core\.windows\.net$/i, // Azure Blob directo
+  /(^|\.)remax\.com$/i,
   /^images\.unsplash\.com$/i,
 ];
 

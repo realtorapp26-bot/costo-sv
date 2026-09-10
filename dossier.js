@@ -225,15 +225,26 @@
 
   function chipsHtml() {
     var chips = [];
+    if (D.tipo) chips.push(['', D.tipo]);
     if (D.habitaciones) chips.push([D.habitaciones, 'Habitaciones']);
     if (D.banos) chips.push([D.banos, 'Baños']);
     if (D.garage) chips.push(['', 'Con parqueo']);
-    else if (D.m2) chips.push([D.m2, 'm²']);
+    if (D.m2) chips.push([D.m2, 'm²']);
     else if (D.tamanoLote) chips.push(['', 'Lote ' + D.tamanoLote]);
-    return chips.slice(0, 3).map(function (c) {
+    return chips.slice(0, 4).map(function (c) {
       return '<span style="display:inline-flex;align-items:baseline;gap:6px;border:1px solid #e5e7eb;border-radius:22px;padding:8px 16px;font-size:13px;color:#1f2937;font-weight:500">' +
         (c[0] ? '<b style="color:' + AZUL + ';font-size:14px">' + esc(c[0]) + '</b>' : '') + esc(c[1]) + '</span>';
     }).join('');
+  }
+
+  function thumbsHtml() {
+    var extra = (D.fotos || []).slice(1, 4).filter(Boolean);
+    if (extra.length < 2) return '';
+    return '<div style="display:flex;gap:10px;margin-top:10px">' +
+      extra.map(function (u) {
+        return '<div style="flex:1;height:104px;border-radius:10px;overflow:hidden;background:#e5e7eb">' +
+          '<img src="' + esc(proxear(u)) + '" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;display:block" alt=""></div>';
+      }).join('') + '</div>';
   }
 
   function caracteristicasHtml() {
@@ -248,9 +259,9 @@
     if (D.categoria) items.push('Categoría: ' + D.categoria);
     if (D.fechaPublicacion) items.push('Publicado: ' + D.fechaPublicacion);
     if (!items.length) return '';
-    return '<div style="margin-top:18px">' +
-      '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:15px;color:' + AZUL + ';font-weight:700;margin-bottom:8px">CARACTERÍSTICAS</div>' +
-      '<ul style="margin:0;padding:0;list-style:none;font-size:12.5px;color:#374151;line-height:1.9">' +
+    return '<div style="margin-top:16px">' +
+      '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:14px;color:' + AZUL + ';font-weight:700;margin-bottom:7px;letter-spacing:.02em">CARACTERÍSTICAS</div>' +
+      '<ul style="margin:0;padding:0;list-style:none;font-size:12px;color:#374151;line-height:1.85">' +
       items.map(function (t) {
         return '<li style="padding-left:16px;position:relative"><span style="position:absolute;left:0;color:' + AZUL + '">&#9642;</span>' + esc(t) + '</li>';
       }).join('') + '</ul></div>';
@@ -258,47 +269,55 @@
 
   async function construirPlantilla() {
     var badge = 'EN ' + String(D.contrato || '').toUpperCase();
+    var descripcion = recortar(D.descripcion, 620);
     var wrap = document.createElement('div');
     wrap.id = 'dsr-doc';
     wrap.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;height:1123px;background:#fff;overflow:hidden;' +
-      'font-family:"Outfit",system-ui,sans-serif;color:#1a1a2e;padding:44px;box-sizing:border-box';
-    var descripcion = recortar(D.descripcion, 880);
+      'display:flex;flex-direction:column;font-family:"Outfit",system-ui,sans-serif;color:#1a1a2e;padding:42px;box-sizing:border-box';
     wrap.innerHTML =
       // barra superior
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">' +
-        '<img src="/assets/logo-remax.png" style="height:34px;display:block" alt="RE/MAX">' +
-        '<span style="background:' + ROJO + ';color:#fff;font-size:12px;font-weight:700;letter-spacing:.06em;padding:7px 16px;border-radius:20px">' + esc(badge) + '</span>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">' +
+        '<img src="/assets/logo-remax.png" style="height:32px;display:block" alt="RE/MAX">' +
+        '<span style="background:' + ROJO + ';color:#fff;font-size:11.5px;font-weight:700;letter-spacing:.06em;padding:7px 15px;border-radius:20px">' + esc(badge) + '</span>' +
       '</div>' +
-      // foto con precio
-      '<div style="position:relative;width:100%;height:320px;border-radius:14px;overflow:hidden;background:#e5e7eb">' +
+      // foto principal con precio
+      '<div style="position:relative;width:100%;height:388px;border-radius:14px;overflow:hidden;background:#e5e7eb">' +
         '<img id="dsr-hero" src="' + esc(proxear(D.foto)) + '" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;display:block" alt="">' +
-        '<span style="position:absolute;left:16px;bottom:16px;background:rgba(15,23,42,.86);color:#fff;font-size:18px;font-weight:700;padding:9px 18px;border-radius:10px">' + esc(precioTxt(D.precio)) + '</span>' +
+        '<span style="position:absolute;left:16px;bottom:16px;background:rgba(15,23,42,.88);color:#fff;font-size:19px;font-weight:700;padding:9px 18px;border-radius:10px">' + esc(precioTxt(D.precio)) + '</span>' +
       '</div>' +
+      thumbsHtml() +
       // título + dirección
-      '<h1 style="font-family:\'Playfair Display\',Georgia,serif;font-size:23px;line-height:1.25;margin:18px 0 5px;color:#0f172a">' + esc(D.titulo) + '</h1>' +
-      (D.ubicacion ? '<div style="font-size:13px;color:#6b7280;margin-bottom:14px">' + esc(D.ubicacion) + '</div>' : '<div style="margin-bottom:14px"></div>') +
+      '<h1 style="font-family:\'Playfair Display\',Georgia,serif;font-size:22px;line-height:1.25;margin:16px 0 4px;color:#0f172a">' + esc(D.titulo) + '</h1>' +
+      (D.ubicacion ? '<div style="font-size:12.5px;color:#6b7280">' + esc(D.ubicacion) + '</div>' : '') +
       // chips
-      '<div style="display:flex;flex-wrap:wrap;gap:10px;padding:14px 0;border-top:1px solid #ececec;border-bottom:1px solid #ececec">' + chipsHtml() + '</div>' +
-      // cuerpo: descripción (izq) + tarjeta agente (der)
-      '<div style="display:flex;gap:22px;margin-top:20px">' +
+      '<div style="display:flex;flex-wrap:wrap;gap:9px;margin-top:12px;padding:13px 0;border-top:1px solid #ececec;border-bottom:1px solid #ececec">' + chipsHtml() + '</div>' +
+      // cuerpo: descripción + características (izq) / tarjeta agente (der)
+      '<div style="display:flex;gap:22px;margin-top:16px">' +
         '<div style="flex:1 1 auto;min-width:0">' +
           (descripcion ?
-            '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:15px;color:' + AZUL + ';font-weight:700;margin-bottom:8px">DESCRIPCIÓN</div>' +
-            '<div style="font-size:12.5px;color:#374151;line-height:1.7;display:-webkit-box;-webkit-line-clamp:13;-webkit-box-orient:vertical;overflow:hidden">' + esc(descripcion) + '</div>'
+            '<div style="font-family:\'Playfair Display\',Georgia,serif;font-size:14px;color:' + AZUL + ';font-weight:700;margin-bottom:7px;letter-spacing:.02em">DESCRIPCIÓN</div>' +
+            '<div style="font-size:12.5px;color:#374151;line-height:1.75">' + esc(descripcion) + '</div>'
             : '') +
           caracteristicasHtml() +
         '</div>' +
-        '<div style="flex:0 0 232px;border:1px solid #e5e7eb;border-radius:14px;padding:18px;text-align:center">' +
-          '<img src="' + esc(D.agente.foto) + '" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin:0 auto 10px;display:block" alt="">' +
-          '<div style="font-size:15px;font-weight:700;color:#0f172a">' + esc(D.agente.nombre) + '</div>' +
-          '<div style="font-size:11.5px;color:#6b7280;margin-bottom:10px">' + esc(D.agente.titulo) + '</div>' +
-          '<div style="font-size:11.5px;color:#374151;line-height:1.7;word-break:break-word">' + esc(D.agente.telefono) + '<br>' + esc(D.agente.email) + '</div>' +
-          '<div style="font-size:10.5px;font-weight:700;letter-spacing:.14em;color:' + AZUL + ';margin:14px 0 8px">VER MÁS</div>' +
+        '<div style="flex:0 0 224px;border:1px solid #e5e7eb;border-radius:14px;padding:18px 16px;text-align:center">' +
+          '<img src="' + esc(D.agente.foto) + '" style="width:62px;height:62px;border-radius:50%;object-fit:cover;margin:0 auto 9px;display:block" alt="">' +
+          '<div style="font-size:14.5px;font-weight:700;color:#0f172a">' + esc(D.agente.nombre) + '</div>' +
+          '<div style="font-size:11px;color:#6b7280;margin-bottom:9px">' + esc(D.agente.titulo) + '</div>' +
+          '<div style="font-size:11px;color:#374151;line-height:1.65;word-break:break-word">' + esc(D.agente.telefono) + '<br>' + esc(D.agente.email) + '</div>' +
+          '<div style="font-size:10px;font-weight:700;letter-spacing:.14em;color:' + AZUL + ';margin:13px 0 7px">VER MÁS</div>' +
           '<div id="dsr-qr" style="display:flex;justify-content:center"></div>' +
         '</div>' +
       '</div>' +
+      // empuja el CTA y el pie hacia abajo
+      '<div style="flex:1 1 auto;min-height:14px"></div>' +
+      // CTA
+      '<div style="background:' + AZUL + ';color:#fff;border-radius:12px;padding:15px 22px;display:flex;align-items:center;justify-content:space-between">' +
+        '<span style="font-size:13.5px;font-weight:600">¿Querés visitarla? Escribime por WhatsApp</span>' +
+        '<span style="font-size:15px;font-weight:800">' + esc(D.agente.telefono) + '</span>' +
+      '</div>' +
       // pie
-      '<div style="position:absolute;left:44px;right:44px;bottom:30px;border-top:1px solid #ececec;padding-top:12px;font-size:10.5px;color:#94a3b8;text-align:center">' +
+      '<div style="padding-top:11px;margin-top:11px;border-top:1px solid #ececec;font-size:10px;color:#94a3b8;text-align:center">' +
         esc([D.idExterno || D.slug, D.ubicacion, D.agente.email, D.agente.telefono].filter(Boolean).join('  •  ')) +
       '</div>';
 
@@ -307,7 +326,7 @@
     // QR
     try {
       new window.QRCode(wrap.querySelector('#dsr-qr'), {
-        text: D.url, width: 118, height: 118,
+        text: D.url, width: 124, height: 124,
         colorDark: '#0f172a', colorLight: '#ffffff',
         correctLevel: window.QRCode.CorrectLevel.M,
       });
