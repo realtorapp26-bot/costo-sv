@@ -249,6 +249,15 @@
         let propiedades = [];
         let franquicias = [];
 
+        function copiarLinkOfertaProp(rel) {
+            const base = ((window.SITE_CONFIG && window.SITE_CONFIG.SITE_URL) || location.origin).replace(/\/$/, '');
+            const url = base + '/' + rel;
+            navigator.clipboard.writeText(url).then(
+                () => alert('Link de la carta de oferta copiado:\n\n' + url + '\n\nMandáselo al cliente para que la complete y firme.'),
+                () => prompt('Copiá el link:', url)
+            );
+        }
+
         function cambiarTabGestion(nombre) {
             ['prop', 'fr'].forEach(t => {
                 document.getElementById('tab-' + t).classList.toggle('active', t === nombre);
@@ -293,6 +302,7 @@
                         <td>
                             <button class="btn-editar" onclick="abrirEdicionProp('${p.id}')"><i class="fas fa-pen"></i> Editar</button>
                             <a class="btn-editar" href="${ofertaUrl}" target="_blank" rel="noopener"><i class="fas fa-file-signature"></i> Carta de oferta</a>
+                            <button class="btn-editar" title="Copiar link de oferta para esta propiedad" onclick="copiarLinkOfertaProp('${ofertaUrl}')"><i class="fas fa-link"></i></button>
                             <button class="btn-eliminar" onclick="eliminar('${p.id}')"><i class="fas fa-trash"></i> Eliminar</button>
                         </td>
                     </tr>

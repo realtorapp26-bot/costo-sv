@@ -180,6 +180,7 @@
             <button class="tab-btn" id="btn-tab-metricas" onclick="cambiarTab('metricas')">📊 Métricas</button>
             <a class="tab-btn" href="propiedades-admin.html" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">🗂️ Administrar Publicaciones</a>
             <a class="tab-btn" href="carta-oferta.html" target="_blank" rel="noopener" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">📄 Carta de Oferta</a>
+            <button class="tab-btn" type="button" onclick="copiarLinkOferta()" style="display:flex; align-items:center; justify-content:center;">🔗 Copiar link de oferta</button>
         </div>
 
         <!-- ===== TAB: PROPIEDADES ===== -->
@@ -820,6 +821,15 @@
         function copiarTexto() {
             navigator.clipboard.writeText(document.getElementById('cp-texto').value);
             alert('Copiado — listo para pegar en Marketplace.');
+        }
+
+        function copiarLinkOferta() {
+            const base = ((window.SITE_CONFIG && window.SITE_CONFIG.SITE_URL) || location.origin).replace(/\/$/, '');
+            const url = base + '/carta-oferta.html';
+            navigator.clipboard.writeText(url).then(
+                () => alert('Link de la carta de oferta copiado:\n\n' + url + '\n\nMandáselo al cliente para que la complete y firme.'),
+                () => prompt('Copiá el link de la carta de oferta:', url)
+            );
         }
 
         async function agregarPropiedad() {
