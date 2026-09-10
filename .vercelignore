@@ -1,0 +1,3 @@
+# El proyecto Vercel del sitio público (guerrero-properties.com) NO debe incluir
+# la app del panel nuevo: esa tiene su propio proyecto Vercel con Root Directory = panel/.
+panel

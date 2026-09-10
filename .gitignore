@@ -3,11 +3,17 @@
 # Entorno / secretos (hoy no hay; se excluyen por seguridad)
 .env
 .env.*
+!.env.example
 *.key
 *.pem
 
 # Dependencias (por si se agrega tooling con Node)
 node_modules/
+
+# Panel nuevo (Vite) — build y caché
+panel/dist/
+panel/.vite/
+dist/
 
 # Sistema operativo
 .DS_Store
