@@ -539,7 +539,7 @@
   }
 
   // ---------- registro en el CRM (no bloqueante) ----------
-  function registrarEnCRM(v) {
+  function registrarEnCRM(v, pdfBlob) {
     var CFG = window.SITE_CONFIG || {};
     if (!CFG.SUPABASE_URL || !CFG.SUPABASE_ANON_KEY) return;
     var headers = {
@@ -574,10 +574,24 @@
       return l.json().then(function (rows) {
         var leadId = rows && rows[0] && rows[0].id;
         if (!leadId) return;
-        return fetch(CFG.SUPABASE_URL + '/rest/v1/actividades', {
+        var acts = fetch(CFG.SUPABASE_URL + '/rest/v1/actividades', {
           method: 'POST', headers: headers,
           body: JSON.stringify({ lead_id: leadId, tipo: 'nota', detalle: resumen }),
         });
+        if (!pdfBlob) return acts;
+        // Sube el PDF firmado al bucket privado "ofertas" y lo enlaza al lead.
+        var path = new Date().getFullYear() + '/' + leadId + '.pdf';
+        var up = fetch(CFG.SUPABASE_URL + '/storage/v1/object/ofertas/' + path, {
+          method: 'POST',
+          headers: { apikey: CFG.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + CFG.SUPABASE_ANON_KEY, 'Content-Type': 'application/pdf', 'x-upsert': 'true' },
+          body: pdfBlob,
+        }).then(function (u) {
+          if (!u.ok) { console.error('subida de la oferta:', u.status); return; }
+          return fetch(CFG.SUPABASE_URL + '/rest/v1/leads?id=eq.' + leadId, {
+            method: 'PATCH', headers: headers, body: JSON.stringify({ oferta_pdf_path: path }),
+          });
+        });
+        return Promise.all([acts, up]);
       });
     }).catch(function (e) { console.error('registro carta de oferta:', e); });
   }
@@ -597,8 +611,9 @@
     try {
       var pdf = buildPdf(values);
       var slug = (values.fullName || 'cliente').toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || 'cliente';
+      var pdfBlob = pdf.output('blob');
       pdf.save('carta-oferta-' + slug + '.pdf');
-      registrarEnCRM(values);
+      registrarEnCRM(values, pdfBlob);
     } catch (ex) {
       console.error('PDF carta de oferta:', ex);
       showErrors(['No se pudo generar el PDF: ' + (ex.message || ex)]);

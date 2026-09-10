@@ -527,6 +527,7 @@
                         <th>Propiedad / Nota</th>
                         <th>Estado</th>
                         <th>Fecha</th>
+                        <th>Oferta</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -1172,7 +1173,7 @@
             const body = document.getElementById('leads-body');
             try {
                 const headers = await CostoSVAuth.authHeaders();
-                const res = await fetch(`${SUPA_URL}/rest/v1/leads?select=id,origen,interes,propiedad_referencia,estado,created_at,contactos(nombre,telefono)&order=created_at.desc`, { headers });
+                const res = await fetch(`${SUPA_URL}/rest/v1/leads?select=id,origen,interes,propiedad_referencia,estado,created_at,oferta_pdf_path,contactos(nombre,telefono)&order=created_at.desc`, { headers });
                 if (!res.ok) throw new Error('No se pudieron cargar los leads (' + res.status + ')');
                 leadsData = await res.json();
                 renderLeads();
@@ -1217,7 +1218,7 @@
             const body = document.getElementById('leads-body');
             body.innerHTML = '';
             if (!filtrados.length) {
-                body.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-light); padding:20px;">No hay leads con estos filtros.</td></tr>';
+                body.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-light); padding:20px;">No hay leads con estos filtros.</td></tr>';
                 return;
             }
             filtrados.forEach((l) => {
@@ -1234,6 +1235,9 @@
                         </select>
                     </td>
                     <td>${formatearFecha(l.created_at)}</td>
+                    <td>${l.oferta_pdf_path
+                        ? `<button class="btn-nota" title="Descargar carta de oferta firmada" onclick="descargarOferta('${l.oferta_pdf_path}', this)"><i class="fas fa-file-arrow-down"></i></button>`
+                        : '<span style="color:var(--text-light);">—</span>'}</td>
                     <td>
                         <button class="btn-nota" onclick="agregarNota('${l.id}', '${(contacto.nombre || '').replace(/'/g, "\\'")}')"><i class="fas fa-note-sticky"></i></button>
                         <button class="btn-eliminar-lead" onclick="eliminarLead('${l.id}', '${(contacto.nombre || 'este lead').replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
@@ -1241,6 +1245,25 @@
                 `;
                 body.appendChild(tr);
             });
+        }
+
+        async function descargarOferta(path, btn) {
+            const original = btn ? btn.innerHTML : '';
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/storage/v1/object/sign/ofertas/${path}`, {
+                    method: 'POST', headers,
+                    body: JSON.stringify({ expiresIn: 120, download: 'carta-oferta.pdf' }),
+                });
+                if (!res.ok) throw new Error('No se pudo generar el enlace (' + res.status + ')');
+                const data = await res.json();
+                window.open(`${SUPA_URL}/storage/v1${data.signedURL}`, '_blank', 'noopener');
+            } catch (ex) {
+                alert('No se pudo descargar la oferta: ' + ex.message);
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = original; }
+            }
         }
 
         async function cambiarEstado(select) {
