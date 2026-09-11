@@ -15,6 +15,9 @@ panel/dist/
 panel/.vite/
 dist/
 
+# Salida del build unificado (build-static.mjs) — se genera en cada deploy
+dist_site/
+
 # Sistema operativo
 .DS_Store
 Thumbs.db

@@ -15,7 +15,7 @@ const queryClient = new QueryClient({
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <BrowserRouter basename="/panel">
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<LoginPage />} />

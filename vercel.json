@@ -1,6 +1,7 @@
 {
   "rewrites": [
-    { "source": "/propiedad/:slug", "destination": "/api/propiedad?slug=:slug" }
+    { "source": "/propiedad/:slug", "destination": "/api/propiedad?slug=:slug" },
+    { "source": "/panel/:path*", "destination": "/panel/index.html" }
   ],
   "redirects": [
     {
@@ -58,6 +59,14 @@
     {
       "source": "/propiedades.html",
       "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
+    },
+    {
+      "source": "/panel/index.html",
+      "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
+    },
+    {
+      "source": "/panel/:path*",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     }
   ]
 }
