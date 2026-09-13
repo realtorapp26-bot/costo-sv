@@ -52,6 +52,15 @@
         }
         .prop-orden-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
         .prop-orden-btn:disabled { opacity: 0.3; cursor: default; }
+        .prop-drag-handle {
+            width: 26px; height: 56px; display: flex; align-items: center; justify-content: center;
+            border-radius: 6px; border: 1px solid var(--border); background: white; color: var(--text-light);
+            cursor: grab; touch-action: none; flex-shrink: 0; padding: 0;
+        }
+        .prop-drag-handle:hover { border-color: var(--primary); color: var(--primary); }
+        .prop-drag-handle:active { cursor: grabbing; }
+        .prop-card.arrastrando { box-shadow: 0 10px 28px rgba(10,15,28,0.22); position: relative; z-index: 50; }
+        .prop-card.arrastrando .prop-card-main { background: var(--bg-alt); }
         .prop-card-foto { width: 84px; height: 64px; object-fit: cover; border-radius: 8px; background: var(--bg-main); flex-shrink: 0; }
         .prop-card-foto-vacia { width: 84px; height: 64px; border-radius: 8px; background: var(--bg-main); flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--text-light); }
         .prop-card-info { flex: 1 1 220px; min-width: 0; }
@@ -420,8 +429,9 @@
                 const respuestaUrl = `carta-respuesta.html?tipo=${tipoOp}&direccion=${direccionEnc}`;
                 const propiedadDesc = encodeURIComponent(p.titulo + (p.ubicacion ? ' — ' + p.ubicacion : ''));
                 return `
-                    <div class="prop-card">
+                    <div class="prop-card" data-id="${p.id}">
                         <div class="prop-card-main">
+                            <button type="button" class="prop-drag-handle" title="Arrastrar para reordenar" aria-label="Arrastrar para reordenar" onpointerdown="iniciarArrastre(event, '${p.id}')"><i class="fas fa-grip-lines"></i></button>
                             <div class="prop-card-orden">
                                 <button class="prop-orden-btn" title="Mostrar antes" onclick="moverPropiedad('${p.id}','arriba')" ${idx === 0 ? 'disabled' : ''}><i class="fas fa-chevron-up"></i></button>
                                 <button class="prop-orden-btn" title="Mostrar después" onclick="moverPropiedad('${p.id}','abajo')" ${idx === propiedades.length - 1 ? 'disabled' : ''}><i class="fas fa-chevron-down"></i></button>
@@ -488,6 +498,77 @@
             });
             render();
 
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const resultados = await Promise.all(cambios.map(p =>
+                    fetch(`${SUPA_URL}/rest/v1/propiedades?id=eq.${p.id}`, {
+                        method: 'PATCH', headers: { ...headers, Prefer: 'return=minimal' },
+                        body: JSON.stringify({ orden: p.orden }),
+                    })
+                ));
+                if (resultados.some(r => !r.ok)) throw new Error('El servidor rechazó el nuevo orden.');
+                mostrarToast('Orden actualizado');
+            } catch (ex) {
+                alert('No se pudo guardar el nuevo orden: ' + ex.message);
+            }
+        }
+
+        // ---------- Arrastrar para reordenar ----------
+        let arrastre = null; // { cardEl, startY }
+
+        function iniciarArrastre(e, id) {
+            e.preventDefault();
+            const cardEl = e.currentTarget.closest('.prop-card');
+            arrastre = { cardEl, startY: e.clientY };
+            cardEl.classList.add('arrastrando');
+            document.body.style.userSelect = 'none';
+            window.addEventListener('pointermove', moverArrastre);
+            window.addEventListener('pointerup', soltarArrastre, { once: true });
+        }
+
+        function moverArrastre(e) {
+            if (!arrastre) return;
+            const dy = e.clientY - arrastre.startY;
+            arrastre.cardEl.style.transform = `translateY(${dy}px)`;
+
+            const lista = document.getElementById('tabla-body');
+            const sobre = [...lista.querySelectorAll('.prop-card')].find(c => {
+                if (c === arrastre.cardEl) return false;
+                const r = c.getBoundingClientRect();
+                return e.clientY > r.top && e.clientY < r.bottom;
+            });
+            if (sobre) {
+                const r = sobre.getBoundingClientRect();
+                const antes = e.clientY < r.top + r.height / 2;
+                arrastre.cardEl.style.transform = '';
+                lista.insertBefore(arrastre.cardEl, antes ? sobre : sobre.nextSibling);
+                arrastre.startY = e.clientY;
+            }
+
+            // Auto-scroll cerca de los bordes de la pantalla — para poder
+            // arrastrar una propiedad hasta arriba de todo aunque la lista sea larga.
+            const margen = 70;
+            if (e.clientY < margen) window.scrollBy(0, -14);
+            else if (e.clientY > window.innerHeight - margen) window.scrollBy(0, 14);
+        }
+
+        async function soltarArrastre() {
+            if (!arrastre) return;
+            const { cardEl } = arrastre;
+            cardEl.classList.remove('arrastrando');
+            cardEl.style.transform = '';
+            document.body.style.userSelect = '';
+            window.removeEventListener('pointermove', moverArrastre);
+
+            const idsEnOrden = [...document.getElementById('tabla-body').querySelectorAll('.prop-card')].map(c => c.dataset.id);
+            propiedades.sort((a, b) => idsEnOrden.indexOf(a.id) - idsEnOrden.indexOf(b.id));
+
+            const cambios = [];
+            propiedades.forEach((p, i) => { if (p.orden !== i) { p.orden = i; cambios.push(p); } });
+            arrastre = null;
+            render();
+
+            if (!cambios.length) return;
             try {
                 const headers = await CostoSVAuth.authHeaders();
                 const resultados = await Promise.all(cambios.map(p =>
