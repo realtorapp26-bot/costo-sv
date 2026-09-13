@@ -314,8 +314,17 @@
 
         <!-- ===== TAB: PROPIEDADES ===== -->
         <div class="tab-panel active" id="tab-propiedades">
+            <div class="panel" style="border: 2px dashed var(--gold);">
+                <h2>🔗 Extraer propiedad desde un link</h2>
+                <label>Pegá el link del listado (share.remax-ccamls.com o remax-centralamerica.com) — lo traemos y extraemos los datos automáticamente, sin Ctrl+U.</label>
+                <div class="actions-row">
+                    <input type="url" id="f-link-traer" placeholder="https://share.remax-ccamls.com/show/..." style="flex: 1 1 320px;">
+                    <button class="btn-action btn-primary" id="btn-traer-link" onclick="traerDatosDesdeLink()">🔗 Traer datos del link</button>
+                </div>
+            </div>
+
             <div class="panel-actions-row">
-                <button class="btn-action btn-primary" onclick="abrirModalNuevaPropiedad()">➕ Agregar propiedad</button>
+                <button class="btn-action btn-secondary" onclick="abrirModalNuevaPropiedad()">➕ Agregar propiedad a mano</button>
             </div>
 
             <div class="panel">
@@ -341,12 +350,7 @@
 
                 <div class="panel" style="border: 2px dashed var(--gold);">
                     <h2>Pegar listado completo (opcional)</h2>
-                    <label>Opción rápida: pegá acá el link del listado (share.remax-ccamls.com o remax-centralamerica.com) y lo traemos nosotros — sin Ctrl+U.</label>
-                    <div class="actions-row" style="margin-bottom: 10px;">
-                        <input type="url" id="f-link-traer" placeholder="https://share.remax-ccamls.com/show/..." style="flex: 1 1 320px;">
-                        <button class="btn-action btn-primary" id="btn-traer-link" onclick="traerDatosDesdeLink()">🔗 Traer datos del link</button>
-                    </div>
-                    <label>O a mano: abrí el listado en RE/MAX. Para texto: Ctrl+A → Ctrl+C sobre la página normal. Para que también traiga las fotos: clic derecho → "Ver código fuente" (o Ctrl+U), y ahí Ctrl+A → Ctrl+C. Pegá el resultado acá abajo.</label>
+                    <label>A mano: abrí el listado en RE/MAX. Para texto: Ctrl+A → Ctrl+C sobre la página normal. Para que también traiga las fotos: clic derecho → "Ver código fuente" (o Ctrl+U), y ahí Ctrl+A → Ctrl+C. Pegá el resultado acá abajo.</label>
                     <textarea id="f-pegado" style="min-height: 100px;" placeholder="Pegá acá todo el texto de la página del listado..."></textarea>
                     <div class="actions-row">
                         <button class="btn-action btn-secondary" onclick="pegarDePortapapeles()">📋 Pegar del portapapeles</button>
@@ -983,6 +987,7 @@
                     document.getElementById('comparar-textos').style.display = 'grid';
                 }
 
+                abrirModalNuevaPropiedad();
                 cargarUsoIA();
                 document.getElementById('comparar-textos').scrollIntoView({ behavior: 'smooth', block: 'center' });
             } catch (ex) {
