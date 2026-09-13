@@ -196,7 +196,7 @@
   }
 
   // ---------- registro en el CRM (no bloqueante) ----------
-  function registrarEnCRM(v) {
+  function registrarEnCRM(v, pdfBlob) {
     var CFG = window.SITE_CONFIG || {};
     if (!CFG.SUPABASE_URL || !CFG.SUPABASE_ANON_KEY) return;
     var headers = { 'Content-Type': 'application/json', apikey: CFG.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + CFG.SUPABASE_ANON_KEY, Prefer: 'return=minimal' };
@@ -208,20 +208,35 @@
       method: 'POST', headers: headers,
       body: JSON.stringify({ id: contactoId, nombre: v.nombre, telefono: v.telefono, correo: v.correo }),
     }).then(function (c) {
-      if (!c.ok) return null;
+      if (!c.ok) return c.text().then(function (t) { throw new Error('contactos ' + c.status + ': ' + t); });
       return fetch(CFG.SUPABASE_URL + '/rest/v1/leads', {
         method: 'POST', headers: Object.assign({}, headers, { Prefer: 'return=representation' }),
         body: JSON.stringify({ contacto_id: contactoId, origen: 'formulario_web', interes: 'comprar', propiedad_referencia: v.propiedad, notas: resumen }),
       });
     }).then(function (l) {
-      if (!l || !l.ok) return;
+      if (!l.ok) return l.text().then(function (t) { throw new Error('leads ' + l.status + ': ' + t); });
       return l.json().then(function (rows) {
         var leadId = rows && rows[0] && rows[0].id;
         if (!leadId) return;
-        return fetch(CFG.SUPABASE_URL + '/rest/v1/actividades', {
+        var acts = fetch(CFG.SUPABASE_URL + '/rest/v1/actividades', {
           method: 'POST', headers: headers,
           body: JSON.stringify({ lead_id: leadId, tipo: 'cita', detalle: resumen }),
         });
+        if (!pdfBlob) return acts;
+        // Sube la confirmación al mismo bucket privado que usan las cartas de
+        // oferta/respuesta, y la enlaza al lead para descargarla desde el panel.
+        var path = new Date().getFullYear() + '/' + leadId + '.pdf';
+        var up = fetch(CFG.SUPABASE_URL + '/storage/v1/object/ofertas/' + path, {
+          method: 'POST',
+          headers: { apikey: CFG.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + CFG.SUPABASE_ANON_KEY, 'Content-Type': 'application/pdf', 'x-upsert': 'true' },
+          body: pdfBlob,
+        }).then(function (u) {
+          if (!u.ok) { console.error('subida de la confirmación de visita:', u.status); return; }
+          return fetch(CFG.SUPABASE_URL + '/rest/v1/leads?id=eq.' + leadId, {
+            method: 'PATCH', headers: headers, body: JSON.stringify({ oferta_pdf_path: path }),
+          });
+        });
+        return Promise.all([acts, up]);
       });
     }).catch(function (e) { console.error('registro agendar-visita:', e); });
   }
@@ -250,8 +265,9 @@
     try {
       var pdf = buildPdf(v);
       var slug = (v.nombre || 'visita').toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || 'visita';
+      var pdfBlob = pdf.output('blob');
       pdf.save('confirmacion-visita-' + slug + '.pdf');
-      registrarEnCRM(v);
+      registrarEnCRM(v, pdfBlob);
       calLink.href = construirLinkCalendario(v);
       form.classList.add('d-none');
       okBox.classList.add('show');
