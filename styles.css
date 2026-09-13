@@ -283,7 +283,16 @@ img {
     }
     .mobile-menu-btn {
         display: block;
+        position: absolute;
+        right: 24px;
+        top: 50%;
+        transform: translateY(-50%);
     }
+    /* Con el botón de menú ya sacado del flujo (position:absolute arriba),
+       .logo queda como único item del flex del navbar — así centrarlo con
+       justify-content no lo empuja contra el botón ni deja un hueco enorme. */
+    .navbar .container { position: relative; justify-content: center; }
+    .logo img { height: 46px !important; }
 }
 
 /* Hero Section Premium */
