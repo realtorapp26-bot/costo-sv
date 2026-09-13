@@ -490,14 +490,33 @@
 
         <!-- ===== TAB: FRANQUICIAS ===== -->
         <div class="tab-panel" id="tab-franquicias">
-            <div class="preview-banner">
-                <strong>✅ Conectado a Supabase.</strong> Lo que agregues acá se guarda en la tabla
-                <code>franquicias</code> y ya es visible para cualquier visitante (lectura pública).
+            <div class="panel-actions-row">
+                <button class="btn-action btn-primary" onclick="abrirModalNuevaFranquicia()">➕ Agregar franquicia</button>
             </div>
 
             <div class="panel">
-                <h2>Nueva franquicia</h2>
-                <div class="form-grid">
+                <h2>Franquicias publicadas</h2>
+                <div id="added-list-fr" class="added-grid"></div>
+                <div id="empty-hint-fr" class="empty-hint">Cargando...</div>
+            </div>
+        </div>
+
+        <!-- ===== MODAL: Nueva franquicia ===== -->
+        <div class="modal-overlay" id="modal-nueva-franquicia" onclick="if (event.target === this) cerrarModalNuevaFranquicia()">
+            <div class="modal-box" style="max-width: 900px;">
+                <div class="modal-box-head">
+                    <h3 style="margin:0;">Agregar franquicia</h3>
+                    <button type="button" class="modal-box-cerrar" onclick="cerrarModalNuevaFranquicia()" aria-label="Cerrar">✕</button>
+                </div>
+
+                <div class="preview-banner">
+                    <strong>✅ Conectado a Supabase.</strong> Lo que agregues acá se guarda en la tabla
+                    <code>franquicias</code> y ya es visible para cualquier visitante (lectura pública).
+                </div>
+
+                <div class="panel">
+                    <h2>Nueva franquicia</h2>
+                    <div class="form-grid">
                     <div>
                         <label>Nombre de la franquicia</label>
                         <input type="text" id="fr-nombre" placeholder="Ej. Pollo Real Express">
@@ -606,11 +625,6 @@
                     <textarea id="cp-texto-fr" readonly></textarea>
                 </div>
             </div>
-
-            <div class="panel">
-                <h2>Franquicias publicadas</h2>
-                <div id="added-list-fr" class="added-grid"></div>
-                <div id="empty-hint-fr" class="empty-hint">Cargando...</div>
             </div>
         </div>
 
@@ -1262,9 +1276,18 @@
                 if (!res.ok) throw new Error('El servidor rechazó el guardado (' + res.status + ')');
                 await cargarFranquicias();
                 limpiarFormFr();
+                cerrarModalNuevaFranquicia();
             } catch (ex) {
                 alert('No se pudo guardar: ' + ex.message);
             }
+        }
+
+        function abrirModalNuevaFranquicia() {
+            document.getElementById('modal-nueva-franquicia').classList.add('show');
+        }
+
+        function cerrarModalNuevaFranquicia() {
+            document.getElementById('modal-nueva-franquicia').classList.remove('show');
         }
 
         async function cargarFranquicias() {
