@@ -341,7 +341,12 @@
 
                 <div class="panel" style="border: 2px dashed var(--gold);">
                     <h2>Pegar listado completo (opcional)</h2>
-                    <label>Abrí el listado en RE/MAX. Para texto: Ctrl+A → Ctrl+C sobre la página normal. Para que también traiga las fotos: clic derecho → "Ver código fuente" (o Ctrl+U), y ahí Ctrl+A → Ctrl+C. Pegá el resultado acá abajo.</label>
+                    <label>Opción rápida: pegá acá el link del listado (share.remax-ccamls.com o remax-centralamerica.com) y lo traemos nosotros — sin Ctrl+U.</label>
+                    <div class="actions-row" style="margin-bottom: 10px;">
+                        <input type="url" id="f-link-traer" placeholder="https://share.remax-ccamls.com/show/..." style="flex: 1 1 320px;">
+                        <button class="btn-action btn-primary" id="btn-traer-link" onclick="traerDatosDesdeLink()">🔗 Traer datos del link</button>
+                    </div>
+                    <label>O a mano: abrí el listado en RE/MAX. Para texto: Ctrl+A → Ctrl+C sobre la página normal. Para que también traiga las fotos: clic derecho → "Ver código fuente" (o Ctrl+U), y ahí Ctrl+A → Ctrl+C. Pegá el resultado acá abajo.</label>
                     <textarea id="f-pegado" style="min-height: 100px;" placeholder="Pegá acá todo el texto de la página del listado..."></textarea>
                     <div class="actions-row">
                         <button class="btn-action btn-secondary" onclick="pegarDePortapapeles()">📋 Pegar del portapapeles</button>
@@ -866,6 +871,35 @@
                 }
             }
             return null;
+        }
+
+        async function traerDatosDesdeLink() {
+            const btn = document.getElementById('btn-traer-link');
+            const url = document.getElementById('f-link-traer').value.trim();
+            if (!url) { alert('Pegá primero el link del listado.'); return; }
+
+            btn.textContent = 'Trayendo...';
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/traer-html', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'No se pudo traer el listado');
+
+                document.getElementById('f-pegado').value = data.html;
+                if (!document.getElementById('f-link').value.trim()) {
+                    document.getElementById('f-link').value = url;
+                }
+                await extraerDatosConIA();
+            } catch (ex) {
+                alert(ex.message || 'No se pudo traer el listado.');
+            } finally {
+                btn.textContent = '🔗 Traer datos del link';
+                btn.disabled = false;
+            }
         }
 
         async function pegarDePortapapeles() {
