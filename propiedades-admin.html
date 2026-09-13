@@ -44,6 +44,14 @@
         .prop-empty { text-align: center; padding: 30px; color: var(--text-light); background: var(--bg-alt); border-radius: var(--radius-md); }
         .prop-card { background: var(--bg-alt); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
         .prop-card-main { display: flex; gap: 14px; align-items: center; padding: 14px 16px; flex-wrap: wrap; }
+        .prop-card-orden { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+        .prop-orden-btn {
+            width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+            border-radius: 6px; border: 1px solid var(--border); background: white; color: var(--text-main);
+            cursor: pointer; font-size: 0.72rem; padding: 0;
+        }
+        .prop-orden-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+        .prop-orden-btn:disabled { opacity: 0.3; cursor: default; }
         .prop-card-foto { width: 84px; height: 64px; object-fit: cover; border-radius: 8px; background: var(--bg-main); flex-shrink: 0; }
         .prop-card-foto-vacia { width: 84px; height: 64px; border-radius: 8px; background: var(--bg-main); flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--text-light); }
         .prop-card-info { flex: 1 1 220px; min-width: 0; }
@@ -386,7 +394,7 @@
             const body = document.getElementById('tabla-body');
             try {
                 const headers = await CostoSVAuth.authHeaders();
-                const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?select=*&order=created_at.desc`, { headers });
+                const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?select=*&order=orden.asc.nullslast,created_at.desc`, { headers });
                 if (!res.ok) throw new Error('No se pudieron cargar (' + res.status + ')');
                 propiedades = await res.json();
                 render();
@@ -401,7 +409,7 @@
                 body.innerHTML = '<div class="prop-empty">Todavía no hay propiedades cargadas.</div>';
                 return;
             }
-            body.innerHTML = propiedades.map(p => {
+            body.innerHTML = propiedades.map((p, idx) => {
                 const foto = (p.fotos && p.fotos[0]) || '';
                 const fecha = new Date(p.created_at).toLocaleDateString('es-SV', { day: '2-digit', month: 'short', year: 'numeric' });
                 const montoNum = String(p.precio || '').replace(/[^0-9.]/g, '');
@@ -414,6 +422,10 @@
                 return `
                     <div class="prop-card">
                         <div class="prop-card-main">
+                            <div class="prop-card-orden">
+                                <button class="prop-orden-btn" title="Mostrar antes" onclick="moverPropiedad('${p.id}','arriba')" ${idx === 0 ? 'disabled' : ''}><i class="fas fa-chevron-up"></i></button>
+                                <button class="prop-orden-btn" title="Mostrar después" onclick="moverPropiedad('${p.id}','abajo')" ${idx === propiedades.length - 1 ? 'disabled' : ''}><i class="fas fa-chevron-down"></i></button>
+                            </div>
                             ${foto
                                 ? `<img src="${foto}" class="prop-card-foto" onerror="this.style.display='none'">`
                                 : `<div class="prop-card-foto-vacia"><i class="fas fa-image"></i></div>`}
@@ -457,6 +469,37 @@
                 render();
             } catch (ex) {
                 alert(ex.message);
+            }
+        }
+
+        async function moverPropiedad(id, direccion) {
+            const idx = propiedades.findIndex(x => x.id === id);
+            if (idx === -1) return;
+            const destino = idx + (direccion === 'arriba' ? -1 : 1);
+            if (destino < 0 || destino >= propiedades.length) return;
+
+            [propiedades[idx], propiedades[destino]] = [propiedades[destino], propiedades[idx]];
+
+            // Renumerar todo según el orden visual actual — así también se
+            // resuelven las propiedades que todavía no tenían "orden" asignado.
+            const cambios = [];
+            propiedades.forEach((p, i) => {
+                if (p.orden !== i) { p.orden = i; cambios.push(p); }
+            });
+            render();
+
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const resultados = await Promise.all(cambios.map(p =>
+                    fetch(`${SUPA_URL}/rest/v1/propiedades?id=eq.${p.id}`, {
+                        method: 'PATCH', headers: { ...headers, Prefer: 'return=minimal' },
+                        body: JSON.stringify({ orden: p.orden }),
+                    })
+                ));
+                if (resultados.some(r => !r.ok)) throw new Error('El servidor rechazó el nuevo orden.');
+                mostrarToast('Orden actualizado');
+            } catch (ex) {
+                alert('No se pudo guardar el nuevo orden: ' + ex.message);
             }
         }
 

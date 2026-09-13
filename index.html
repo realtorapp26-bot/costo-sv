@@ -251,7 +251,7 @@
                 `;
             }
 
-            fetch(`${SUPA_URL}/rest/v1/propiedades?select=*&publicada=eq.true&order=created_at.desc&limit=3`, {
+            fetch(`${SUPA_URL}/rest/v1/propiedades?select=*&publicada=eq.true&order=orden.asc.nullslast,created_at.desc&limit=3`, {
                 headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
             })
                 .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))

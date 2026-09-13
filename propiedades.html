@@ -285,7 +285,7 @@
 
             async function cargarPropiedadesPublicas() {
                 try {
-                    const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?select=*&publicada=eq.true&order=created_at.desc`, {
+                    const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?select=*&publicada=eq.true&order=orden.asc.nullslast,created_at.desc`, {
                         headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
                     });
                     if (!res.ok) return;
