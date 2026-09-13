@@ -17,6 +17,20 @@
         .admin-header p { color: var(--gold-light); margin: 5px 0 0; }
         .admin-wrap { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
 
+        .panel-topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+        .panel-topbar-badge { font-size: 0.8rem; color: var(--text-light); background: var(--bg-alt); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; }
+        .panel-topbar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .panel-topbar-btn {
+            text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px;
+            background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 6px 14px;
+            font-size: 0.8rem; color: var(--text-main); font-family: 'Outfit', sans-serif; cursor: pointer;
+        }
+        @media (max-width: 480px) {
+            .panel-topbar-badge { width: 100%; text-align: center; }
+            .panel-topbar-actions { width: 100%; }
+            .panel-topbar-btn { flex: 1; }
+        }
+
         .admin-nav { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 24px; flex-wrap: wrap; }
         .tab-switch { display: flex; gap: 10px; flex: 1 1 420px; }
         .tab-btn {
@@ -65,8 +79,16 @@
         .herr-note { font-size: 0.75rem; color: var(--text-light); padding: 0 12px 8px; line-height: 1.4; }
         @media (max-width: 720px) {
             .admin-nav { flex-direction: column; }
+            /* 4 pestañas en una sola fila quedaban ilegibles en el teléfono
+               (texto cortado/partido) — pasan a una grilla de 2x2. */
+            .tab-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+            .tab-btn { padding: 12px 6px; font-size: 0.85rem; }
             .herramientas, .btn-herramientas { width: 100%; }
             .herramientas-dropdown { left: 0; right: 0; width: auto; }
+            /* Formularios y KPIs a 2 columnas en vez de 4, o a 1 sola cuando el
+               campo lo pide — mismo criterio que Gestionar Publicaciones. */
+            .form-grid { grid-template-columns: 1fr; }
+            .kpi-row { grid-template-columns: 1fr 1fr; }
         }
 
         .preview-banner {
@@ -208,13 +230,13 @@
     </header>
 
     <div class="admin-wrap">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
-            <div id="uso-ia-badge" style="font-size:0.8rem; color:var(--text-light); background:var(--bg-alt); border:1px solid var(--border); border-radius:20px; padding:6px 14px;">
+        <div class="panel-topbar">
+            <div id="uso-ia-badge" class="panel-topbar-badge">
                 Uso de IA este mes: cargando...
             </div>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <a href="index.html" target="_blank" rel="noopener" style="text-decoration:none; display:flex; align-items:center; gap:6px; background:none; border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px 14px; font-size:0.8rem; color:var(--text-main);">🌐 Ver sitio web</a>
-                <button onclick="CostoSVAuth.signOut()" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 14px;font-size:0.8rem;cursor:pointer;">Cerrar sesión</button>
+            <div class="panel-topbar-actions">
+                <a href="index.html" target="_blank" rel="noopener" class="panel-topbar-btn">🌐 Ver sitio web</a>
+                <button onclick="CostoSVAuth.signOut()" class="panel-topbar-btn">Cerrar sesión</button>
             </div>
         </div>
 
