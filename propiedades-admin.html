@@ -42,7 +42,13 @@
         /* ---- Tarjetas de propiedad (Gestionar Publicaciones) ---- */
         .prop-list { display: flex; flex-direction: column; gap: 14px; }
         .prop-empty { text-align: center; padding: 30px; color: var(--text-light); background: var(--bg-alt); border-radius: var(--radius-md); }
-        .prop-card { background: var(--bg-alt); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
+        .prop-card { background: var(--bg-alt); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; border-left: 4px solid transparent; }
+        .prop-card-destacada { border-left-color: var(--gold); }
+        .chip-destacada {
+            display: inline-flex; align-items: center; gap: 4px; background: #fff8e6; color: #92650a;
+            border: 1px solid #f3d98b; font-size: 0.72rem; font-weight: 700; padding: 4px 10px;
+            border-radius: 20px; margin-right: 6px;
+        }
         .prop-card-main { display: flex; gap: 14px; align-items: center; padding: 14px 16px; flex-wrap: wrap; }
         .prop-card-orden { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
         .prop-orden-btn {
@@ -432,7 +438,7 @@
                 const respuestaUrl = `carta-respuesta.html?tipo=${tipoOp}&direccion=${direccionEnc}`;
                 const propiedadDesc = encodeURIComponent(p.titulo + (p.ubicacion ? ' — ' + p.ubicacion : ''));
                 return `
-                    <div class="prop-card" data-id="${p.id}">
+                    <div class="prop-card${idx === 0 ? ' prop-card-destacada' : ''}" data-id="${p.id}">
                         <div class="prop-card-main">
                             <button type="button" class="prop-drag-handle" title="Arrastrar para reordenar" aria-label="Arrastrar para reordenar" onpointerdown="iniciarArrastre(event, '${p.id}')"><i class="fas fa-grip-lines"></i></button>
                             <div class="prop-card-orden">
@@ -451,6 +457,7 @@
                                 </div>
                             </div>
                             <div class="prop-card-estado">
+                                ${idx === 0 ? '<span class="chip-destacada">★ Destacada</span>' : ''}
                                 <button class="estado-chip ${p.publicada ? 'publicada' : 'oculta'}" onclick="cambiarEstado('${p.id}', ${!p.publicada})">${p.publicada ? '✓ Publicada' : 'Oculta'}</button>
                             </div>
                         </div>
@@ -504,13 +511,15 @@
 
             try {
                 const headers = await CostoSVAuth.authHeaders();
-                const resultados = await Promise.all(cambios.map(p =>
-                    fetch(`${SUPA_URL}/rest/v1/propiedades?id=eq.${p.id}`, {
+                // Una a la vez (no Promise.all): si se arrastra sobre muchas
+                // tarjetas, disparar todos los PATCH juntos puede romper el fetch.
+                for (const p of cambios) {
+                    const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?id=eq.${p.id}`, {
                         method: 'PATCH', headers: { ...headers, Prefer: 'return=minimal' },
                         body: JSON.stringify({ orden: p.orden }),
-                    })
-                ));
-                if (resultados.some(r => !r.ok)) throw new Error('El servidor rechazó el nuevo orden.');
+                    });
+                    if (!res.ok) throw new Error('El servidor rechazó el nuevo orden.');
+                }
                 mostrarToast('Orden actualizado');
             } catch (ex) {
                 alert('No se pudo guardar el nuevo orden: ' + ex.message);
@@ -520,23 +529,26 @@
         async function destacarPropiedad(id) {
             const idx = propiedades.findIndex(x => x.id === id);
             if (idx <= 0) return; // ya es la primera, o no existe
+            const p = propiedades[idx];
 
-            const [p] = propiedades.splice(idx, 1);
+            // Una sola escritura: le asignamos un orden menor al mínimo actual
+            // en vez de renumerar todas las propiedades de por medio (eso era
+            // lo que disparaba decenas de PATCH en paralelo y rompía el fetch).
+            const ordenes = propiedades.map(x => x.orden).filter(o => o !== null && o !== undefined);
+            const nuevoOrden = (ordenes.length ? Math.min(...ordenes) : 0) - 1;
+
+            propiedades.splice(idx, 1);
+            p.orden = nuevoOrden;
             propiedades.unshift(p);
-
-            const cambios = [];
-            propiedades.forEach((p, i) => { if (p.orden !== i) { p.orden = i; cambios.push(p); } });
             render();
 
             try {
                 const headers = await CostoSVAuth.authHeaders();
-                const resultados = await Promise.all(cambios.map(p =>
-                    fetch(`${SUPA_URL}/rest/v1/propiedades?id=eq.${p.id}`, {
-                        method: 'PATCH', headers: { ...headers, Prefer: 'return=minimal' },
-                        body: JSON.stringify({ orden: p.orden }),
-                    })
-                ));
-                if (resultados.some(r => !r.ok)) throw new Error('El servidor rechazó el nuevo orden.');
+                const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?id=eq.${p.id}`, {
+                    method: 'PATCH', headers: { ...headers, Prefer: 'return=minimal' },
+                    body: JSON.stringify({ orden: nuevoOrden }),
+                });
+                if (!res.ok) throw new Error('El servidor rechazó el cambio (' + res.status + ')');
                 mostrarToast('⭐ Ahora aparece primero');
             } catch (ex) {
                 alert('No se pudo destacar: ' + ex.message);
