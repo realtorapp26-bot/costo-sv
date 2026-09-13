@@ -32,15 +32,26 @@
         }
 
         .admin-nav { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 24px; flex-wrap: wrap; }
-        .tab-switch { display: flex; gap: 10px; flex: 1 1 420px; }
+        /* auto-fit: se acomoda solo según el ancho disponible (celular, tablet,
+           escritorio) — 4 pestañas en una fila si entran, si no, 2 o 3, sin
+           necesidad de puntos de quiebre fijos por dispositivo. */
+        .tab-switch { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; flex: 1 1 560px; }
         .tab-btn {
-            flex: 1; text-align: center; padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border);
+            text-align: center; padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border);
             background: var(--bg-alt); color: var(--text-main); font-weight: 700; cursor: pointer; transition: var(--transition);
             font-family: 'Outfit', sans-serif; font-size: 0.95rem;
         }
         .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         .tab-panel { display: none; }
         .tab-panel.active { display: block; }
+
+        .btn-administrar {
+            display: flex; align-items: center; justify-content: center; gap: 8px; height: 100%; padding: 14px 18px;
+            border-radius: var(--radius-md); border: 1px solid var(--gold); background: var(--gold);
+            color: var(--primary); font-weight: 700; text-decoration: none; white-space: nowrap;
+            font-family: 'Outfit', sans-serif; font-size: 0.95rem; transition: var(--transition);
+        }
+        .btn-administrar:hover { box-shadow: var(--shadow-gold); }
 
         /* Menú "Herramientas": documentos y links que se generan aparte de las
            pestañas (no son vistas del panel, así que no comparten fila con ellas). */
@@ -79,16 +90,17 @@
         .herr-note { font-size: 0.75rem; color: var(--text-light); padding: 0 12px 8px; line-height: 1.4; }
         @media (max-width: 720px) {
             .admin-nav { flex-direction: column; }
-            /* 4 pestañas en una sola fila quedaban ilegibles en el teléfono
-               (texto cortado/partido) — pasan a una grilla de 2x2. */
-            .tab-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+            /* .tab-switch hereda "flex: 1 1 420px" para repartirse el ancho
+               junto a Administrar/Herramientas en escritorio (fila). Pero
+               dentro de .admin-nav en columna, ese "420px" pasa a ser un ALTO
+               mínimo (el eje principal ahora es vertical) — por eso las
+               pestañas se veían gigantes. Se resetea acá. */
+            .tab-switch, .btn-administrar, .herramientas, .btn-herramientas { flex: none; width: 100%; }
             .tab-btn { padding: 12px 6px; font-size: 0.85rem; }
-            .herramientas, .btn-herramientas { width: 100%; }
             .herramientas-dropdown { left: 0; right: 0; width: auto; }
-            /* Formularios y KPIs a 2 columnas en vez de 4, o a 1 sola cuando el
-               campo lo pide — mismo criterio que Gestionar Publicaciones. */
+            /* Formularios a 1 columna; KPIs y pestañas siguen su grilla
+               auto-fit (ver arriba) — ya se adaptan solas al ancho real. */
             .form-grid { grid-template-columns: 1fr; }
-            .kpi-row { grid-template-columns: 1fr 1fr; }
         }
 
         .preview-banner {
@@ -132,7 +144,7 @@
         .mini-card .mini-editar:hover { background: var(--bg-main); }
         .empty-hint { color: var(--text-light); font-style: italic; text-align: center; padding: 30px; }
 
-        .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 30px; }
+        .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 16px; margin-bottom: 30px; }
         .kpi-card { background: var(--bg-alt); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: 20px; text-align: center; }
         .kpi-card .kpi-num { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--primary); }
         .kpi-card .kpi-label { font-size: 0.8rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
@@ -248,14 +260,13 @@
                 <button class="tab-btn" id="btn-tab-metricas" onclick="cambiarTab('metricas')">📊 Métricas</button>
             </div>
 
+            <a class="btn-administrar" href="propiedades-admin.html">🗂️ Administrar Publicaciones</a>
+
             <div class="herramientas" id="herramientas-menu">
                 <button class="btn-herramientas" type="button" onclick="toggleHerramientas(event)">
                     🧰 Herramientas <span class="chev">▾</span>
                 </button>
                 <div class="herramientas-dropdown">
-                    <a class="herr-primary" href="propiedades-admin.html">🗂️ Administrar Publicaciones</a>
-                    <div class="herr-divider"></div>
-
                     <div class="herr-label">Documentos por link</div>
                     <div class="herr-tool">
                         <span class="herr-tool-name">📄 Carta de Oferta</span>
