@@ -39,6 +39,53 @@
         .btn-editar { background: #eef2ff; color: var(--primary); border: 1px solid #c7d2fe; border-radius: var(--radius-sm); padding: 6px 12px; font-size: 0.8rem; cursor: pointer; margin-right: 6px; }
         .btn-editar:hover { background: #e0e7ff; }
 
+        /* ---- Tarjetas de propiedad (Gestionar Publicaciones) ---- */
+        .prop-list { display: flex; flex-direction: column; gap: 14px; }
+        .prop-empty { text-align: center; padding: 30px; color: var(--text-light); background: var(--bg-alt); border-radius: var(--radius-md); }
+        .prop-card { background: var(--bg-alt); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
+        .prop-card-main { display: flex; gap: 14px; align-items: center; padding: 14px 16px; flex-wrap: wrap; }
+        .prop-card-foto { width: 84px; height: 64px; object-fit: cover; border-radius: 8px; background: var(--bg-main); flex-shrink: 0; }
+        .prop-card-foto-vacia { width: 84px; height: 64px; border-radius: 8px; background: var(--bg-main); flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: var(--text-light); }
+        .prop-card-info { flex: 1 1 220px; min-width: 0; }
+        .prop-card-titulo { font-weight: 700; color: var(--primary); font-size: 0.98rem; margin-bottom: 4px; }
+        .prop-card-meta { font-size: 0.84rem; color: var(--text-light); display: flex; flex-wrap: wrap; column-gap: 10px; row-gap: 2px; }
+        .prop-card-meta .prop-precio { font-weight: 700; color: var(--text-main); }
+        .prop-card-estado { flex-shrink: 0; }
+        .prop-card-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 16px; background: var(--bg-main); border-top: 1px solid var(--border); }
+        .prop-actions-grupo { display: flex; gap: 8px; flex-wrap: wrap; }
+        .prop-actions-divisor { width: 1px; align-self: stretch; background: var(--border); }
+        .prop-btn {
+            display: inline-flex; align-items: center; gap: 6px; padding: 8px 13px; border-radius: var(--radius-sm);
+            font-size: 0.82rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: white;
+            color: var(--text-main); text-decoration: none; white-space: nowrap; transition: var(--transition);
+            font-family: 'Outfit', sans-serif;
+        }
+        .prop-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .prop-btn-primary { background: var(--primary); color: white; border-color: var(--primary); }
+        .prop-btn-primary:hover { color: white; opacity: 0.9; }
+        .prop-btn-link { background: #eef2ff; color: var(--primary); border-color: #c7d2fe; }
+        .prop-btn-link:hover { background: #e0e7ff; }
+        .prop-btn-eliminar { background: #fef2f2; color: #b91c1c; border-color: #fecaca; margin-left: auto; }
+        .prop-btn-eliminar:hover { background: #fee2e2; color: #b91c1c; }
+        @media (max-width: 640px) {
+            .prop-card-main { flex-direction: column; align-items: flex-start; }
+            .prop-card-info { flex-basis: auto; width: 100%; }
+            .prop-card-estado { margin-top: 2px; }
+            .prop-card-actions { flex-direction: column; align-items: stretch; }
+            .prop-actions-grupo { flex-direction: column; }
+            .prop-actions-divisor { display: none; }
+            .prop-btn { justify-content: center; width: 100%; }
+            .prop-btn-eliminar { margin-left: 0; }
+        }
+
+        .toast {
+            position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px);
+            background: var(--primary); color: white; padding: 12px 22px; border-radius: 30px;
+            font-size: 0.85rem; font-weight: 600; box-shadow: var(--shadow-md); z-index: 3000;
+            opacity: 0; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
         .modal-overlay {
             display: none; position: fixed; inset: 0; background: rgba(10,15,28,0.6); z-index: 2000;
             align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto;
@@ -90,23 +137,8 @@
         </div>
 
         <div class="tab-panel active" id="tab-prop">
-            <div class="scroll-x" style="overflow-x:auto;">
-                <table class="gestion-table">
-                    <thead>
-                        <tr>
-                            <th>Foto</th>
-                            <th>Título</th>
-                            <th>Precio</th>
-                            <th>Categoría</th>
-                            <th>Fecha</th>
-                            <th>Estado</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-body">
-                        <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-light);">Cargando...</td></tr>
-                    </tbody>
-                </table>
+            <div class="prop-list" id="tabla-body">
+                <div class="prop-empty">Cargando...</div>
             </div>
         </div>
 
@@ -260,6 +292,8 @@
         </div>
     </div>
 
+    <div class="toast" id="toast"></div>
+
     <script src="config.js?v=2"></script>
     <script src="login.js?v=4"></script>
     <script>
@@ -267,11 +301,23 @@
         let propiedades = [];
         let franquicias = [];
 
-        function copiarLinkProp(rel, nombre) {
+        let toastTimer = null;
+        function mostrarToast(mensaje) {
+            const toast = document.getElementById('toast');
+            toast.textContent = mensaje;
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
+        }
+
+        // Un solo clic: abre el documento (para que lo puedas revisar) y copia
+        // el link al portapapeles (para pegarlo directo en WhatsApp/correo).
+        function abrirYCopiarLinkProp(rel, nombre) {
             const base = ((window.SITE_CONFIG && window.SITE_CONFIG.SITE_URL) || location.origin).replace(/\/$/, '');
             const url = base + '/' + rel;
+            window.open(url, '_blank', 'noopener');
             navigator.clipboard.writeText(url).then(
-                () => alert('Link de ' + nombre + ' copiado:\n\n' + url + '\n\nMandáselo a la persona para que la complete y firme.'),
+                () => mostrarToast('Link de ' + nombre + ' copiado — pegalo donde quieras enviarlo.'),
                 () => prompt('Copiá el link:', url)
             );
         }
@@ -309,7 +355,7 @@
             const url = construirLinkVisita();
             if (!url) return;
             navigator.clipboard.writeText(url).then(
-                () => alert('Link de la visita copiado, con el día y la hora ya cargados:\n\n' + url + '\n\nMandáselo al cliente.'),
+                () => mostrarToast('Link de la visita copiado, con el día y la hora ya cargados.'),
                 () => prompt('Copiá el link:', url)
             );
             cerrarModalVisita();
@@ -338,7 +384,7 @@
         function render() {
             const body = document.getElementById('tabla-body');
             if (!propiedades.length) {
-                body.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-light);">Todavía no hay propiedades cargadas.</td></tr>';
+                body.innerHTML = '<div class="prop-empty">Todavía no hay propiedades cargadas.</div>';
                 return;
             }
             body.innerHTML = propiedades.map(p => {
@@ -352,23 +398,34 @@
                 const respuestaUrl = `carta-respuesta.html?tipo=${tipoOp}&direccion=${direccionEnc}`;
                 const propiedadDesc = encodeURIComponent(p.titulo + (p.ubicacion ? ' — ' + p.ubicacion : ''));
                 return `
-                    <tr>
-                        <td>${foto ? `<img src="${foto}" class="gestion-thumb" onerror="this.style.display='none'">` : ''}</td>
-                        <td class="gestion-titulo">${p.titulo}</td>
-                        <td>${p.precio}</td>
-                        <td>${p.categoria}</td>
-                        <td>${fecha}</td>
-                        <td><button class="estado-chip ${p.publicada ? 'publicada' : 'oculta'}" onclick="cambiarEstado('${p.id}', ${!p.publicada})">${p.publicada ? '✓ Publicada' : 'Oculta'}</button></td>
-                        <td>
-                            <button class="btn-editar" onclick="abrirEdicionProp('${p.id}')"><i class="fas fa-pen"></i> Editar</button>
-                            <a class="btn-editar" href="${ofertaUrl}" target="_blank" rel="noopener"><i class="fas fa-file-signature"></i> Oferta</a>
-                            <button class="btn-editar" title="Copiar link de la carta de oferta" onclick="copiarLinkProp('${ofertaUrl}', 'la carta de oferta')"><i class="fas fa-link"></i></button>
-                            <a class="btn-editar" href="${respuestaUrl}" target="_blank" rel="noopener"><i class="fas fa-file-contract"></i> Respuesta</a>
-                            <button class="btn-editar" title="Copiar link de la carta de respuesta" onclick="copiarLinkProp('${respuestaUrl}', 'la carta de respuesta')"><i class="fas fa-link"></i></button>
-                            <button class="btn-editar" title="Elegir fecha y hora, y generar el link de la visita" onclick="abrirModalVisita('${propiedadDesc}')"><i class="fas fa-calendar-check"></i> Visita</button>
-                            <button class="btn-eliminar" onclick="eliminar('${p.id}')"><i class="fas fa-trash"></i> Eliminar</button>
-                        </td>
-                    </tr>
+                    <div class="prop-card">
+                        <div class="prop-card-main">
+                            ${foto
+                                ? `<img src="${foto}" class="prop-card-foto" onerror="this.style.display='none'">`
+                                : `<div class="prop-card-foto-vacia"><i class="fas fa-image"></i></div>`}
+                            <div class="prop-card-info">
+                                <div class="prop-card-titulo">${p.titulo}</div>
+                                <div class="prop-card-meta">
+                                    <span class="prop-precio">${p.precio}</span>
+                                    <span>${p.categoria}</span>
+                                    <span>${fecha}</span>
+                                </div>
+                            </div>
+                            <div class="prop-card-estado">
+                                <button class="estado-chip ${p.publicada ? 'publicada' : 'oculta'}" onclick="cambiarEstado('${p.id}', ${!p.publicada})">${p.publicada ? '✓ Publicada' : 'Oculta'}</button>
+                            </div>
+                        </div>
+                        <div class="prop-card-actions">
+                            <button class="prop-btn prop-btn-primary" onclick="abrirEdicionProp('${p.id}')"><i class="fas fa-pen"></i> Editar</button>
+                            <div class="prop-actions-divisor"></div>
+                            <div class="prop-actions-grupo">
+                                <button class="prop-btn prop-btn-link" title="Abre la carta de oferta de esta propiedad y copia su link" onclick="abrirYCopiarLinkProp('${ofertaUrl}', 'la carta de oferta')"><i class="fas fa-file-signature"></i> Oferta</button>
+                                <button class="prop-btn prop-btn-link" title="Abre la carta de respuesta de esta propiedad y copia su link" onclick="abrirYCopiarLinkProp('${respuestaUrl}', 'la carta de respuesta')"><i class="fas fa-file-contract"></i> Respuesta</button>
+                                <button class="prop-btn prop-btn-link" title="Elegir fecha y hora, y generar el link de la visita" onclick="abrirModalVisita('${propiedadDesc}')"><i class="fas fa-calendar-check"></i> Visita</button>
+                            </div>
+                            <button class="prop-btn prop-btn-eliminar" onclick="eliminar('${p.id}')"><i class="fas fa-trash"></i> Eliminar</button>
+                        </div>
+                    </div>
                 `;
             }).join('');
         }
