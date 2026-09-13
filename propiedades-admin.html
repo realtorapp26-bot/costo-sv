@@ -84,6 +84,9 @@
         .prop-btn-link:hover { background: #e0e7ff; }
         .prop-btn-eliminar { background: #fef2f2; color: #b91c1c; border-color: #fecaca; margin-left: auto; }
         .prop-btn-eliminar:hover { background: #fee2e2; color: #b91c1c; }
+        .prop-btn-estrella { background: #fff8e6; color: #92650a; border-color: #f3d98b; }
+        .prop-btn-estrella:hover:not(:disabled) { background: #fdf0cf; }
+        .prop-btn-estrella:disabled { opacity: 0.55; cursor: default; }
         @media (max-width: 640px) {
             /* Cabecera: foto chica al costado en vez de arriba a todo el ancho —
                ahorra la mitad del alto de la tarjeta. */
@@ -452,6 +455,7 @@
                             </div>
                         </div>
                         <div class="prop-card-actions">
+                            <button class="prop-btn prop-btn-estrella" title="${idx === 0 ? 'Ya aparece primero' : 'Llevarla a la primera posición'}" onclick="destacarPropiedad('${p.id}')" ${idx === 0 ? 'disabled' : ''}><i class="fa${idx === 0 ? 's' : 'r'} fa-star"></i> ${idx === 0 ? 'Primera' : 'Destacar'}</button>
                             <button class="prop-btn prop-btn-primary" onclick="abrirEdicionProp('${p.id}')"><i class="fas fa-pen"></i> Editar</button>
                             <div class="prop-actions-divisor"></div>
                             <div class="prop-actions-grupo">
@@ -510,6 +514,32 @@
                 mostrarToast('Orden actualizado');
             } catch (ex) {
                 alert('No se pudo guardar el nuevo orden: ' + ex.message);
+            }
+        }
+
+        async function destacarPropiedad(id) {
+            const idx = propiedades.findIndex(x => x.id === id);
+            if (idx <= 0) return; // ya es la primera, o no existe
+
+            const [p] = propiedades.splice(idx, 1);
+            propiedades.unshift(p);
+
+            const cambios = [];
+            propiedades.forEach((p, i) => { if (p.orden !== i) { p.orden = i; cambios.push(p); } });
+            render();
+
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const resultados = await Promise.all(cambios.map(p =>
+                    fetch(`${SUPA_URL}/rest/v1/propiedades?id=eq.${p.id}`, {
+                        method: 'PATCH', headers: { ...headers, Prefer: 'return=minimal' },
+                        body: JSON.stringify({ orden: p.orden }),
+                    })
+                ));
+                if (resultados.some(r => !r.ok)) throw new Error('El servidor rechazó el nuevo orden.');
+                mostrarToast('⭐ Ahora aparece primero');
+            } catch (ex) {
+                alert('No se pudo destacar: ' + ex.message);
             }
         }
 
