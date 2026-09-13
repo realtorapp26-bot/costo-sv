@@ -209,12 +209,6 @@ img {
     gap: 12px;
 }
 
-/* logo-remax.png es en realidad un JPEG con fondo negro sólido (no un PNG
-   transparente) — ese negro no coincide exactamente con el navy del navbar
-   y se veía como una cajita pegada encima. mix-blend-mode:screen hace que
-   el negro se funda con cualquier fondo oscuro detrás y solo queden
-   visibles el texto/bandera del logo. */
-.logo img { mix-blend-mode: screen; }
 
 .nav-links {
     display: flex;
