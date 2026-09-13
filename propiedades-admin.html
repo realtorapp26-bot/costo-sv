@@ -293,6 +293,8 @@
                 const ofertaUrl = `carta-oferta.html?tipo=${tipoOp}&direccion=${direccionEnc}`
                     + (montoNum ? `&monto=${encodeURIComponent(montoNum)}` : '');
                 const respuestaUrl = `carta-respuesta.html?tipo=${tipoOp}&direccion=${direccionEnc}`;
+                const propiedadDesc = encodeURIComponent(p.titulo + (p.ubicacion ? ' — ' + p.ubicacion : ''));
+                const visitaUrl = `agendar-visita.html?propiedad=${propiedadDesc}`;
                 return `
                     <tr>
                         <td>${foto ? `<img src="${foto}" class="gestion-thumb" onerror="this.style.display='none'">` : ''}</td>
@@ -307,6 +309,8 @@
                             <button class="btn-editar" title="Copiar link de la carta de oferta" onclick="copiarLinkProp('${ofertaUrl}', 'la carta de oferta')"><i class="fas fa-link"></i></button>
                             <a class="btn-editar" href="${respuestaUrl}" target="_blank" rel="noopener"><i class="fas fa-file-contract"></i> Respuesta</a>
                             <button class="btn-editar" title="Copiar link de la carta de respuesta" onclick="copiarLinkProp('${respuestaUrl}', 'la carta de respuesta')"><i class="fas fa-link"></i></button>
+                            <a class="btn-editar" href="${visitaUrl}" target="_blank" rel="noopener"><i class="fas fa-calendar-check"></i> Visita</a>
+                            <button class="btn-editar" title="Copiar link para agendar visita" onclick="copiarLinkProp('${visitaUrl}', 'agendar visita')"><i class="fas fa-link"></i></button>
                             <button class="btn-eliminar" onclick="eliminar('${p.id}')"><i class="fas fa-trash"></i> Eliminar</button>
                         </td>
                     </tr>
