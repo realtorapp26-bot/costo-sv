@@ -249,7 +249,7 @@ function render(p) {
         .ficha-wrap { max-width: 1180px; margin: 0 auto; padding: 40px 24px 80px; }
         .ficha-volver { display: inline-flex; align-items: center; gap: 8px; color: var(--text-light); text-decoration: none; font-size: 0.9rem; margin-bottom: 24px; }
         .ficha-volver:hover { color: var(--primary); }
-        .ficha-hero-img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: var(--radius-md); cursor: zoom-in; background: var(--border); }
+        .ficha-hero-img { width: 100%; aspect-ratio: 16 / 10; object-fit: contain; border-radius: var(--radius-md); cursor: zoom-in; background: var(--bg-alt); }
         .ficha-thumbs { display: flex; gap: 10px; margin-top: 12px; overflow-x: auto; padding-bottom: 4px; }
         .ficha-thumb { flex: 0 0 96px; height: 68px; border: 2px solid transparent; border-radius: 8px; overflow: hidden; padding: 0; cursor: pointer; background: none; }
         .ficha-thumb.activo { border-color: var(--gold); }
