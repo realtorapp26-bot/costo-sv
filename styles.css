@@ -292,7 +292,8 @@ img {
        .logo queda como único item del flex del navbar — así centrarlo con
        justify-content no lo empuja contra el botón ni deja un hueco enorme. */
     .navbar .container { position: relative; justify-content: center; }
-    .logo img { height: 46px !important; }
+    .logo img { height: 60px !important; }
+    .logo { gap: 0 !important; }
 }
 
 /* Hero Section Premium */
