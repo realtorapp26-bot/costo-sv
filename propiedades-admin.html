@@ -68,14 +68,25 @@
         .prop-btn-eliminar { background: #fef2f2; color: #b91c1c; border-color: #fecaca; margin-left: auto; }
         .prop-btn-eliminar:hover { background: #fee2e2; color: #b91c1c; }
         @media (max-width: 640px) {
-            .prop-card-main { flex-direction: column; align-items: flex-start; }
-            .prop-card-info { flex-basis: auto; width: 100%; }
-            .prop-card-estado { margin-top: 2px; }
-            .prop-card-actions { flex-direction: column; align-items: stretch; }
-            .prop-actions-grupo { flex-direction: column; }
+            /* Cabecera: foto chica al costado en vez de arriba a todo el ancho —
+               ahorra la mitad del alto de la tarjeta. */
+            .prop-card-main { padding: 12px; gap: 10px; flex-wrap: wrap; }
+            .prop-card-foto, .prop-card-foto-vacia { width: 56px; height: 56px; }
+            .prop-card-info { flex: 1 1 200px; min-width: 0; }
+            .prop-card-titulo { font-size: 0.92rem; }
+            .prop-card-meta { font-size: 0.78rem; }
+            .prop-card-estado { flex: 1 0 100%; } /* pasa a su propia línea, sin forzar el alto de .prop-card-info */
+
+            /* Acciones: grilla de 2 columnas en vez de 5 filas apiladas de ancho
+               completo. display:contents "disuelve" el div agrupador para que
+               Oferta/Respuesta/Visita entren a la grilla junto con Editar y
+               Eliminar (si no, contarían como una sola celda). Editar+Oferta,
+               Respuesta+Visita, y Eliminar solo abajo ocupando las 2 columnas. */
+            .prop-card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; }
+            .prop-actions-grupo { display: contents; }
             .prop-actions-divisor { display: none; }
-            .prop-btn { justify-content: center; width: 100%; }
-            .prop-btn-eliminar { margin-left: 0; }
+            .prop-btn { justify-content: center; padding: 10px 8px; font-size: 0.82rem; }
+            .prop-btn-eliminar { grid-column: 1 / -1; margin-left: 0; }
         }
 
         .toast {
@@ -128,7 +139,10 @@
     <div class="admin-wrap">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
             <a href="panel.html" style="font-size:0.85rem; color: var(--text-light);"><i class="fas fa-arrow-left"></i> Volver al panel</a>
-            <button onclick="CostoSVAuth.signOut()" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 14px;font-size:0.8rem;cursor:pointer;">Cerrar sesión</button>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <a href="index.html" target="_blank" rel="noopener" style="text-decoration:none; display:flex; align-items:center; gap:6px; background:none; border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px 14px; font-size:0.8rem; color:var(--text-main);">🌐 Ver sitio web</a>
+                <button onclick="CostoSVAuth.signOut()" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 14px;font-size:0.8rem;cursor:pointer;">Cerrar sesión</button>
+            </div>
         </div>
 
         <div class="tab-switch">
