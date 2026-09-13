@@ -17,7 +17,8 @@
         .admin-header p { color: var(--gold-light); margin: 5px 0 0; }
         .admin-wrap { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
 
-        .tab-switch { display: flex; gap: 10px; margin-bottom: 24px; }
+        .admin-nav { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 24px; flex-wrap: wrap; }
+        .tab-switch { display: flex; gap: 10px; flex: 1 1 420px; }
         .tab-btn {
             flex: 1; text-align: center; padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border);
             background: var(--bg-alt); color: var(--text-main); font-weight: 700; cursor: pointer; transition: var(--transition);
@@ -26,6 +27,47 @@
         .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         .tab-panel { display: none; }
         .tab-panel.active { display: block; }
+
+        /* Menú "Herramientas": documentos y links que se generan aparte de las
+           pestañas (no son vistas del panel, así que no comparten fila con ellas). */
+        .herramientas { position: relative; flex: 0 0 auto; }
+        .btn-herramientas {
+            display: flex; align-items: center; gap: 8px; height: 100%; padding: 14px 18px;
+            border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-alt);
+            color: var(--text-main); font-weight: 700; cursor: pointer; white-space: nowrap;
+            font-family: 'Outfit', sans-serif; font-size: 0.95rem; transition: var(--transition);
+        }
+        .btn-herramientas .chev { font-size: 0.7rem; transition: transform 0.15s ease; }
+        .herramientas.open .btn-herramientas { background: var(--primary); color: white; border-color: var(--primary); }
+        .herramientas.open .btn-herramientas .chev { transform: rotate(180deg); }
+        .herramientas-dropdown {
+            display: none; position: absolute; right: 0; top: calc(100% + 8px); z-index: 60;
+            width: 300px; background: white; border: 1px solid var(--border); border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md); padding: 8px;
+        }
+        .herramientas.open .herramientas-dropdown { display: block; }
+        .herr-primary {
+            display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: var(--radius-sm);
+            color: var(--primary); font-weight: 700; text-decoration: none; font-size: 0.88rem;
+        }
+        .herr-primary:hover { background: var(--bg-main); }
+        .herr-divider { height: 1px; background: var(--border); margin: 6px 4px; }
+        .herr-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-light); padding: 6px 12px 2px; }
+        .herr-tool { padding: 6px 12px 10px; }
+        .herr-tool-name { display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-main); margin-bottom: 6px; }
+        .herr-tool-actions { display: flex; gap: 8px; }
+        .herr-mini {
+            flex: 1; text-align: center; padding: 6px 4px; border-radius: 6px; border: 1px solid var(--border);
+            background: var(--bg-main); color: var(--text-main); font-size: 0.76rem; font-weight: 700; cursor: pointer;
+            text-decoration: none; font-family: 'Outfit', sans-serif;
+        }
+        .herr-mini:hover { border-color: var(--primary); color: var(--primary); }
+        .herr-note { font-size: 0.75rem; color: var(--text-light); padding: 0 12px 8px; line-height: 1.4; }
+        @media (max-width: 720px) {
+            .admin-nav { flex-direction: column; }
+            .herramientas, .btn-herramientas { width: 100%; }
+            .herramientas-dropdown { left: 0; right: 0; width: auto; }
+        }
 
         .preview-banner {
             background-color: #e7f7ec; border-left: 4px solid #059669; color: #1b5e20;
@@ -173,18 +215,43 @@
             <button onclick="CostoSVAuth.signOut()" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 14px;font-size:0.8rem;cursor:pointer;">Cerrar sesión</button>
         </div>
 
-        <div class="tab-switch">
-            <button class="tab-btn active" id="btn-tab-propiedades" onclick="cambiarTab('propiedades')">🏠 Propiedades</button>
-            <button class="tab-btn" id="btn-tab-franquicias" onclick="cambiarTab('franquicias')">🏪 Franquicias</button>
-            <button class="tab-btn" id="btn-tab-leads" onclick="cambiarTab('leads')">📋 Leads</button>
-            <button class="tab-btn" id="btn-tab-metricas" onclick="cambiarTab('metricas')">📊 Métricas</button>
-            <a class="tab-btn" href="propiedades-admin.html" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">🗂️ Administrar Publicaciones</a>
-            <a class="tab-btn" href="carta-oferta.html" target="_blank" rel="noopener" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">📄 Carta de Oferta</a>
-            <button class="tab-btn" type="button" onclick="copiarLinkHerramienta('carta-oferta.html', 'la carta de oferta', 'el cliente')" style="display:flex; align-items:center; justify-content:center;">🔗 Copiar link de oferta</button>
-            <a class="tab-btn" href="carta-respuesta.html" target="_blank" rel="noopener" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">📩 Carta de Respuesta</a>
-            <button class="tab-btn" type="button" onclick="copiarLinkHerramienta('carta-respuesta.html', 'la carta de respuesta', 'el propietario')" style="display:flex; align-items:center; justify-content:center;">🔗 Copiar link de respuesta</button>
+        <div class="admin-nav">
+            <div class="tab-switch">
+                <button class="tab-btn active" id="btn-tab-propiedades" onclick="cambiarTab('propiedades')">🏠 Propiedades</button>
+                <button class="tab-btn" id="btn-tab-franquicias" onclick="cambiarTab('franquicias')">🏪 Franquicias</button>
+                <button class="tab-btn" id="btn-tab-leads" onclick="cambiarTab('leads')">📋 Leads</button>
+                <button class="tab-btn" id="btn-tab-metricas" onclick="cambiarTab('metricas')">📊 Métricas</button>
+            </div>
+
+            <div class="herramientas" id="herramientas-menu">
+                <button class="btn-herramientas" type="button" onclick="toggleHerramientas(event)">
+                    🧰 Herramientas <span class="chev">▾</span>
+                </button>
+                <div class="herramientas-dropdown">
+                    <a class="herr-primary" href="propiedades-admin.html">🗂️ Administrar Publicaciones</a>
+                    <div class="herr-divider"></div>
+
+                    <div class="herr-label">Documentos por link</div>
+                    <div class="herr-tool">
+                        <span class="herr-tool-name">📄 Carta de Oferta</span>
+                        <div class="herr-tool-actions">
+                            <a class="herr-mini" href="carta-oferta.html" target="_blank" rel="noopener">Abrir</a>
+                            <button class="herr-mini" type="button" onclick="copiarLinkHerramienta('carta-oferta.html', 'la carta de oferta', 'el cliente')">Copiar link</button>
+                        </div>
+                    </div>
+                    <div class="herr-tool">
+                        <span class="herr-tool-name">📩 Carta de Respuesta</span>
+                        <div class="herr-tool-actions">
+                            <a class="herr-mini" href="carta-respuesta.html" target="_blank" rel="noopener">Abrir</a>
+                            <button class="herr-mini" type="button" onclick="copiarLinkHerramienta('carta-respuesta.html', 'la carta de respuesta', 'el propietario')">Copiar link</button>
+                        </div>
+                    </div>
+
+                    <div class="herr-divider"></div>
+                    <p class="herr-note">📅 El link de <strong>Agendar Visita</strong> se genera por propiedad (con fecha y hora ya elegidas) desde Administrar Publicaciones.</p>
+                </div>
+            </div>
         </div>
-        <p style="font-size:0.8rem; color:var(--text-light); margin: -6px 0 16px;">📅 El link para "Agendar visita" se genera por propiedad, uno por uno, desde <a href="propiedades-admin.html">Gestionar Publicaciones</a> — así siempre elegís vos a quién se lo mandás.</p>
 
         <!-- ===== TAB: PROPIEDADES ===== -->
         <div class="tab-panel active" id="tab-propiedades">
@@ -835,6 +902,17 @@
                 () => prompt('Copiá el link:', url)
             );
         }
+
+        function toggleHerramientas(evento) {
+            evento.stopPropagation();
+            document.getElementById('herramientas-menu').classList.toggle('open');
+        }
+        document.addEventListener('click', (evento) => {
+            const menu = document.getElementById('herramientas-menu');
+            if (menu && menu.classList.contains('open') && !menu.contains(evento.target)) {
+                menu.classList.remove('open');
+            }
+        });
 
         async function agregarPropiedad() {
             const body = {
