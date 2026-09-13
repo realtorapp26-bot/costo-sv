@@ -180,6 +180,24 @@
         </div>
     </div>
 
+    <!-- ===== MODAL: Agendar visita (elegir fecha y hora antes de generar el link) ===== -->
+    <div class="modal-overlay" id="modal-visita">
+        <div class="modal-box" style="max-width: 420px;">
+            <h3>Agendar visita</h3>
+            <div class="modal-form-grid">
+                <div class="full"><label>Propiedad</label><input type="text" id="visita-propiedad" readonly></div>
+                <div><label>Fecha</label><input type="date" id="visita-fecha"></div>
+                <div><label>Hora</label><input type="time" id="visita-hora"></div>
+            </div>
+            <p style="font-size:0.8rem; color:var(--text-light); margin:12px 0 0;">El cliente va a ver este día y esta hora ya cargados y fijos — solo completa sus datos y la forma de pago.</p>
+            <div class="modal-actions">
+                <button class="btn-modal-cancel" onclick="cerrarModalVisita()">Cancelar</button>
+                <button class="btn-editar" style="border:1px solid var(--border); background:white;" onclick="abrirLinkVisita()">Abrir</button>
+                <button class="btn-modal-guardar" onclick="copiarLinkVisitaConFecha()">Copiar link</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== MODAL: Editar propiedad ===== -->
     <div class="modal-overlay" id="modal-editar-prop">
         <div class="modal-box" style="max-width: 860px;">
@@ -258,6 +276,45 @@
             );
         }
 
+        // ---------- Agendar visita: el link SIEMPRE se genera acá, con fecha y hora
+        // ya elegidas por el agente — el cliente no las puede cambiar. ----------
+        let visitaPropiedadActual = '';
+
+        function abrirModalVisita(propiedadDesc) {
+            visitaPropiedadActual = propiedadDesc;
+            document.getElementById('visita-propiedad').value = decodeURIComponent(propiedadDesc);
+            document.getElementById('visita-fecha').value = '';
+            document.getElementById('visita-hora').value = '';
+            document.getElementById('modal-visita').classList.add('show');
+        }
+
+        function cerrarModalVisita() {
+            document.getElementById('modal-visita').classList.remove('show');
+        }
+
+        function construirLinkVisita() {
+            const fecha = document.getElementById('visita-fecha').value;
+            const hora = document.getElementById('visita-hora').value;
+            if (!fecha || !hora) { alert('Elegí la fecha y la hora de la visita.'); return null; }
+            const base = ((window.SITE_CONFIG && window.SITE_CONFIG.SITE_URL) || location.origin).replace(/\/$/, '');
+            return `${base}/agendar-visita.html?propiedad=${visitaPropiedadActual}&fecha=${fecha}&hora=${hora}`;
+        }
+
+        function abrirLinkVisita() {
+            const url = construirLinkVisita();
+            if (url) window.open(url, '_blank', 'noopener');
+        }
+
+        function copiarLinkVisitaConFecha() {
+            const url = construirLinkVisita();
+            if (!url) return;
+            navigator.clipboard.writeText(url).then(
+                () => alert('Link de la visita copiado, con el día y la hora ya cargados:\n\n' + url + '\n\nMandáselo al cliente.'),
+                () => prompt('Copiá el link:', url)
+            );
+            cerrarModalVisita();
+        }
+
         function cambiarTabGestion(nombre) {
             ['prop', 'fr'].forEach(t => {
                 document.getElementById('tab-' + t).classList.toggle('active', t === nombre);
@@ -294,7 +351,6 @@
                     + (montoNum ? `&monto=${encodeURIComponent(montoNum)}` : '');
                 const respuestaUrl = `carta-respuesta.html?tipo=${tipoOp}&direccion=${direccionEnc}`;
                 const propiedadDesc = encodeURIComponent(p.titulo + (p.ubicacion ? ' — ' + p.ubicacion : ''));
-                const visitaUrl = `agendar-visita.html?propiedad=${propiedadDesc}`;
                 return `
                     <tr>
                         <td>${foto ? `<img src="${foto}" class="gestion-thumb" onerror="this.style.display='none'">` : ''}</td>
@@ -309,8 +365,7 @@
                             <button class="btn-editar" title="Copiar link de la carta de oferta" onclick="copiarLinkProp('${ofertaUrl}', 'la carta de oferta')"><i class="fas fa-link"></i></button>
                             <a class="btn-editar" href="${respuestaUrl}" target="_blank" rel="noopener"><i class="fas fa-file-contract"></i> Respuesta</a>
                             <button class="btn-editar" title="Copiar link de la carta de respuesta" onclick="copiarLinkProp('${respuestaUrl}', 'la carta de respuesta')"><i class="fas fa-link"></i></button>
-                            <a class="btn-editar" href="${visitaUrl}" target="_blank" rel="noopener"><i class="fas fa-calendar-check"></i> Visita</a>
-                            <button class="btn-editar" title="Copiar link para agendar visita" onclick="copiarLinkProp('${visitaUrl}', 'agendar visita')"><i class="fas fa-link"></i></button>
+                            <button class="btn-editar" title="Elegir fecha y hora, y generar el link de la visita" onclick="abrirModalVisita('${propiedadDesc}')"><i class="fas fa-calendar-check"></i> Visita</button>
                             <button class="btn-eliminar" onclick="eliminar('${p.id}')"><i class="fas fa-trash"></i> Eliminar</button>
                         </td>
                     </tr>

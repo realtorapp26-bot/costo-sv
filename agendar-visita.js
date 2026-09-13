@@ -61,6 +61,7 @@
       nombre: val('nombre'),
       correo: correo,
       telefono: val('telefono'),
+      profesion: val('profesion'),
     };
   }
 
@@ -174,6 +175,7 @@
     y = fieldRow(pdf, 2, 'Fecha y hora propuestas', fechaLarga(v.fechaVisita, v.horaVisita), x, y, width);
     y = fieldRow(pdf, 3, 'Forma de pago', v.recurso + (v.recursoExplicacion ? ' — ' + v.recursoExplicacion : ''), x, y, width);
     y = fieldRow(pdf, 4, 'Contacto', v.nombre + ' · ' + v.telefono + ' · ' + v.correo, x, y, width);
+    if (v.profesion) y = fieldRow(pdf, 5, 'Ocupación', v.profesion, x, y, width);
 
     y += 8;
     pdf.setFillColor(248, 250, 252);
@@ -202,7 +204,8 @@
     var headers = { 'Content-Type': 'application/json', apikey: CFG.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + CFG.SUPABASE_ANON_KEY, Prefer: 'return=minimal' };
     var contactoId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(16).slice(2));
     var resumen = 'Visita solicitada — ' + v.propiedad + ' — ' + fechaLarga(v.fechaVisita, v.horaVisita) +
-      ' — Forma de pago: ' + v.recurso + (v.recursoExplicacion ? ' (' + v.recursoExplicacion + ')' : '');
+      ' — Forma de pago: ' + v.recurso + (v.recursoExplicacion ? ' (' + v.recursoExplicacion + ')' : '') +
+      (v.profesion ? ' — Ocupación: ' + v.profesion : '');
 
     fetch(CFG.SUPABASE_URL + '/rest/v1/contactos', {
       method: 'POST', headers: headers,
@@ -247,7 +250,8 @@
     if (!n) return;
     var msg = 'Hola Walter, soy ' + v.nombre + '. Quiero agendar una visita a "' + v.propiedad + '" el ' +
       fechaLarga(v.fechaVisita, v.horaVisita) + '. Forma de pago: ' + v.recurso +
-      (v.recursoExplicacion ? ' (' + v.recursoExplicacion + ')' : '') + '. Mi contacto: ' + v.telefono + ' / ' + v.correo + '.';
+      (v.recursoExplicacion ? ' (' + v.recursoExplicacion + ')' : '') + '. Mi contacto: ' + v.telefono + ' / ' + v.correo + '.' +
+      (v.profesion ? ' Ocupación: ' + v.profesion + '.' : '');
     window.open('https://wa.me/' + n + '?text=' + encodeURIComponent(msg), '_blank', 'noopener');
   }
 
@@ -284,9 +288,25 @@
   }
 
   // ---------- prefill por querystring (propiedad) ----------
+  // Cuando el agente ya definió el día y la hora (link armado desde el panel),
+  // esos campos dejan de ser editables: se muestran fijos y el cliente solo
+  // completa el resto. form.elements sigue leyendo su valor normalmente.
+  function aplicarFechaFija(fechaISO, horaStr) {
+    el('fecha_visita').value = fechaISO;
+    el('hora_visita').value = horaStr;
+    el('fechaHoraEditable').classList.add('d-none');
+    var resumen = el('fechaHoraFija');
+    resumen.classList.remove('d-none');
+    resumen.innerHTML = '📅 <strong>' + fechaLarga(fechaISO, horaStr) + '</strong>' +
+      '<div class="co-help">Este horario lo propuso tu agente. Si no te queda bien, decíselo en el mensaje de WhatsApp al confirmar.</div>';
+  }
+
   function prefill() {
     var q = new URLSearchParams(window.location.search);
     if (q.get('propiedad')) el('propiedad').value = q.get('propiedad');
+    var fecha = q.get('fecha');
+    var hora = q.get('hora');
+    if (fecha && hora) aplicarFechaFija(fecha, hora);
   }
 
   var hoy = new Date().toISOString().slice(0, 10);
