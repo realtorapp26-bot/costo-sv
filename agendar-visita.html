@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <title>Agendar Visita | Guerrero Properties</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <style>
+        :root { --azul: #0b2d5c; --rojo: #e53935; }
+        body { background: #eef1f6; color: #0f172a; font-family: 'Outfit', system-ui, sans-serif; }
+        .co-header { background: var(--azul); color: #fff; padding: 30px 0; }
+        .co-header .container { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .co-header .co-brand { font-size: .78rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #c9d6ea; margin-bottom: 4px; }
+        .co-header h1 { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin: 0; }
+        .co-header p { margin: 2px 0 0; color: #c9d6ea; font-size: .9rem; }
+        .co-wrap { max-width: 640px; margin: 28px auto 80px; padding: 0 18px; }
+        .co-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 26px 24px; margin-bottom: 18px; box-shadow: 0 8px 24px rgba(15,23,42,.05); }
+        .co-card h2 { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--azul); margin: 0 0 4px; }
+        .co-card .hint { font-size: .82rem; color: #64748b; margin: 0 0 18px; }
+        .co-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .co-grid .full { grid-column: 1 / -1; }
+        .co-field label { display: block; font-size: .8rem; font-weight: 600; color: #475569; margin-bottom: 6px; }
+        .co-field input, .co-field select, .co-field textarea {
+            width: 100%; padding: 12px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px;
+            font: inherit; font-size: .95rem; color: #0f172a; background: #f8fafc; box-sizing: border-box;
+        }
+        .co-field input:focus, .co-field select:focus, .co-field textarea:focus {
+            outline: 0; border-color: var(--azul); background: #fff; box-shadow: 0 0 0 3px rgba(11,45,92,.12);
+        }
+        .co-field textarea { min-height: 70px; resize: vertical; }
+        .co-field input.is-invalid, .co-field select.is-invalid, .co-field textarea.is-invalid { border-color: var(--rojo); background: #fef2f2; }
+        .co-help { font-size: .74rem; color: #94a3b8; margin-top: 5px; }
+        .co-errors { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; }
+        .co-errors h3 { color: #b91c1c; font-size: .95rem; margin: 0 0 8px; }
+        .co-errors ul { margin: 0; padding-left: 18px; color: #7f1d1d; font-size: .85rem; }
+        .co-generate { width: 100%; padding: 16px; border: 0; border-radius: 12px; background: var(--azul); color: #fff; font: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .co-generate:hover { background: #082245; }
+        .co-generate:disabled { opacity: .7; cursor: progress; }
+        .co-spin { width: 16px; height: 16px; border: 2.5px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: co-rot .7s linear infinite; display: none; }
+        .co-generate.loading .co-spin { display: block; }
+        @keyframes co-rot { to { transform: rotate(360deg); } }
+        .co-note { font-size: .8rem; color: #64748b; background: #f1f5f9; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; }
+        .co-ok { display: none; text-align: center; }
+        .co-ok.show { display: block; }
+        .co-ok .icon { font-size: 2.4rem; }
+        .co-ok h2 { font-family: 'Playfair Display', serif; color: var(--azul); margin: 8px 0 4px; }
+        .co-ok p { color: #64748b; font-size: .92rem; margin: 0 0 20px; }
+        .co-ok-actions { display: flex; flex-direction: column; gap: 10px; }
+        .co-btn-cal { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px; border-radius: 10px; background: #fff; border: 1.5px solid var(--azul); color: var(--azul); font-weight: 700; font-size: .92rem; text-decoration: none; }
+        .d-none { display: none !important; }
+        @media (max-width: 560px) { .co-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <header class="co-header">
+        <div class="container">
+            <div>
+                <div class="co-brand">Guerrero Properties</div>
+                <h1>Agendar Visita</h1>
+                <p>Solicitá el día y la hora que te queden mejor</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="co-wrap">
+        <div class="co-note">
+            Completá estos datos y te confirmamos la visita. La cita queda sujeta a
+            disponibilidad — te contactaremos para confirmarla.
+        </div>
+
+        <div class="co-errors d-none" id="errorBox">
+            <h3>Revisá la información</h3>
+            <ul id="errorList"></ul>
+        </div>
+
+        <form id="visitForm" novalidate>
+            <div class="co-card">
+                <h2>Propiedad</h2>
+                <div class="co-grid">
+                    <div class="co-field full">
+                        <label for="propiedad">¿Qué propiedad querés visitar?</label>
+                        <input type="text" id="propiedad" name="propiedad" placeholder="Dirección, título o link de la propiedad" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="co-card">
+                <h2>Recurso económico</h2>
+                <div class="co-grid">
+                    <div class="co-field">
+                        <label for="recurso">Forma de pago</label>
+                        <select id="recurso" name="recurso" required>
+                            <option value="">Seleccioná</option>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Crédito">Crédito</option>
+                            <option value="Mixto">Mixto</option>
+                        </select>
+                    </div>
+                    <div class="co-field full">
+                        <label for="recurso_explicacion">Explicá brevemente</label>
+                        <textarea id="recurso_explicacion" name="recurso_explicacion" placeholder="Ej: crédito pre-aprobado con el banco, o efectivo disponible de inmediato."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="co-card">
+                <h2>Fecha y hora de la visita</h2>
+                <div class="co-grid">
+                    <div class="co-field">
+                        <label for="fecha_visita">Fecha</label>
+                        <input type="date" id="fecha_visita" name="fecha_visita" required>
+                    </div>
+                    <div class="co-field">
+                        <label for="hora_visita">Hora disponible</label>
+                        <input type="time" id="hora_visita" name="hora_visita" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="co-card">
+                <h2>Tus datos</h2>
+                <div class="co-grid">
+                    <div class="co-field full">
+                        <label for="nombre">Nombre completo</label>
+                        <input type="text" id="nombre" name="nombre" autocomplete="name" required>
+                    </div>
+                    <div class="co-field">
+                        <label for="correo">Correo electrónico</label>
+                        <input type="email" id="correo" name="correo" autocomplete="email" required>
+                    </div>
+                    <div class="co-field">
+                        <label for="telefono">Número de contacto</label>
+                        <input type="tel" id="telefono" name="telefono" inputmode="tel" autocomplete="tel" required>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="co-generate" id="generateBtn">
+                <span class="co-spin"></span>
+                <span class="co-generate-txt">Enviar solicitud de visita</span>
+            </button>
+        </form>
+
+        <div class="co-card co-ok" id="okBox">
+            <span class="icon">✅</span>
+            <h2>¡Listo! Solicitud enviada</h2>
+            <p>Descargamos tu confirmación en PDF. Agregala a tu calendario y contactamos por WhatsApp para confirmar.</p>
+            <div class="co-ok-actions">
+                <a class="co-btn-cal" id="calLink" href="#" target="_blank" rel="noopener">📅 Agregar a Google Calendar</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="config.js?v=2"></script>
+    <script src="agendar-visita.js?v=1"></script>
+</body>
+</html>
