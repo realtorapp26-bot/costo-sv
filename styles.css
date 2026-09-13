@@ -209,6 +209,13 @@ img {
     gap: 12px;
 }
 
+/* logo-remax.png es en realidad un JPEG con fondo negro sólido (no un PNG
+   transparente) — ese negro no coincide exactamente con el navy del navbar
+   y se veía como una cajita pegada encima. mix-blend-mode:screen hace que
+   el negro se funda con cualquier fondo oscuro detrás y solo queden
+   visibles el texto/bandera del logo. */
+.logo img { mix-blend-mode: screen; }
+
 .nav-links {
     display: flex;
     gap: 2.5rem;
@@ -370,10 +377,13 @@ img {
 }
 
 .hero-buttons {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    max-width: 620px;
 }
+
+.hero-buttons .btn { width: 100%; }
 
 .hero-image {
     flex: 0.8;
@@ -442,7 +452,7 @@ img {
     .hero-title { font-size: 3.5rem; }
     .hero-tagline { justify-content: center; }
     .hero-tagline::before { display: none; }
-    .hero-buttons { justify-content: center; }
+    .hero-buttons { margin: 0 auto; }
     .hero-image { justify-content: center; margin-top: 40px; }
 }
 
@@ -459,6 +469,7 @@ img {
     .hero-title-sm { font-size: 2.1rem; }
     .landing-header .hero-title-sm { font-size: 2rem; }
     .floating-whatsapp { width: 54px; height: 54px; font-size: 28px; bottom: 18px; right: 18px; }
+    .hero-buttons { grid-template-columns: 1fr; max-width: 360px; }
 }
 
 /* Cards Generales */
