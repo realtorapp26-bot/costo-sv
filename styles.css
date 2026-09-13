@@ -293,7 +293,7 @@ img {
        justify-content no lo empuja contra el botón ni deja un hueco enorme. */
     .navbar .container { position: relative; justify-content: center; }
     .logo img { height: 60px !important; }
-    .logo { gap: 0 !important; }
+    .logo { gap: 0 !important; align-items: center !important; }
 }
 
 /* Hero Section Premium */
@@ -452,6 +452,10 @@ img {
 }
 
 @media (max-width: 1024px) {
+    /* min-height:90vh + align-items:center (base .hero) dejaban un hueco
+       enorme arriba y abajo del contenido en una sola columna — acá el
+       hero mide según su contenido, no según la pantalla. */
+    .hero { min-height: auto; padding: 110px 0 70px; }
     .hero .container { flex-direction: column; text-align: center; }
     .hero-title { font-size: 3.5rem; }
     .hero-tagline { justify-content: center; }
