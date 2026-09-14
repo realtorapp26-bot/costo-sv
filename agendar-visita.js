@@ -253,11 +253,21 @@
       (v.recursoExplicacion ? ' (' + v.recursoExplicacion + ')' : '') + '. Mi contacto: ' + v.telefono + ' / ' + v.correo + '.' +
       (v.profesion ? ' Ocupación: ' + v.profesion + '.' : '');
     var url = 'https://wa.me/' + n + '?text=' + encodeURIComponent(msg);
-    // En celular, abrir en pestaña nueva a veces hace que cargue la página web
-    // de WhatsApp en vez de la app directamente — en la misma pestaña el
-    // sistema operativo intercepta el link y sí abre la app.
+    // wa.me a veces no abre la app en celular y cae en su página web de
+    // respaldo (decisión del lado de WhatsApp, no de esta página). Se prueba
+    // primero el esquema nativo whatsapp://, que el sistema operativo abre
+    // directo sin pasar por wa.me — y si no pasó nada, recién ahí se cae a
+    // wa.me como respaldo para quien no tenga la app instalada.
     if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-      window.location.href = url;
+      var appUrl = 'whatsapp://send?phone=' + n + '&text=' + encodeURIComponent(msg);
+      var seFueLaApp = false;
+      var marcar = function () { seFueLaApp = true; };
+      document.addEventListener('visibilitychange', marcar, { once: true });
+      window.location.href = appUrl;
+      setTimeout(function () {
+        document.removeEventListener('visibilitychange', marcar);
+        if (!seFueLaApp) window.location.href = url;
+      }, 1300);
     } else {
       window.open(url, '_blank', 'noopener');
     }

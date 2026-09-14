@@ -14,12 +14,90 @@
   const SUPA_ENABLED = !!(SUPA_URL && SUPA_KEY);
 
   const waLink = (text) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
+  const path = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  const esMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   function mapInteres(path) {
     if (path.includes('vender')) return 'vender';
     if (path.includes('comprar')) return 'comprar';
     if (path.includes('invertir')) return 'invertir';
     return 'otro';
+  }
+
+  // Un click en WhatsApp no trae nombre/teléfono todavía (a diferencia de un
+  // formulario) — se registra igual como lead "en blanco" (origen whatsapp,
+  // el mensaje completo queda en notas) para que quede en el pipeline y Walter
+  // le ponga el nombre cuando chateen. Máximo 1 por sesión de navegador (no
+  // uno por cada click) para no llenar Leads de filas repetidas.
+  const WA_LEAD_FLAG = 'csv_wa_lead_creado';
+  function registrarLeadWhatsapp(mensaje) {
+    if (!SUPA_ENABLED) return;
+    try {
+      if (sessionStorage.getItem(WA_LEAD_FLAG)) return;
+      sessionStorage.setItem(WA_LEAD_FLAG, '1'); // antes del fetch, para no duplicar con doble click
+    } catch (e) { /* sin sessionStorage seguimos igual, solo sin el freno de duplicados */ }
+
+    const headers = { 'Content-Type': 'application/json', apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, Prefer: 'return=minimal' };
+    const contactoId = crypto.randomUUID();
+    const tituloMatch = mensaje.match(/"([^"]+)"/); // el texto suele citar el título de la propiedad entre comillas
+
+    fetch(`${SUPA_URL}/rest/v1/contactos`, {
+      method: 'POST', headers,
+      body: JSON.stringify({ id: contactoId, nombre: 'Contacto por WhatsApp', telefono: '', correo: '' }),
+    }).then((r) => {
+      if (!r.ok) return;
+      return fetch(`${SUPA_URL}/rest/v1/leads`, {
+        method: 'POST', headers,
+        body: JSON.stringify({
+          contacto_id: contactoId, origen: 'whatsapp', interes: mapInteres(path),
+          propiedad_referencia: tituloMatch ? tituloMatch[1] : null, notas: mensaje,
+        }),
+      });
+    }).catch((err) => console.error('No se pudo registrar el lead de WhatsApp:', err));
+  }
+
+  // wa.me a veces NO abre la app en celular: según el navegador/Android, en
+  // vez de disparar el intent de la app carga la página web de WhatsApp con
+  // un botón "Abrir aplicación" que después tira "La acción no se pudo
+  // completar" (decisión del lado de wa.me, no controlable con target=_blank
+  // ni con navegación en la misma pestaña). El truco confiable: probar
+  // primero el esquema nativo whatsapp://, que el sistema operativo maneja
+  // directo sin pasar por ningún servidor de WhatsApp — y si no pasó nada
+  // (la pestaña sigue visible) después de un momento, recién ahí caer a
+  // wa.me como respaldo para quien no tenga la app instalada.
+  function abrirWhatsAppMobil(mensaje) {
+    const appUrl = `whatsapp://send?phone=${WA_NUMBER}&text=${encodeURIComponent(mensaje)}`;
+    let seFueLaApp = false;
+    const marcar = () => { seFueLaApp = true; };
+    document.addEventListener('visibilitychange', marcar, { once: true });
+    window.location.href = appUrl;
+    setTimeout(() => {
+      document.removeEventListener('visibilitychange', marcar);
+      if (!seFueLaApp) window.location.href = waLink(mensaje); // el esquema nativo no abrió nada
+    }, 1300);
+  }
+
+  // Enlaces de WhatsApp: marcados EXPLÍCITAMENTE con [data-whatsapp] (no por
+  // ícono). Reusable: además de correr sobre todo el documento al cargar la
+  // página, páginas que arman tarjetas dinámicas (propiedades.html) la llaman
+  // de nuevo pasándole el contenedor recién insertado — si no, esos botones
+  // quedarían sin href/click porque no existían todavía en el DOMContentLoaded.
+  function procesarEnlacesWhatsapp(root, waMessage) {
+    if (!WA_NUMBER) return;
+    (root || document).querySelectorAll('a[data-whatsapp]').forEach((a) => {
+      if (a.dataset.waListo) return; // no duplicar el listener de click
+      a.dataset.waListo = '1';
+      const mensaje = a.getAttribute('data-wa') || waMessage || 'Hola Walter, me gustaría recibir asesoría inmobiliaria.';
+      a.href = waLink(mensaje); // respaldo por si el click no llega a dispararse por JS
+      if (!esMobile) { a.target = '_blank'; a.rel = 'noopener'; }
+      a.addEventListener('click', (e) => {
+        registrarLeadWhatsapp(mensaje);
+        if (esMobile) {
+          e.preventDefault();
+          abrirWhatsAppMobil(mensaje);
+        }
+      });
+    });
   }
 
   // Guarda el lead en el CRM propio (Supabase). Independiente del webhook de
@@ -62,8 +140,6 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    const path = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
-
     // Mensaje contextual de WhatsApp por página
     let waMessage = 'Hola Walter, me gustaría recibir asesoría inmobiliaria.';
     if (path.includes('vender')) waMessage = 'Hola Walter, estoy interesado en vender mi propiedad.';
@@ -73,24 +149,7 @@
     else if (path.includes('costo-vida')) waMessage = 'Hola Walter, vi el comparador de costo de vida y quiero recibir asesoría.';
     else if (path.includes('propiedades')) waMessage = 'Hola Walter, quiero conocer más sobre las propiedades disponibles.';
 
-    // Enlaces de WhatsApp: marcados EXPLÍCITAMENTE con [data-whatsapp] (no por ícono).
-    // En celular NO se abre en pestaña nueva (target=_blank): con wa.me eso a
-    // veces hace que el navegador cargue la página web de WhatsApp en vez de
-    // abrir la app directamente ("La acción no se pudo completar" al tocar
-    // "Abrir aplicación"). Navegando en la misma pestaña, el sistema operativo
-    // intercepta el link y abre la app sin pasar por esa página intermedia.
-    const esMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (WA_NUMBER) {
-      document.querySelectorAll('a[data-whatsapp]').forEach((a) => {
-        a.href = waLink(a.getAttribute('data-wa') || waMessage); // data-wa: mensaje propio opcional
-        if (esMobile) {
-          a.removeAttribute('target');
-        } else {
-          a.target = '_blank';
-          a.rel = 'noopener';
-        }
-      });
-    }
+    procesarEnlacesWhatsapp(document, waMessage);
 
     // Formularios de captación
     document.querySelectorAll('.webhook-form').forEach((form) => setupForm(form, path));
@@ -170,9 +229,9 @@
         if (!WEBHOOK_ENABLED) {
           // Sin webhook real: NO simular éxito, NO decir que guardamos, NO limpiar el form.
           // Se abre WhatsApp con el mensaje ya preparado. Los campos quedan llenos para reintentar.
-          const win = window.open(wa, '_blank', 'noopener');
-          const extra = win ? '' : ` Si no se abrió, <a href="${wa}" target="_blank" rel="noopener" style="font-weight:700;text-decoration:underline;">tocá aquí para abrir WhatsApp</a>.`;
-          show('El envío automático aún no está activo. Enviaremos tu información mediante WhatsApp.' + extra, false);
+          if (esMobile) abrirWhatsAppMobil(resumenLead(payload));
+          else window.open(wa, '_blank', 'noopener');
+          show(`El envío automático aún no está activo. Enviaremos tu información mediante WhatsApp. Si no se abrió, <a href="${wa}" target="_blank" rel="noopener" style="font-weight:700;text-decoration:underline;">tocá aquí para abrir WhatsApp</a>.`, false);
           return;
         }
         const res = await fetch(WEBHOOK_URL, {
@@ -193,6 +252,10 @@
       }
     });
   }
+
+  // Para páginas que arman botones de WhatsApp dinámicamente (tarjetas de
+  // propiedades cargadas por fetch, insertadas después de DOMContentLoaded).
+  window.CostoSVWhatsApp = { procesarEnlacesWhatsapp };
 })();
 
 // ============================================================
