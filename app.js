@@ -74,11 +74,21 @@
     else if (path.includes('propiedades')) waMessage = 'Hola Walter, quiero conocer más sobre las propiedades disponibles.';
 
     // Enlaces de WhatsApp: marcados EXPLÍCITAMENTE con [data-whatsapp] (no por ícono).
+    // En celular NO se abre en pestaña nueva (target=_blank): con wa.me eso a
+    // veces hace que el navegador cargue la página web de WhatsApp en vez de
+    // abrir la app directamente ("La acción no se pudo completar" al tocar
+    // "Abrir aplicación"). Navegando en la misma pestaña, el sistema operativo
+    // intercepta el link y abre la app sin pasar por esa página intermedia.
+    const esMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     if (WA_NUMBER) {
       document.querySelectorAll('a[data-whatsapp]').forEach((a) => {
         a.href = waLink(a.getAttribute('data-wa') || waMessage); // data-wa: mensaje propio opcional
-        a.target = '_blank';
-        a.rel = 'noopener';
+        if (esMobile) {
+          a.removeAttribute('target');
+        } else {
+          a.target = '_blank';
+          a.rel = 'noopener';
+        }
       });
     }
 

@@ -210,6 +210,10 @@
                 'Proyectos y Desarrollos': 'Agendar Presentación',
             };
             const FOTO_RESPALDO = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
+            // En celular, target="_blank" en un link wa.me a veces hace que cargue
+            // la página web de WhatsApp en vez de abrir la app — en la misma
+            // pestaña el sistema operativo sí intercepta el link.
+            const ATTR_WA_TARGET = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? '' : 'target="_blank" rel="noopener"';
 
             function tarjeta(p, idx) {
                 const fotos = (p.fotos && p.fotos.length) ? p.fotos : [FOTO_RESPALDO];
@@ -252,7 +256,7 @@
                                 <div class="prop-price">${p.precio}</div>
                             </div>
                             <a href="${fichaUrl}" class="btn btn-gold" style="width: 100%;">Ver ficha completa</a>
-                            <a href="https://wa.me/${String(CFG.WHATSAPP_NUMBER || '').replace(/\D/g, '')}?text=${mensaje}" target="_blank" rel="noopener" class="btn btn-whatsapp" style="width: 100%; margin-top: 10px;"><i class="fab fa-whatsapp"></i> ${cta}</a>
+                            <a href="https://wa.me/${String(CFG.WHATSAPP_NUMBER || '').replace(/\D/g, '')}?text=${mensaje}" ${ATTR_WA_TARGET} class="btn btn-whatsapp" style="width: 100%; margin-top: 10px;"><i class="fab fa-whatsapp"></i> ${cta}</a>
                         </div>
                     </div>
                 `;

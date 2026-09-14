@@ -252,7 +252,15 @@
       fechaLarga(v.fechaVisita, v.horaVisita) + '. Forma de pago: ' + v.recurso +
       (v.recursoExplicacion ? ' (' + v.recursoExplicacion + ')' : '') + '. Mi contacto: ' + v.telefono + ' / ' + v.correo + '.' +
       (v.profesion ? ' Ocupación: ' + v.profesion + '.' : '');
-    window.open('https://wa.me/' + n + '?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+    var url = 'https://wa.me/' + n + '?text=' + encodeURIComponent(msg);
+    // En celular, abrir en pestaña nueva a veces hace que cargue la página web
+    // de WhatsApp en vez de la app directamente — en la misma pestaña el
+    // sistema operativo intercepta el link y sí abre la app.
+    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      window.location.href = url;
+    } else {
+      window.open(url, '_blank', 'noopener');
+    }
   }
 
   function generar() {
