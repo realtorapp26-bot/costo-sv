@@ -75,9 +75,9 @@
         
         <div class="container">
             <div class="hero-content">
-                <div class="hero-tagline">Exclusividad & Confianza</div>
-                <h1 class="hero-title">Walter Guerrero<br><span style="font-size: 2.5rem; font-weight: 300; opacity: 0.9;">Agente inmobiliario RE/MAX Elite</span></h1>
-                <p class="hero-subtitle">Especialista en compra, venta e inversión de propiedades de alto perfil en El Salvador. Atención exclusiva, estrategia comercial global y resultados medibles.</p>
+                <div class="hero-tagline">Resultados reales, sin rodeos</div>
+                <h1 class="hero-title">Vendé, comprá o invertí en El Salvador sin sorpresas legales ni pérdidas de tiempo.<br><span style="font-size: 2.2rem; font-weight: 300; opacity: 0.9;">Walter Guerrero — Agente RE/MAX Elite</span></h1>
+                <p class="hero-subtitle">Acompañamiento personal en cada paso: desde la primera visita hasta la firma en el registro. Compra, venta e inversión de propiedades en El Salvador.</p>
                 <div class="hero-buttons">
                     <a href="invertir.html" class="btn btn-gold"><i class="fas fa-chart-line"></i> Oportunidades de Inversión</a>
                     <a href="vender.html" class="btn btn-outline" style="color: white; border-color: rgba(255,255,255,0.3);">Vender Propiedad</a>
@@ -143,6 +143,15 @@
             <div style="text-align: center; margin-top: 40px;">
                 <a href="propiedades.html" class="btn btn-secondary">Explorar todo el inventario</a>
             </div>
+        </div>
+    </section>
+
+    <!-- Testimonios -->
+    <section class="section" id="testimonios-section" style="display: none;">
+        <div class="container">
+            <h2 class="section-title">Lo que dicen mis clientes</h2>
+            <p class="section-subtitle">Experiencias reales de compra, venta e inversión en El Salvador.</p>
+            <div class="testimonios-grid" id="grid-testimonios"></div>
         </div>
     </section>
 
@@ -266,6 +275,43 @@
                     console.error('No se pudieron cargar las propiedades de portada:', err);
                     grid.innerHTML = '';
                 });
+
+            // Testimonios: la sección arranca oculta (display:none en el HTML)
+            // y solo se muestra si hay al menos uno publicado — así nunca se ve
+            // un título "Lo que dicen mis clientes" vacío.
+            const gridT = document.getElementById('grid-testimonios');
+            const seccionT = document.getElementById('testimonios-section');
+            if (gridT && seccionT) {
+                fetch(`${SUPA_URL}/rest/v1/testimonios?select=*&publicado=eq.true&order=orden.asc.nullslast,created_at.desc&limit=6`, {
+                    headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
+                })
+                    .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+                    .then((testimonios) => {
+                        if (!testimonios.length) return;
+                        gridT.innerHTML = testimonios.map((t) => {
+                            const estrellas = '★'.repeat(t.calificacion) + '☆'.repeat(5 - t.calificacion);
+                            const inicial = (t.nombre_cliente || '?').trim().charAt(0).toUpperCase();
+                            const foto = t.foto_cliente
+                                ? `<img class="testimonio-foto" src="${t.foto_cliente}" alt="${t.nombre_cliente}" loading="lazy">`
+                                : `<div class="testimonio-avatar">${inicial}</div>`;
+                            return `
+                                <div class="testimonio-card">
+                                    <div class="testimonio-stars">${estrellas}</div>
+                                    <p class="testimonio-texto">"${t.texto}"</p>
+                                    <div class="testimonio-autor">
+                                        ${foto}
+                                        <div>
+                                            <div class="testimonio-nombre">${t.nombre_cliente}</div>
+                                            ${t.propiedad_relacionada ? `<div class="testimonio-propiedad">${t.propiedad_relacionada}</div>` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                        seccionT.style.display = '';
+                    })
+                    .catch((err) => console.error('No se pudieron cargar los testimonios:', err));
+            }
         })();
     </script>
 </body>

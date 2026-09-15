@@ -487,6 +487,41 @@ img {
     gap: 40px;
 }
 
+/* Testimonios */
+.testimonios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 28px;
+}
+.testimonio-card {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+.testimonio-stars { color: var(--gold); letter-spacing: 3px; font-size: 1.05rem; margin-bottom: 14px; }
+.testimonio-texto {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.08rem;
+    line-height: 1.6;
+    color: var(--text-main);
+    margin-bottom: 22px;
+    flex: 1;
+}
+.testimonio-autor { display: flex; align-items: center; gap: 12px; }
+.testimonio-foto { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.testimonio-avatar {
+    width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0;
+    background: var(--primary); color: var(--gold); display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.1rem;
+}
+.testimonio-nombre { font-weight: 700; color: var(--primary); font-size: 0.95rem; }
+.testimonio-propiedad { font-size: 0.8rem; color: var(--text-light); }
+
 .service-card {
     background: var(--bg-alt);
     padding: 50px 40px;

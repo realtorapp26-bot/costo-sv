@@ -165,6 +165,13 @@
         .mini-card .mini-desc.vacia { font-style: italic; }
         .mini-card .mini-editar { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: auto; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.82rem; font-weight: 600; color: var(--primary); text-decoration: none; }
         .mini-card .mini-editar:hover { background: var(--bg-main); }
+        .mini-card .mini-stars { color: var(--gold); letter-spacing: 2px; margin-bottom: 4px; }
+        .mini-card .mini-actions { display: flex; gap: 8px; margin-top: auto; }
+        .mini-card .mini-actions button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; background: white; color: var(--primary); }
+        .mini-card .mini-actions button:hover { background: var(--bg-main); }
+        .mini-card .mini-actions .btn-ocultar-t.oculto { background: #f3f4f6; color: #6b7280; }
+        .mini-card .mini-actions .btn-eliminar-t { color: #b91c1c; border-color: #fecaca; background: #fef2f2; }
+        .mini-card .mini-actions .btn-eliminar-t:hover { background: #fee2e2; }
         .empty-hint { color: var(--text-light); font-style: italic; text-align: center; padding: 30px; }
 
         .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 16px; margin-bottom: 30px; }
@@ -281,6 +288,7 @@
                 <button class="tab-btn" id="btn-tab-franquicias" onclick="cambiarTab('franquicias')">🏪 Franquicias</button>
                 <button class="tab-btn" id="btn-tab-leads" onclick="cambiarTab('leads')">📋 Leads</button>
                 <button class="tab-btn" id="btn-tab-metricas" onclick="cambiarTab('metricas')">📊 Métricas</button>
+                <button class="tab-btn" id="btn-tab-testimonios" onclick="cambiarTab('testimonios')">⭐ Testimonios</button>
             </div>
 
             <a class="btn-administrar" href="propiedades-admin.html">🗂️ Administrar Publicaciones</a>
@@ -727,6 +735,62 @@
 
             <p id="metricas-hint" style="color:var(--text-light); font-size:0.85rem; margin-top:6px;">Se registra solo qué páginas/fichas se visitan y qué botones se tocan — nada de datos personales del visitante.</p>
         </div>
+
+        <!-- ===== TAB: TESTIMONIOS ===== -->
+        <div class="tab-panel" id="tab-testimonios">
+            <div class="panel-actions-row">
+                <button class="btn-action btn-primary" onclick="abrirModalNuevoTestimonio()">➕ Agregar testimonio</button>
+            </div>
+
+            <div class="panel">
+                <h2>Testimonios</h2>
+                <p style="color:var(--text-light); font-size:0.85rem; margin-top:-8px; margin-bottom:16px;">Los "Publicados" aparecen en la portada del sitio. Los ocultos quedan guardados acá sin mostrarse.</p>
+                <div id="testimonios-list" class="added-grid"></div>
+                <div id="testimonios-empty" class="empty-hint">Cargando...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: Nuevo testimonio ===== -->
+    <div class="modal-overlay" id="modal-nuevo-testimonio" onclick="if (event.target === this) cerrarModalNuevoTestimonio()">
+        <div class="modal-box" style="max-width: 520px;">
+            <div class="modal-box-head">
+                <h3 style="margin:0;">Agregar testimonio</h3>
+                <button type="button" class="modal-box-cerrar" onclick="cerrarModalNuevoTestimonio()" aria-label="Cerrar">✕</button>
+            </div>
+            <div class="form-grid">
+                <div class="full">
+                    <label>Nombre del cliente</label>
+                    <input type="text" id="t-nombre" placeholder="Ej: Roberto Flores">
+                </div>
+                <div class="full">
+                    <label>Testimonio</label>
+                    <textarea id="t-texto" style="min-height: 90px;" placeholder="Lo que te dijo el cliente, en sus palabras..."></textarea>
+                </div>
+                <div>
+                    <label>Calificación</label>
+                    <select id="t-calificacion">
+                        <option value="5">★★★★★ (5)</option>
+                        <option value="4">★★★★☆ (4)</option>
+                        <option value="3">★★★☆☆ (3)</option>
+                        <option value="2">★★☆☆☆ (2)</option>
+                        <option value="1">★☆☆☆☆ (1)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Propiedad relacionada (opcional)</label>
+                    <input type="text" id="t-propiedad" placeholder="Ej: Compra en Santa Tecla">
+                </div>
+                <div class="full">
+                    <label>Foto del cliente (opcional)</label>
+                    <input type="file" accept="image/*" onchange="CostoSVAuth.subirFotosA(this, 't-foto', () => {})">
+                    <input type="text" id="t-foto" placeholder="Se llena sola al subir la foto, o pegá una URL" style="margin-top: 8px;">
+                </div>
+            </div>
+            <div class="actions-row" style="margin-top: 16px;">
+                <button class="btn-action btn-primary" id="btn-guardar-testimonio" onclick="agregarTestimonio()">Guardar testimonio</button>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.4/heic2any.min.js"></script>
@@ -736,7 +800,7 @@
         const SUPA_URL = window.SITE_CONFIG.SUPABASE_URL;
 
         function cambiarTab(nombre) {
-            ['propiedades', 'franquicias', 'leads', 'metricas'].forEach(t => {
+            ['propiedades', 'franquicias', 'leads', 'metricas', 'testimonios'].forEach(t => {
                 document.getElementById('tab-' + t).classList.toggle('active', t === nombre);
                 document.getElementById('btn-tab-' + t).classList.toggle('active', t === nombre);
             });
@@ -1376,6 +1440,125 @@
             previsualizarFotosFr();
         }
 
+        // ---------- Testimonios ----------
+        let testimonios = [];
+
+        function abrirModalNuevoTestimonio() {
+            document.getElementById('modal-nuevo-testimonio').classList.add('show');
+        }
+        function cerrarModalNuevoTestimonio() {
+            document.getElementById('modal-nuevo-testimonio').classList.remove('show');
+        }
+
+        async function cargarTestimonios() {
+            const cont = document.getElementById('testimonios-list');
+            const hint = document.getElementById('testimonios-empty');
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/testimonios?select=*&order=orden.asc.nullslast,created_at.desc`, { headers });
+                if (!res.ok) throw new Error('No se pudieron cargar (' + res.status + ')');
+                testimonios = await res.json();
+                renderTestimonios();
+            } catch (ex) {
+                hint.textContent = 'No se pudo cargar: ' + ex.message;
+                hint.style.display = 'block';
+            }
+        }
+
+        function renderTestimonios() {
+            const cont = document.getElementById('testimonios-list');
+            const hint = document.getElementById('testimonios-empty');
+            cont.innerHTML = '';
+            hint.style.display = testimonios.length ? 'none' : 'block';
+            hint.textContent = 'Todavía no hay testimonios cargados.';
+            testimonios.forEach(t => {
+                const estrellas = '★'.repeat(t.calificacion) + '☆'.repeat(5 - t.calificacion);
+                const card = document.createElement('div');
+                card.className = 'mini-card';
+                card.innerHTML = `
+                    ${t.foto_cliente ? `<img class="mini-foto" src="${t.foto_cliente}" onerror="this.style.display='none'">` : ''}
+                    <div class="mini-body">
+                        ${t.propiedad_relacionada ? `<span class="mini-tag">${t.propiedad_relacionada}</span>` : ''}
+                        <div class="mini-stars">${estrellas}</div>
+                        <div class="mini-title">${t.nombre_cliente}</div>
+                        <div class="mini-desc">"${t.texto}"</div>
+                        <div class="mini-actions">
+                            <button class="btn-ocultar-t${t.publicado ? '' : ' oculto'}" onclick="cambiarPublicadoTestimonio('${t.id}', ${!t.publicado})">${t.publicado ? '✓ Publicado' : 'Oculto'}</button>
+                            <button class="btn-eliminar-t" onclick="eliminarTestimonio('${t.id}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+                cont.appendChild(card);
+            });
+        }
+
+        async function agregarTestimonio() {
+            const btn = document.getElementById('btn-guardar-testimonio');
+            const nombre = document.getElementById('t-nombre').value.trim();
+            const texto = document.getElementById('t-texto').value.trim();
+            if (!nombre || !texto) { alert('Completá al menos el nombre y el testimonio.'); return; }
+
+            const body = {
+                nombre_cliente: nombre,
+                texto,
+                calificacion: parseInt(document.getElementById('t-calificacion').value, 10),
+                propiedad_relacionada: document.getElementById('t-propiedad').value.trim() || null,
+                foto_cliente: document.getElementById('t-foto').value.trim() || null,
+            };
+
+            btn.textContent = 'Guardando...';
+            btn.disabled = true;
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/testimonios`, {
+                    method: 'POST', headers: { ...headers, Prefer: 'return=minimal' },
+                    body: JSON.stringify(body),
+                });
+                if (!res.ok) throw new Error('El servidor rechazó el guardado (' + res.status + ')');
+                ['t-nombre', 't-texto', 't-propiedad', 't-foto'].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('t-calificacion').value = '5';
+                cerrarModalNuevoTestimonio();
+                await cargarTestimonios();
+            } catch (ex) {
+                alert('No se pudo guardar: ' + ex.message);
+            } finally {
+                btn.textContent = 'Guardar testimonio';
+                btn.disabled = false;
+            }
+        }
+
+        async function cambiarPublicadoTestimonio(id, nuevoValor) {
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/testimonios?id=eq.${id}`, {
+                    method: 'PATCH', headers: { ...headers, Prefer: 'return=minimal' },
+                    body: JSON.stringify({ publicado: nuevoValor }),
+                });
+                if (!res.ok) throw new Error('No se pudo actualizar (' + res.status + ')');
+                const t = testimonios.find(x => x.id === id);
+                if (t) t.publicado = nuevoValor;
+                renderTestimonios();
+            } catch (ex) {
+                alert(ex.message);
+            }
+        }
+
+        async function eliminarTestimonio(id) {
+            const t = testimonios.find(x => x.id === id);
+            if (!confirm(`¿Eliminar el testimonio de "${t ? t.nombre_cliente : 'este cliente'}"? Esto no se puede deshacer.`)) return;
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/testimonios?id=eq.${id}`, {
+                    method: 'DELETE', headers: { ...headers, Prefer: 'return=minimal' },
+                });
+                if (!res.ok) throw new Error('No se pudo eliminar (' + res.status + ')');
+                testimonios = testimonios.filter(x => x.id !== id);
+                renderTestimonios();
+            } catch (ex) {
+                alert(ex.message);
+            }
+        }
+
         // ---------- Leads ----------
         let leadsData = [];
         let metricasCargadas = false;
@@ -1649,6 +1832,7 @@
             cargarFranquicias();
             cargarLeads();
             cargarUsoIA();
+            cargarTestimonios();
         });
     </script>
 </body>
