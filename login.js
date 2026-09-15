@@ -67,25 +67,61 @@
 
   const BUCKET_FOTOS = 'fichas-fotos';
 
+  const MAX_LADO_FOTO = 2000; // px — de sobra para verse nítida en la web, mucho más liviano que el original de cámara
+
+  // Redibuja la imagen en un canvas más chico. Además de aligerar el sitio,
+  // esto es lo que evita que convertir/subir varias fotos pesadas seguidas
+  // sature la memoria del navegador en el celular (la causa real de que
+  // algunas fotos de un mismo lote se quedaran sin convertir).
+  async function reescalarBlob(blob) {
+    const bitmap = await createImageBitmap(blob);
+    const escala = Math.min(1, MAX_LADO_FOTO / Math.max(bitmap.width, bitmap.height));
+    const w = Math.max(1, Math.round(bitmap.width * escala));
+    const h = Math.max(1, Math.round(bitmap.height * escala));
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+    if (bitmap.close) bitmap.close();
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('No se pudo procesar la imagen'))), 'image/jpeg', 0.85);
+    });
+  }
+
   // Los iPhone guardan las fotos de la cámara como .heic por defecto — casi
-  // ningún navegador las muestra en <img> (se suben bien, pero se ven "rotas"
-  // en la ficha), así que se convierten a JPEG acá antes de subir.
-  async function convertirSiEsHeic(file) {
+  // ningún navegador las muestra en <img> (subían bien, pero se veían "rotas"
+  // en la ficha) — se convierten a JPEG acá. Si la conversión falla, se lanza
+  // el error en vez de subir el .heic original: subirlo igual solo cambia un
+  // problema visible (el error) por uno invisible (la foto rota en el sitio).
+  async function prepararFoto(file) {
     const esHeic = /image\/hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
-    if (!esHeic || typeof window.heic2any !== 'function') return file;
-    try {
+    let blob = file;
+    let nombre = file.name;
+    let tipo = file.type || 'image/jpeg';
+
+    if (esHeic) {
+      if (typeof window.heic2any !== 'function') {
+        throw new Error('no se pudo convertir este formato HEIC (no cargó la librería de conversión) — recargá la página e intentá de nuevo');
+      }
       const resultado = await window.heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 });
-      const blob = Array.isArray(resultado) ? resultado[0] : resultado;
-      return new File([blob], file.name.replace(/\.hei[cf]$/i, '.jpg'), { type: 'image/jpeg' });
-    } catch (ex) {
-      console.error('No se pudo convertir la foto HEIC, se sube el original:', ex);
-      return file;
+      blob = Array.isArray(resultado) ? resultado[0] : resultado;
+      nombre = file.name.replace(/\.hei[cf]$/i, '.jpg');
+      tipo = 'image/jpeg';
     }
+
+    try {
+      blob = await reescalarBlob(blob);
+      tipo = 'image/jpeg';
+      nombre = nombre.replace(/\.[a-z0-9]+$/i, '') + '.jpg';
+    } catch (ex) {
+      console.error('No se pudo reescalar la foto, se sube tal cual:', ex);
+    }
+
+    return new File([blob], nombre.replace(/[^a-zA-Z0-9.\-]/g, '_'), { type: tipo });
   }
 
   async function subirFoto(file) {
     const headers = await authHeaders();
-    const archivo = await convertirSiEsHeic(file);
+    const archivo = await prepararFoto(file);
     const nombreLimpio = archivo.name.replace(/[^a-zA-Z0-9.\-]/g, '_');
     const ruta = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${nombreLimpio}`;
     const res = await fetch(`${SUPA_URL}/storage/v1/object/${BUCKET_FOTOS}/${ruta}`, {
@@ -109,6 +145,7 @@
     const textarea = document.getElementById(textareaId);
     const status = inputEl.nextElementSibling;
     if (status) status.style.display = 'inline';
+    const fallidas = [];
     for (let i = 0; i < archivos.length; i++) {
       const file = archivos[i];
       if (status) status.textContent = `Subiendo ${i + 1} de ${archivos.length}...`;
@@ -118,11 +155,22 @@
         actuales.push(url);
         textarea.value = actuales.join('\n');
       } catch (ex) {
-        alert(`No se pudo subir "${file.name}": ${ex.message}`);
+        console.error(`No se pudo subir "${file.name}":`, ex);
+        fallidas.push(file.name);
       }
+      // Pausa entre fotos: convertir/reescalar varias fotos pesadas de corrido
+      // puede saturar la memoria del navegador en el celular — antes eso hacía
+      // que se convirtieran bien las primeras y fallaran en silencio las de más
+      // atrás del lote.
+      await new Promise((r) => setTimeout(r, 250));
     }
     inputEl.value = '';
     if (status) { status.style.display = 'none'; status.textContent = ''; }
+    // Una sola alerta con el resumen al final — un alert() por cada foto
+    // fallida frenaba (bloqueaba) el resto del lote hasta tocar "aceptar".
+    if (fallidas.length) {
+      alert(`No se pudieron subir ${fallidas.length} de ${archivos.length} foto(s):\n${fallidas.join('\n')}\n\nProbá subirlas de nuevo (de a pocas si el problema sigue).`);
+    }
     if (typeof alTerminar === 'function') alTerminar();
   }
 
