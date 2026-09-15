@@ -67,14 +67,31 @@
 
   const BUCKET_FOTOS = 'fichas-fotos';
 
+  // Los iPhone guardan las fotos de la cámara como .heic por defecto — casi
+  // ningún navegador las muestra en <img> (se suben bien, pero se ven "rotas"
+  // en la ficha), así que se convierten a JPEG acá antes de subir.
+  async function convertirSiEsHeic(file) {
+    const esHeic = /image\/hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
+    if (!esHeic || typeof window.heic2any !== 'function') return file;
+    try {
+      const resultado = await window.heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 });
+      const blob = Array.isArray(resultado) ? resultado[0] : resultado;
+      return new File([blob], file.name.replace(/\.hei[cf]$/i, '.jpg'), { type: 'image/jpeg' });
+    } catch (ex) {
+      console.error('No se pudo convertir la foto HEIC, se sube el original:', ex);
+      return file;
+    }
+  }
+
   async function subirFoto(file) {
     const headers = await authHeaders();
-    const nombreLimpio = file.name.replace(/[^a-zA-Z0-9.\-]/g, '_');
+    const archivo = await convertirSiEsHeic(file);
+    const nombreLimpio = archivo.name.replace(/[^a-zA-Z0-9.\-]/g, '_');
     const ruta = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${nombreLimpio}`;
     const res = await fetch(`${SUPA_URL}/storage/v1/object/${BUCKET_FOTOS}/${ruta}`, {
       method: 'POST',
-      headers: { apikey: SUPA_KEY, Authorization: headers.Authorization, 'Content-Type': file.type || 'application/octet-stream' },
-      body: file,
+      headers: { apikey: SUPA_KEY, Authorization: headers.Authorization, 'Content-Type': archivo.type || 'application/octet-stream' },
+      body: archivo,
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
