@@ -17,6 +17,8 @@
   var btnTxt = generateBtn.querySelector('.co-generate-txt');
   var okBox = el('okBox');
   var calLink = el('calLink');
+  var calLinkOutlook = el('calLinkOutlook');
+  var calLinkIcs = el('calLinkIcs');
 
   function showErrors(list) {
     errorList.innerHTML = '';
@@ -95,6 +97,55 @@
       location: v.propiedad,
     });
     return 'https://calendar.google.com/calendar/render?' + params.toString();
+  }
+
+  function utcMs(fechaISO, hora, minutosDuracion) {
+    var partes = fechaISO.split('-').map(Number);
+    var horaPartes = hora.split(':').map(Number);
+    return Date.UTC(partes[0], partes[1] - 1, partes[2], horaPartes[0] + 6, horaPartes[1]) + (minutosDuracion || 0) * 60000;
+  }
+
+  // ---------- link de Outlook (deep link web, sin OAuth) ----------
+  function construirLinkCalendarioOutlook(v) {
+    var inicio = new Date(utcMs(v.fechaVisita, v.horaVisita, 0)).toISOString();
+    var fin = new Date(utcMs(v.fechaVisita, v.horaVisita, 45)).toISOString();
+    var detalles = 'Visita solicitada por ' + v.nombre + ' (' + v.telefono + ' / ' + v.correo + ').' +
+      ' Forma de pago: ' + v.recurso + (v.recursoExplicacion ? ' — ' + v.recursoExplicacion : '') + '.';
+    var params = new URLSearchParams({
+      path: '/calendar/action/compose',
+      rru: 'addevent',
+      subject: 'Visita: ' + v.propiedad,
+      startdt: inicio,
+      enddt: fin,
+      body: detalles,
+      location: v.propiedad,
+    });
+    return 'https://outlook.live.com/calendar/0/deeplink/compose?' + params.toString();
+  }
+
+  // ---------- archivo .ics (iCloud / Apple Calendar / Outlook de escritorio) ----------
+  function escaparICS(texto) {
+    return String(texto || '').replace(/\\/g, '\\\\').replace(/,/g, '\\,').replace(/;/g, '\\;').replace(/\n/g, '\\n');
+  }
+  function fechaICS(ms) {
+    return new Date(ms).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  }
+  function construirICS(v) {
+    var inicio = fechaICS(utcMs(v.fechaVisita, v.horaVisita, 0));
+    var fin = fechaICS(utcMs(v.fechaVisita, v.horaVisita, 45));
+    var ahora = fechaICS(Date.now());
+    var detalles = 'Visita solicitada por ' + v.nombre + ' (' + v.telefono + ' / ' + v.correo + ').' +
+      ' Forma de pago: ' + v.recurso + (v.recursoExplicacion ? ' — ' + v.recursoExplicacion : '') + '.';
+    var uid = (window.crypto && crypto.randomUUID ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(16).slice(2))) + '@guerrero-properties.com';
+    var lineas = [
+      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Guerrero Properties//Agendar Visita//ES',
+      'BEGIN:VEVENT', 'UID:' + uid, 'DTSTAMP:' + ahora, 'DTSTART:' + inicio, 'DTEND:' + fin,
+      'SUMMARY:' + escaparICS('Visita: ' + v.propiedad),
+      'DESCRIPTION:' + escaparICS(detalles),
+      'LOCATION:' + escaparICS(v.propiedad),
+      'END:VEVENT', 'END:VCALENDAR',
+    ];
+    return 'data:text/calendar;charset=utf-8,' + encodeURIComponent(lineas.join('\r\n'));
   }
 
   // ---------- PDF de confirmación ----------
@@ -291,6 +342,8 @@
       pdf.save('confirmacion-visita-' + slug + '.pdf');
       registrarEnCRM(v, pdfBlob);
       calLink.href = construirLinkCalendario(v);
+      calLinkOutlook.href = construirLinkCalendarioOutlook(v);
+      calLinkIcs.href = construirICS(v);
       form.classList.add('d-none');
       okBox.classList.add('show');
       okBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
