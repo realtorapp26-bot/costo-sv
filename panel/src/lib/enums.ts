@@ -1,12 +1,13 @@
 import type { Estado, Interes, Origen } from './types';
 
 export const ESTADOS: Estado[] = ['nuevo', 'contactado', 'calificado', 'perdido', 'cerrado'];
-export const ORIGENES: Origen[] = ['whatsapp', 'formulario_web', 'marketplace', 'referido', 'otro'];
+export const ORIGENES: Origen[] = ['whatsapp', 'formulario_web', 'facebook_ads', 'marketplace', 'referido', 'otro'];
 export const INTERESES: Interes[] = ['comprar', 'vender', 'invertir', 'otro'];
 
 export const ORIGEN_LABEL: Record<Origen, string> = {
   whatsapp: 'WhatsApp',
   formulario_web: 'Sitio Web',
+  facebook_ads: 'Facebook Ads',
   marketplace: 'Marketplace',
   referido: 'Referido',
   otro: 'Otro',

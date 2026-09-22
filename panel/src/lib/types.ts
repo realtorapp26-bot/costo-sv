@@ -2,7 +2,7 @@
 // cuando haya token de Supabase. Reflejan supabase/migrations/20260724000000_core_leads_schema.sql
 // + 20260909000000_ofertas_pdf.sql.
 
-export type Origen = 'whatsapp' | 'formulario_web' | 'marketplace' | 'referido' | 'otro';
+export type Origen = 'whatsapp' | 'formulario_web' | 'marketplace' | 'referido' | 'otro' | 'facebook_ads';
 export type Interes = 'comprar' | 'vender' | 'invertir' | 'otro';
 export type Estado = 'nuevo' | 'contactado' | 'calificado' | 'perdido' | 'cerrado';
 export type TipoActividad = 'llamada' | 'whatsapp' | 'nota' | 'cita' | 'correo' | 'otro';

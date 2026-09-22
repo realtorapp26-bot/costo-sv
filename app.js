@@ -101,7 +101,7 @@
         origen: 'formulario_web',
         interes: mapInteres(path),
         propiedad_referencia: payload.tipo_propiedad || null,
-        notas: payload.mensaje || null,
+        notas: notasCompletas(payload),
       }),
     });
     return res.ok;
@@ -162,6 +162,18 @@
       ['Ciudad de origen', p.ciudad_origen], ['Mensaje', p.mensaje],
     ].filter(([, v]) => v);
     return 'Hola Walter, quiero contactarte:\n' + campos.map(([k, v]) => `${k}: ${v}`).join('\n');
+  }
+
+  // Todas las respuestas del formulario para guardar en el CRM (sin los datos
+  // de contacto, que ya van aparte en nombre/telefono/correo) — antes esto se
+  // perdía: solo sobrevivía al mensaje de WhatsApp, nunca llegaba a Supabase.
+  function notasCompletas(p) {
+    const campos = [
+      ['Servicio', p.servicio], ['Motivo', p.motivo], ['Tipo de propiedad', p.tipo_propiedad],
+      ['Interés', p.interes_inmobiliario], ['Tiempo', p.tiempo], ['Presupuesto', p.presupuesto],
+      ['Ciudad de origen', p.ciudad_origen], ['Mensaje', p.mensaje],
+    ].filter(([, v]) => v);
+    return campos.length ? campos.map(([k, v]) => `${k}: ${v}`).join('\n') : null;
   }
 
   function setupForm(form, path) {
