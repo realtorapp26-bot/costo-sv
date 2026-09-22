@@ -9,9 +9,6 @@
   const WA_NUMBER = String(CFG.WHATSAPP_NUMBER || '').replace(/\D/g, '');
   const WEBHOOK_URL = CFG.WEBHOOK_URL || '';
   const WEBHOOK_ENABLED = !!WEBHOOK_URL;
-  const SUPA_URL = CFG.SUPABASE_URL || '';
-  const SUPA_KEY = CFG.SUPABASE_ANON_KEY || '';
-  const SUPA_ENABLED = !!(SUPA_URL && SUPA_KEY);
 
   const waLink = (text) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
   const path = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
@@ -31,28 +28,18 @@
   // uno por cada click) para no llenar Leads de filas repetidas.
   const WA_LEAD_FLAG = 'csv_wa_lead_creado';
   function registrarLeadWhatsapp(mensaje) {
-    if (!SUPA_ENABLED) return;
     try {
       if (sessionStorage.getItem(WA_LEAD_FLAG)) return;
       sessionStorage.setItem(WA_LEAD_FLAG, '1'); // antes del fetch, para no duplicar con doble click
     } catch (e) { /* sin sessionStorage seguimos igual, solo sin el freno de duplicados */ }
 
-    const headers = { 'Content-Type': 'application/json', apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, Prefer: 'return=minimal' };
-    const contactoId = crypto.randomUUID();
     const tituloMatch = mensaje.match(/"([^"]+)"/); // el texto suele citar el título de la propiedad entre comillas
-
-    fetch(`${SUPA_URL}/rest/v1/contactos`, {
-      method: 'POST', headers,
-      body: JSON.stringify({ id: contactoId, nombre: 'Contacto por WhatsApp', telefono: '', correo: '' }),
-    }).then((r) => {
-      if (!r.ok) return;
-      return fetch(`${SUPA_URL}/rest/v1/leads`, {
-        method: 'POST', headers,
-        body: JSON.stringify({
-          contacto_id: contactoId, origen: 'whatsapp', interes: mapInteres(path),
-          propiedad_referencia: tituloMatch ? tituloMatch[1] : null, notas: mensaje,
-        }),
-      });
+    fetch('/api/lead', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nombre: 'Contacto por WhatsApp', origen: 'whatsapp', interes: mapInteres(path),
+        propiedad_referencia: tituloMatch ? tituloMatch[1] : null, notas: mensaje,
+      }),
     }).catch((err) => console.error('No se pudo registrar el lead de WhatsApp:', err));
   }
 
@@ -104,39 +91,20 @@
   // n8n: corre siempre que haya credenciales configuradas, sin bloquear ni
   // condicionar la experiencia de WhatsApp del visitante.
   async function guardarLeadEnCRM(payload, path) {
-    if (!SUPA_ENABLED) return false;
-    const headers = {
-      'Content-Type': 'application/json',
-      apikey: SUPA_KEY,
-      Authorization: `Bearer ${SUPA_KEY}`,
-      Prefer: 'return=minimal',
-    };
-    const contactoId = crypto.randomUUID();
-
-    const contactoRes = await fetch(`${SUPA_URL}/rest/v1/contactos`, {
+    const res = await fetch('/api/lead', {
       method: 'POST',
-      headers,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        id: contactoId,
         nombre: payload.nombre || 'Sin nombre',
         telefono: payload.telefono || payload.whatsapp || '',
         correo: payload.email || '',
-      }),
-    });
-    if (!contactoRes.ok) return false;
-
-    const leadRes = await fetch(`${SUPA_URL}/rest/v1/leads`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        contacto_id: contactoId,
         origen: 'formulario_web',
         interes: mapInteres(path),
         propiedad_referencia: payload.tipo_propiedad || null,
         notas: payload.mensaje || null,
       }),
     });
-    return leadRes.ok;
+    return res.ok;
   }
 
   document.addEventListener('DOMContentLoaded', () => {

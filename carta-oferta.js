@@ -539,59 +539,35 @@
   }
 
   // ---------- registro en el CRM (no bloqueante) ----------
+  function blobToBase64(blob) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onloadend = function () { resolve(String(reader.result).split(',')[1] || ''); };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  // Pasa por /api/lead (server-side, clave service_role) en vez de escribir
+  // directo a Supabase con la clave anon — inmune a políticas RLS rotas o a
+  // fallas de Supabase que afecten la validación de JWT del rol anon.
   function registrarEnCRM(v, pdfBlob) {
-    var CFG = window.SITE_CONFIG || {};
-    if (!CFG.SUPABASE_URL || !CFG.SUPABASE_ANON_KEY) return;
-    var headers = {
-      'Content-Type': 'application/json',
-      apikey: CFG.SUPABASE_ANON_KEY,
-      Authorization: 'Bearer ' + CFG.SUPABASE_ANON_KEY,
-      Prefer: 'return=minimal',
-    };
-    var contactoId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(16).slice(2));
     var resumen = 'Carta de oferta (' + (v.offerType === 'VENTA' ? 'venta' : 'alquiler') + ') — US$ ' + formatMoney(v.amountNumber) +
       ' — ' + v.propertyAddress +
       ' — Cliente: ' + v.fullName + ' (' + v.documentType + ' ' + v.documentNumber + ')' +
       (v.clientPhone ? ' — Tel: ' + v.clientPhone : '') +
       (v.offerType === 'VENTA' ? ' — Forma de pago: ' + v.paymentMethod : ' — Plazo: ' + v.rentalTerm);
-    fetch(CFG.SUPABASE_URL + '/rest/v1/contactos', {
-      method: 'POST', headers: headers,
-      body: JSON.stringify({ id: contactoId, nombre: v.fullName, telefono: v.clientPhone || '', correo: v.clientEmail || '' }),
-    }).then(function (c) {
-      if (!c.ok) return null;
-      return fetch(CFG.SUPABASE_URL + '/rest/v1/leads', {
-        method: 'POST', headers: Object.assign({}, headers, { Prefer: 'return=representation' }),
+
+    (pdfBlob ? blobToBase64(pdfBlob) : Promise.resolve(null)).then(function (pdfBase64) {
+      return fetch('/api/lead', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contacto_id: contactoId,
-          origen: 'formulario_web',
-          interes: v.offerType === 'VENTA' ? 'comprar' : 'otro',
-          propiedad_referencia: v.propertyAddress,
-          notas: resumen,
+          nombre: v.fullName, telefono: v.clientPhone || '', correo: v.clientEmail || '',
+          origen: 'formulario_web', interes: v.offerType === 'VENTA' ? 'comprar' : 'otro',
+          propiedad_referencia: v.propertyAddress, notas: resumen,
+          actividad: { tipo: 'nota', detalle: resumen },
+          pdf_base64: pdfBase64 || undefined,
         }),
-      });
-    }).then(function (l) {
-      if (!l || !l.ok) return;
-      return l.json().then(function (rows) {
-        var leadId = rows && rows[0] && rows[0].id;
-        if (!leadId) return;
-        var acts = fetch(CFG.SUPABASE_URL + '/rest/v1/actividades', {
-          method: 'POST', headers: headers,
-          body: JSON.stringify({ lead_id: leadId, tipo: 'nota', detalle: resumen }),
-        });
-        if (!pdfBlob) return acts;
-        // Sube el PDF firmado al bucket privado "ofertas" y lo enlaza al lead.
-        var path = new Date().getFullYear() + '/' + leadId + '.pdf';
-        var up = fetch(CFG.SUPABASE_URL + '/storage/v1/object/ofertas/' + path, {
-          method: 'POST',
-          headers: { apikey: CFG.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + CFG.SUPABASE_ANON_KEY, 'Content-Type': 'application/pdf', 'x-upsert': 'true' },
-          body: pdfBlob,
-        }).then(function (u) {
-          if (!u.ok) { console.error('subida de la oferta:', u.status); return; }
-          return fetch(CFG.SUPABASE_URL + '/rest/v1/leads?id=eq.' + leadId, {
-            method: 'PATCH', headers: headers, body: JSON.stringify({ oferta_pdf_path: path }),
-          });
-        });
-        return Promise.all([acts, up]);
       });
     }).catch(function (e) { console.error('registro carta de oferta:', e); });
   }

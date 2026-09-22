@@ -680,11 +680,19 @@
   }
 
   // ---------- registro en el CRM (no bloqueante) ----------
+  function blobToBase64(blob) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onloadend = function () { resolve(String(reader.result).split(',')[1] || ''); };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  // Pasa por /api/lead (server-side, clave service_role) en vez de escribir
+  // directo a Supabase con la clave anon — inmune a políticas RLS rotas o a
+  // fallas de Supabase que afecten la validación de JWT del rol anon.
   function registrarEnCRM(v, pdfBlob) {
-    var CFG = window.SITE_CONFIG || {};
-    if (!CFG.SUPABASE_URL || !CFG.SUPABASE_ANON_KEY) return;
-    var headers = { 'Content-Type': 'application/json', apikey: CFG.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + CFG.SUPABASE_ANON_KEY, Prefer: 'return=minimal' };
-    var contactoId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(16).slice(2));
     var modo = v.letterMode === 'ACEPTACION' ? 'Aceptación' : 'Contraoferta';
     var op = v.transactionType === 'VENTA' ? 'venta' : 'alquiler';
     var monto = v.letterMode === 'ACEPTACION' ? v.acceptedAmountNumber : v.originalAmountNumber;
@@ -695,37 +703,15 @@
       ' — Interesado: ' + v.interestedName +
       (v.letterMode === 'CONTRAOFERTA' ? ' — Contraoferta: ' + v.counterofferText : (v.transactionType === 'VENTA' ? ' — Forma de pago: ' + v.paymentMethod : ' — Plazo: ' + v.rentalTerm));
 
-    fetch(CFG.SUPABASE_URL + '/rest/v1/contactos', {
-      method: 'POST', headers: headers,
-      body: JSON.stringify({ id: contactoId, nombre: v.ownerName, telefono: v.ownerPhone || '', correo: v.ownerEmail || '' }),
-    }).then(function (c) {
-      if (!c.ok) return null;
-      return fetch(CFG.SUPABASE_URL + '/rest/v1/leads', {
-        method: 'POST', headers: Object.assign({}, headers, { Prefer: 'return=representation' }),
-        body: JSON.stringify({ contacto_id: contactoId, origen: 'formulario_web', interes: 'vender', propiedad_referencia: v.propertyAddress, notas: resumen }),
-      });
-    }).then(function (l) {
-      if (!l || !l.ok) return;
-      return l.json().then(function (rows) {
-        var leadId = rows && rows[0] && rows[0].id;
-        if (!leadId) return;
-        var acts = fetch(CFG.SUPABASE_URL + '/rest/v1/actividades', {
-          method: 'POST', headers: headers,
-          body: JSON.stringify({ lead_id: leadId, tipo: 'nota', detalle: resumen }),
-        });
-        if (!pdfBlob) return acts;
-        var path = new Date().getFullYear() + '/' + leadId + '.pdf';
-        var up = fetch(CFG.SUPABASE_URL + '/storage/v1/object/ofertas/' + path, {
-          method: 'POST',
-          headers: { apikey: CFG.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + CFG.SUPABASE_ANON_KEY, 'Content-Type': 'application/pdf', 'x-upsert': 'true' },
-          body: pdfBlob,
-        }).then(function (u) {
-          if (!u.ok) { console.error('subida de la respuesta:', u.status); return; }
-          return fetch(CFG.SUPABASE_URL + '/rest/v1/leads?id=eq.' + leadId, {
-            method: 'PATCH', headers: headers, body: JSON.stringify({ oferta_pdf_path: path }),
-          });
-        });
-        return Promise.all([acts, up]);
+    (pdfBlob ? blobToBase64(pdfBlob) : Promise.resolve(null)).then(function (pdfBase64) {
+      return fetch('/api/lead', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: v.ownerName, telefono: v.ownerPhone || '', correo: v.ownerEmail || '',
+          origen: 'formulario_web', interes: 'vender', propiedad_referencia: v.propertyAddress, notas: resumen,
+          actividad: { tipo: 'nota', detalle: resumen },
+          pdf_base64: pdfBase64 || undefined,
+        }),
       });
     }).catch(function (e) { console.error('registro carta de respuesta:', e); });
   }

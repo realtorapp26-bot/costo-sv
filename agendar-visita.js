@@ -249,49 +249,36 @@
   }
 
   // ---------- registro en el CRM (no bloqueante) ----------
+  // Pasa por /api/lead (server-side, clave service_role) en vez de escribir
+  // directo a Supabase con la clave anon — así no depende de las políticas
+  // RLS del navegador ni de fallas de Supabase que afecten específicamente
+  // la validación de JWT del rol anon.
+  function blobToBase64(blob) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onloadend = function () { resolve(String(reader.result).split(',')[1] || ''); };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
   function registrarEnCRM(v, pdfBlob) {
-    var CFG = window.SITE_CONFIG || {};
-    if (!CFG.SUPABASE_URL || !CFG.SUPABASE_ANON_KEY) return;
-    var headers = { 'Content-Type': 'application/json', apikey: CFG.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + CFG.SUPABASE_ANON_KEY, Prefer: 'return=minimal' };
-    var contactoId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(16).slice(2));
     var resumen = 'Visita solicitada — ' + v.propiedad + ' — ' + fechaLarga(v.fechaVisita, v.horaVisita) +
       ' — Forma de pago: ' + v.recurso + (v.recursoExplicacion ? ' (' + v.recursoExplicacion + ')' : '') +
       (v.profesion ? ' — Ocupación: ' + v.profesion : '');
 
-    fetch(CFG.SUPABASE_URL + '/rest/v1/contactos', {
-      method: 'POST', headers: headers,
-      body: JSON.stringify({ id: contactoId, nombre: v.nombre, telefono: v.telefono, correo: v.correo }),
-    }).then(function (c) {
-      if (!c.ok) return c.text().then(function (t) { throw new Error('contactos ' + c.status + ': ' + t); });
-      return fetch(CFG.SUPABASE_URL + '/rest/v1/leads', {
-        method: 'POST', headers: Object.assign({}, headers, { Prefer: 'return=representation' }),
-        body: JSON.stringify({ contacto_id: contactoId, origen: 'formulario_web', interes: 'comprar', propiedad_referencia: v.propiedad, notas: resumen }),
+    (pdfBlob ? blobToBase64(pdfBlob) : Promise.resolve(null)).then(function (pdfBase64) {
+      return fetch('/api/lead', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: v.nombre, telefono: v.telefono, correo: v.correo,
+          origen: 'formulario_web', interes: 'comprar', propiedad_referencia: v.propiedad, notas: resumen,
+          actividad: { tipo: 'cita', detalle: resumen },
+          pdf_base64: pdfBase64 || undefined,
+        }),
       });
-    }).then(function (l) {
-      if (!l.ok) return l.text().then(function (t) { throw new Error('leads ' + l.status + ': ' + t); });
-      return l.json().then(function (rows) {
-        var leadId = rows && rows[0] && rows[0].id;
-        if (!leadId) return;
-        var acts = fetch(CFG.SUPABASE_URL + '/rest/v1/actividades', {
-          method: 'POST', headers: headers,
-          body: JSON.stringify({ lead_id: leadId, tipo: 'cita', detalle: resumen }),
-        });
-        if (!pdfBlob) return acts;
-        // Sube la confirmación al mismo bucket privado que usan las cartas de
-        // oferta/respuesta, y la enlaza al lead para descargarla desde el panel.
-        var path = new Date().getFullYear() + '/' + leadId + '.pdf';
-        var up = fetch(CFG.SUPABASE_URL + '/storage/v1/object/ofertas/' + path, {
-          method: 'POST',
-          headers: { apikey: CFG.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + CFG.SUPABASE_ANON_KEY, 'Content-Type': 'application/pdf', 'x-upsert': 'true' },
-          body: pdfBlob,
-        }).then(function (u) {
-          if (!u.ok) { console.error('subida de la confirmación de visita:', u.status); return; }
-          return fetch(CFG.SUPABASE_URL + '/rest/v1/leads?id=eq.' + leadId, {
-            method: 'PATCH', headers: headers, body: JSON.stringify({ oferta_pdf_path: path }),
-          });
-        });
-        return Promise.all([acts, up]);
-      });
+    }).then(function (r) {
+      if (!r.ok) return r.text().then(function (t) { throw new Error('api/lead ' + r.status + ': ' + t); });
     }).catch(function (e) { console.error('registro agendar-visita:', e); });
   }
 
