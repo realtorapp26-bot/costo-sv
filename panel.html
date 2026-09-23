@@ -207,7 +207,13 @@
         .btn-nota { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 5px 10px; font-size: 0.8rem; cursor: pointer; }
         .btn-eliminar-lead { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: var(--radius-sm); padding: 5px 10px; font-size: 0.8rem; cursor: pointer; margin-left: 6px; }
         .contacto-nombre { font-weight: 600; color: var(--primary); }
-        .contacto-tel { font-size: 0.8rem; color: var(--text-light); }
+        .contacto-tel { font-size: 0.8rem; color: var(--text-light); display: flex; align-items: center; gap: 6px; }
+        .contacto-tel a { color: inherit; text-decoration: none; }
+        .contacto-tel a:hover { text-decoration: underline; }
+        .contacto-tel .ico-wa { color: #25d366; font-size: 0.95rem; text-decoration: none; }
+        .contacto-correo { font-size: 0.8rem; color: var(--text-light); }
+        .contacto-correo a { color: inherit; text-decoration: none; }
+        .contacto-correo a:hover { text-decoration: underline; }
         .panel-manual { background: var(--bg-alt); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); padding: 20px 24px; margin-bottom: 20px; }
         .panel-manual h3 { font-family: 'Playfair Display', serif; color: var(--primary); font-size: 1.1rem; margin: 0 0 14px; }
         .manual-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
@@ -1639,7 +1645,11 @@
                 const contacto = l.contactos || {};
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><div class="contacto-nombre">${contacto.nombre || 'Sin nombre'}</div><div class="contacto-tel">${contacto.telefono || ''}</div></td>
+                    <td>
+                        <div class="contacto-nombre">${contacto.nombre || 'Sin nombre'}</div>
+                        ${contacto.telefono ? `<div class="contacto-tel"><a href="tel:${contacto.telefono}" title="Llamar">${contacto.telefono}</a>${waHref(contacto.telefono) ? ` <a class="ico-wa" href="${waHref(contacto.telefono)}" target="_blank" rel="noopener" title="Abrir WhatsApp"><i class="fab fa-whatsapp"></i></a>` : ''}</div>` : ''}
+                        ${contacto.correo ? `<div class="contacto-correo"><a href="mailto:${contacto.correo}" title="Enviar correo">${contacto.correo}</a></div>` : ''}
+                    </td>
                     <td><span class="badge-origen">${origenLabels[l.origen] || l.origen}</span></td>
                     <td>${l.interes[0].toUpperCase() + l.interes.slice(1)}</td>
                     <td>${l.propiedad_referencia || '—'}</td>
@@ -1717,6 +1727,15 @@
             } catch (ex) {
                 alert(ex.message);
             }
+        }
+
+        // El Salvador: los teléfonos se guardan a veces como "7038-1941" u
+        // "70381941" sin código de país. wa.me necesita el número completo.
+        function waHref(telefono) {
+            const digitos = (telefono || '').replace(/\D/g, '');
+            if (!digitos) return null;
+            const conCodigo = digitos.length === 8 ? '503' + digitos : digitos;
+            return `https://wa.me/${conCodigo}`;
         }
 
         function verDetalle(leadId) {

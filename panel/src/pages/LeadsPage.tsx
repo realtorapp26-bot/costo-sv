@@ -10,7 +10,7 @@ import {
   ORIGENES,
   ORIGEN_LABEL,
 } from '../lib/enums';
-import { esHoy, formatearFecha } from '../lib/format';
+import { esHoy, formatearFecha, waHref } from '../lib/format';
 import {
   ofertaSignedUrl,
   useAddLead,
@@ -162,7 +162,33 @@ export function LeadsPage() {
                   <tr key={l.id} className="border-b border-slate-100 last:border-0">
                     <td className="px-4 py-3">
                       <div className="font-medium text-slate-800">{l.contactos?.nombre ?? 'Sin nombre'}</div>
-                      <div className="text-xs text-slate-500">{l.contactos?.telefono ?? ''}</div>
+                      {l.contactos?.telefono && (
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                          <a href={`tel:${l.contactos.telefono}`} className="hover:underline" title="Llamar">
+                            {l.contactos.telefono}
+                          </a>
+                          {waHref(l.contactos.telefono) && (
+                            <a
+                              href={waHref(l.contactos.telefono)!}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Abrir WhatsApp"
+                              className="text-[#25d366]"
+                            >
+                              💬
+                            </a>
+                          )}
+                        </div>
+                      )}
+                      {l.contactos?.correo && (
+                        <a
+                          href={`mailto:${l.contactos.correo}`}
+                          className="text-xs text-slate-500 hover:underline"
+                          title="Enviar correo"
+                        >
+                          {l.contactos.correo}
+                        </a>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <Badge>{ORIGEN_LABEL[l.origen] ?? l.origen}</Badge>
