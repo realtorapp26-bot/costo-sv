@@ -38,6 +38,7 @@ const PAGES = {
   'costo-vida.html': 'Costo de Vida',
   'sobre-mi.html': 'Sobre mí',
   'contacto.html': 'Contacto',
+  'privacidad.html': 'Política de Privacidad',
 };
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
