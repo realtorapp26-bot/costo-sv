@@ -1585,7 +1585,7 @@
                 // oferta_pdf_path puede no existir todavía si falta aplicar la migración: si el
                 // servidor lo rechaza, se reintenta sin esa columna para no romper la lista.
                 const base = `${SUPA_URL}/rest/v1/leads?select=`;
-                const cols = 'id,origen,interes,propiedad_referencia,estado,created_at,contactos(nombre,telefono)';
+                const cols = 'id,origen,interes,propiedad_referencia,estado,created_at,notas,contactos(nombre,telefono,correo)';
                 let res = await fetch(`${base}${cols},oferta_pdf_path&order=created_at.desc`, { headers });
                 if (res.status === 400) res = await fetch(`${base}${cols}&order=created_at.desc`, { headers });
                 if (!res.ok) throw new Error('No se pudieron cargar los leads (' + res.status + ')');
@@ -1653,6 +1653,7 @@
                         ? `<button class="btn-nota" title="Descargar carta de oferta firmada" onclick="descargarOferta('${l.oferta_pdf_path}', this)"><i class="fas fa-file-arrow-down"></i></button>`
                         : '<span style="color:var(--text-light);">—</span>'}</td>
                     <td>
+                        <button class="btn-nota" title="Ver detalle" onclick="verDetalle('${l.id}')"><i class="fas fa-eye"></i></button>
                         <button class="btn-nota" onclick="agregarNota('${l.id}', '${(contacto.nombre || '').replace(/'/g, "\\'")}')"><i class="fas fa-note-sticky"></i></button>
                         <button class="btn-eliminar-lead" onclick="eliminarLead('${l.id}', '${(contacto.nombre || 'este lead').replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
                     </td>
@@ -1716,6 +1717,24 @@
             } catch (ex) {
                 alert(ex.message);
             }
+        }
+
+        function verDetalle(leadId) {
+            const l = leadsData.find(x => x.id === leadId);
+            if (!l) return;
+            const contacto = l.contactos || {};
+            const partes = [
+                `Nombre: ${contacto.nombre || 'Sin nombre'}`,
+                `Teléfono: ${contacto.telefono || '—'}`,
+                `Correo: ${contacto.correo || '—'}`,
+                `Origen: ${origenLabels[l.origen] || l.origen}`,
+                `Interés: ${l.interes}`,
+            ];
+            if (l.propiedad_referencia) partes.push(`Propiedad / Anuncio: ${l.propiedad_referencia}`);
+            partes.push('');
+            partes.push('Respuestas del formulario:');
+            partes.push(l.notas || 'Sin respuestas adicionales.');
+            alert(partes.join('\n'));
         }
 
         async function agregarNota(leadId, nombre) {

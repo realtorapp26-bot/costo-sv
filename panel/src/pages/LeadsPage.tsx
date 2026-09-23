@@ -36,6 +36,7 @@ export function LeadsPage() {
   const [fOrigen, setFOrigen] = useState<Origen | null>(null);
   const [fInteres, setFInteres] = useState<Interes | null>(null);
   const [notaLead, setNotaLead] = useState<LeadConContacto | null>(null);
+  const [detalleLead, setDetalleLead] = useState<LeadConContacto | null>(null);
   const [nuevoOpen, setNuevoOpen] = useState(params.get('nuevo') === '1');
 
   const filtrados = useMemo(
@@ -206,6 +207,13 @@ export function LeadsPage() {
                     </td>
                     <td className="whitespace-nowrap px-4 py-3">
                       <button
+                        onClick={() => setDetalleLead(l)}
+                        title="Ver detalle"
+                        className="rounded p-1.5 text-slate-500 hover:bg-slate-100"
+                      >
+                        👁
+                      </button>
+                      <button
                         onClick={() => setNotaLead(l)}
                         title="Agregar nota"
                         className="rounded p-1.5 text-slate-500 hover:bg-slate-100"
@@ -228,6 +236,7 @@ export function LeadsPage() {
         </Card>
       )}
 
+      <DetalleModal lead={detalleLead} onClose={() => setDetalleLead(null)} />
       <NotaModal
         lead={notaLead}
         onClose={() => setNotaLead(null)}
@@ -289,6 +298,52 @@ function Chip({
     >
       {children}
     </button>
+  );
+}
+
+function DetalleModal({ lead, onClose }: { lead: LeadConContacto | null; onClose: () => void }) {
+  return (
+    <Modal open={!!lead} onClose={onClose} title={`Detalle — ${lead?.contactos?.nombre ?? 'lead'}`}>
+      {lead && (
+        <div className="space-y-3 text-sm">
+          <div className="grid grid-cols-2 gap-2 text-slate-600">
+            <div>
+              <span className="font-semibold text-slate-800">Teléfono:</span>{' '}
+              {lead.contactos?.telefono || '—'}
+            </div>
+            <div>
+              <span className="font-semibold text-slate-800">Correo:</span>{' '}
+              {lead.contactos?.correo || '—'}
+            </div>
+            <div>
+              <span className="font-semibold text-slate-800">Origen:</span>{' '}
+              {ORIGEN_LABEL[lead.origen] ?? lead.origen}
+            </div>
+            <div>
+              <span className="font-semibold text-slate-800">Interés:</span>{' '}
+              {INTERES_LABEL[lead.interes]}
+            </div>
+            {lead.propiedad_referencia && (
+              <div className="col-span-2">
+                <span className="font-semibold text-slate-800">Propiedad / Anuncio:</span>{' '}
+                {lead.propiedad_referencia}
+              </div>
+            )}
+          </div>
+          <div>
+            <div className="mb-1 font-semibold text-slate-800">Respuestas del formulario</div>
+            <div className="whitespace-pre-wrap rounded-md bg-slate-50 p-3 text-slate-600">
+              {lead.notas || 'Sin respuestas adicionales.'}
+            </div>
+          </div>
+        </div>
+      )}
+      <div className="mt-4 flex justify-end">
+        <Button variant="outline" onClick={onClose}>
+          Cerrar
+        </Button>
+      </div>
+    </Modal>
   );
 }
 
