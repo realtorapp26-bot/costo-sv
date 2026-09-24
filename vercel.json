@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/propiedad/:slug", "destination": "/api/propiedad?slug=:slug" },
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/panel/:path*", "destination": "/panel/index.html" }
   ],
   "redirects": [
