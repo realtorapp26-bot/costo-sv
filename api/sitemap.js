@@ -21,6 +21,7 @@ const PAGINAS_FIJAS = {
   'comprar.html': 0.8,
   'invertir.html': 0.8,
   'propiedades.html': 0.8,
+  'golden-lake.html': 0.9,
   'menajes.html': 0.7,
   'costo-vida.html': 0.9,
   'sobre-mi.html': 0.6,

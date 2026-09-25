@@ -174,11 +174,43 @@
         <div class="tab-switch">
             <button class="tab-btn active" id="btn-tab-prop" onclick="cambiarTabGestion('prop')">🏠 Propiedades</button>
             <button class="tab-btn" id="btn-tab-fr" onclick="cambiarTabGestion('fr')">🏪 Franquicias</button>
+            <button class="tab-btn" id="btn-tab-py" onclick="cambiarTabGestion('py')">🏗️ Proyecto Golden Lake</button>
         </div>
 
         <div class="tab-panel active" id="tab-prop">
             <div class="prop-list" id="tabla-body">
                 <div class="prop-empty">Cargando...</div>
+            </div>
+        </div>
+
+        <div class="tab-panel" id="tab-py">
+            <p style="color:var(--text-light); font-size:0.85rem; margin-bottom:16px;">
+                Esta información arma la página pública <code>golden-lake.html</code> — la historia
+                de venta del desarrollo, sus fotos generales y el video. Las propiedades individuales
+                dentro de Golden Lake se administran igual que siempre, en la pestaña "Propiedades".
+            </p>
+            <div class="modal-form-grid">
+                <div class="full"><label>Nombre del proyecto</label><input type="text" id="py-nombre" placeholder="Golden Lake, Costa del Sol"></div>
+                <div class="full"><label>Ubicación</label><input type="text" id="py-ubicacion" placeholder="Costa del Sol, La Herradura, La Paz, El Salvador"></div>
+                <div class="full"><label>Descripción / historia de venta</label><textarea id="py-descripcion" style="min-height:100px;" placeholder="Qué hace atractivo al desarrollo en general (no una casa puntual)..."></textarea></div>
+                <div class="full"><label>Amenidades (una por línea)</label><textarea id="py-amenidades" placeholder="Comunidad cerrada y segura&#10;Lagos artificiales&#10;Cancha de tenis&#10;Club social&#10;Acceso directo a la playa"></textarea></div>
+                <div><label>Video (link de YouTube)</label><input type="url" id="py-video" placeholder="https://www.youtube.com/watch?v=..."></div>
+                <div>
+                    <label>Publicado</label>
+                    <select id="py-publicado"><option value="true">Sí, visible en el sitio</option><option value="false">No, oculto</option></select>
+                </div>
+                <div class="full">
+                    <label>Fotos generales del desarrollo (subí archivos de tu celular/PC)</label>
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                        <input type="file" accept="image/*" multiple onchange="CostoSVAuth.subirFotosA(this, 'py-fotos', () => previsualizarFotos('py-fotos', 'py-fotos-preview'))">
+                        <span style="display:none; font-size:0.8rem; color:var(--text-light);"></span>
+                    </div>
+                    <textarea id="py-fotos" oninput="previsualizarFotos('py-fotos', 'py-fotos-preview')"></textarea>
+                    <div class="fotos-edit-preview" id="py-fotos-preview"></div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="guardarProyectoGL()">Guardar proyecto</button>
             </div>
         </div>
 
@@ -403,7 +435,7 @@
         }
 
         function cambiarTabGestion(nombre) {
-            ['prop', 'fr'].forEach(t => {
+            ['prop', 'fr', 'py'].forEach(t => {
                 document.getElementById('tab-' + t).classList.toggle('active', t === nombre);
                 document.getElementById('btn-tab-' + t).classList.toggle('active', t === nombre);
             });
@@ -908,6 +940,75 @@
             }
         }
 
+        // ---------- Proyecto Golden Lake ----------
+        // Por ahora un solo registro fijo (slug 'golden-lake'). Si en el
+        // futuro hay más de un proyecto, esto pasa a ser una lista como
+        // Franquicias — de momento alcanza con un formulario directo.
+        const PROYECTO_SLUG = 'golden-lake';
+        let proyectoGLId = null;
+
+        async function cargarProyectoGL() {
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/proyectos?select=*&slug=eq.${PROYECTO_SLUG}`, { headers });
+                if (!res.ok) throw new Error('No se pudo cargar el proyecto (' + res.status + ')');
+                const filas = await res.json();
+                const p = filas[0];
+                if (!p) {
+                    document.getElementById('py-nombre').value = 'Golden Lake, Costa del Sol';
+                    document.getElementById('py-publicado').value = 'true';
+                    return;
+                }
+                proyectoGLId = p.id;
+                document.getElementById('py-nombre').value = p.nombre || '';
+                document.getElementById('py-ubicacion').value = p.ubicacion || '';
+                document.getElementById('py-descripcion').value = p.descripcion || '';
+                document.getElementById('py-amenidades').value = (p.amenidades || []).join('\n');
+                document.getElementById('py-video').value = p.video_url || '';
+                document.getElementById('py-publicado').value = String(p.publicado !== false);
+                document.getElementById('py-fotos').value = (p.fotos || []).join('\n');
+                previsualizarFotos('py-fotos', 'py-fotos-preview');
+            } catch (ex) {
+                console.error('cargarProyectoGL:', ex);
+            }
+        }
+
+        async function guardarProyectoGL() {
+            const body = {
+                slug: PROYECTO_SLUG,
+                nombre: document.getElementById('py-nombre').value.trim() || 'Golden Lake, Costa del Sol',
+                ubicacion: document.getElementById('py-ubicacion').value.trim() || null,
+                descripcion: document.getElementById('py-descripcion').value.trim() || null,
+                amenidades: document.getElementById('py-amenidades').value.split('\n').map(s => s.trim()).filter(Boolean),
+                video_url: document.getElementById('py-video').value.trim() || null,
+                publicado: document.getElementById('py-publicado').value === 'true',
+                fotos: obtenerUrlsFotosDe('py-fotos'),
+            };
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                let res;
+                if (proyectoGLId) {
+                    res = await fetch(`${SUPA_URL}/rest/v1/proyectos?id=eq.${proyectoGLId}`, {
+                        method: 'PATCH', headers: { ...headers, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+                        body: JSON.stringify({ ...body, updated_at: new Date().toISOString() }),
+                    });
+                } else {
+                    res = await fetch(`${SUPA_URL}/rest/v1/proyectos`, {
+                        method: 'POST', headers: { ...headers, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+                        body: JSON.stringify(body),
+                    });
+                }
+                if (!res.ok) throw new Error('No se pudo guardar (' + res.status + ')');
+                if (!proyectoGLId) {
+                    const filas = await res.json();
+                    if (filas[0]) proyectoGLId = filas[0].id;
+                }
+                alert('Proyecto guardado. Ya se refleja en golden-lake.html.');
+            } catch (ex) {
+                alert(ex.message);
+            }
+        }
+
         // Permite llegar directo al formulario de edición de una ficha puntual
         // desde el panel principal, con ?editar=<id> (y &tipo=fr para franquicias).
         function abrirEdicionDesdeQueryString() {
@@ -926,6 +1027,7 @@
         CostoSVAuth.requireLogin(async () => {
             await cargarTodas();
             await cargarTodasFr();
+            await cargarProyectoGL();
             abrirEdicionDesdeQueryString();
         });
     </script>

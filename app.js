@@ -18,6 +18,7 @@
     if (path.includes('vender')) return 'vender';
     if (path.includes('comprar')) return 'comprar';
     if (path.includes('invertir')) return 'invertir';
+    if (path.includes('golden-lake')) return 'comprar';
     return 'otro';
   }
 
