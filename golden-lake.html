@@ -69,6 +69,13 @@
         #gl-amenidades li > div { font-size: 0.98rem; line-height: 1.5; color: var(--text-main); font-weight: 500; }
         @media (max-width: 700px) { #gl-amenidades { grid-template-columns: 1fr; } }
         .gl-badge-vip { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(120deg, #d4af37, #f4e2a1); color: var(--primary); font-weight: 700; font-size: 0.85rem; padding: 8px 18px; border-radius: 999px; margin-bottom: 18px; }
+        .gl-cita-banner { display: flex; align-items: center; gap: 28px; background: linear-gradient(120deg, var(--primary), var(--primary-light)); color: #fff; border-radius: var(--radius-md); padding: 36px 40px; box-shadow: var(--shadow-lg); }
+        .gl-cita-banner-icono { width: 64px; height: 64px; min-width: 64px; border-radius: 50%; background: rgba(212,175,55,0.18); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; }
+        .gl-cita-banner-texto { flex: 1; min-width: 240px; }
+        .gl-cita-banner-texto h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 6px; }
+        .gl-cita-banner-texto p { color: rgba(255,255,255,0.8); font-size: 0.95rem; margin: 0; }
+        .gl-cita-banner .btn { white-space: nowrap; }
+        @media (max-width: 700px) { .gl-cita-banner { flex-direction: column; text-align: center; padding: 32px 24px; } }
         .ficha-video { position: relative; aspect-ratio: 16 / 9; border-radius: var(--radius-md); overflow: hidden; background: #000; max-width: 900px; margin: 0 auto; }
         .gl-video-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
         .gl-video-grid:has(.ficha-video:only-child) { grid-template-columns: 1fr; max-width: 900px; margin: 0 auto; }
@@ -141,14 +148,16 @@
 
     <!-- Por qué Golden Lake -->
     <section class="section">
-        <div class="container landing-layout">
-            <div class="landing-content">
-                <h2 class="section-title" style="text-align:left;">Por qué invertir en Golden Lake</h2>
-                <p class="section-subtitle" style="text-align:left; margin-left:0;">Un desarrollo pensado para vivir junto al mar o para invertir con plusvalía real.</p>
-                <div id="gl-sobre-texto" style="color: var(--text-light); font-size: 1.05rem; line-height: 1.8; margin-bottom: 30px;"></div>
-                <ul class="benefits-list" id="gl-amenidades"></ul>
+        <div class="container">
+            <h2 class="section-title">Por qué invertir en Golden Lake</h2>
+            <p class="section-subtitle">Un desarrollo pensado para vivir junto al mar o para invertir con plusvalía real.</p>
+            <div class="landing-layout" style="padding-top:10px;">
+                <div class="landing-content">
+                    <div id="gl-sobre-texto" style="color: var(--text-light); font-size: 1.05rem; line-height: 1.8; margin-bottom: 30px;"></div>
+                    <ul class="benefits-list" id="gl-amenidades"></ul>
+                </div>
+                <div class="landing-sidebar" id="gl-sidebar-foto"></div>
             </div>
-            <div class="landing-sidebar" id="gl-sidebar-foto"></div>
         </div>
     </section>
 
@@ -200,14 +209,25 @@
         </div>
     </section>
 
+    <!-- Banner: agendar cita -->
+    <section class="section pt-0">
+        <div class="container">
+            <div class="gl-cita-banner">
+                <div class="gl-cita-banner-icono"><i class="fas fa-calendar-check"></i></div>
+                <div class="gl-cita-banner-texto">
+                    <h3>¿Querés conocer Golden Lake en persona?</h3>
+                    <p>Agendá una visita guiada y recorré el residencial, los modelos de casa y el muelle privado.</p>
+                </div>
+                <a data-whatsapp data-wa="Hola Walter, quiero agendar una cita para visitar Golden Lake." href="#" class="btn btn-primary">Quiero agendar una cita</a>
+            </div>
+        </div>
+    </section>
+
     <!-- Inventario -->
-    <section class="section" id="inventario" style="background-color: var(--bg-alt);">
+    <section class="section pt-0" id="inventario" style="background-color: var(--bg-alt);">
         <div class="container">
             <h2 class="section-title">Propiedades disponibles en Golden Lake</h2>
             <p class="section-subtitle">Terrenos listos para construir, casas nuevas y residencias de lujo — hay opciones para distintos presupuestos.</p>
-            <div style="text-align:center; margin-bottom:36px;">
-                <a data-whatsapp data-wa="Hola Walter, quiero agendar una cita para visitar Golden Lake." href="#" class="btn btn-outline"><i class="fas fa-calendar-check"></i> Quiero agendar una cita</a>
-            </div>
             <div class="card-grid" id="gl-inventario">
                 <div class="gl-empty-inventario">Cargando propiedades disponibles...</div>
             </div>
