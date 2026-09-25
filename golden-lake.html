@@ -271,6 +271,7 @@
             // la página se vea completa desde el día uno, aunque todavía no haya subido
             // nada por el panel de administración (tabla "proyectos").
             const RESPALDO = {
+                descripcion: 'Uno de los residenciales de playa con mayor desarrollo y plusvalía de El Salvador: comunidad cerrada, lagos artificiales y acceso directo a la playa.',
                 videos: ['https://www.youtube.com/watch?v=zqrdUcA1hK8'],
                 latitud: 13.334941,
                 longitud: -88.975586,
@@ -385,7 +386,7 @@
                 }
 
                 const nombre = (p && p.nombre) || 'Golden Lake';
-                const descripcion = (p && p.descripcion) || document.getElementById('gl-hero-desc').textContent;
+                const descripcion = (p && p.descripcion) || RESPALDO.descripcion;
                 const amenidades = (p && p.amenidades && p.amenidades.length) ? p.amenidades : RESPALDO.amenidades;
                 const videos = (p && p.videos && p.videos.length) ? p.videos : RESPALDO.videos;
                 const videoHero = (p && p.video_hero) || null;
