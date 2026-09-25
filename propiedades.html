@@ -120,8 +120,15 @@
         </div>
     </section>
 
-    <!-- Category Filters -->
+    <!-- Buscador + Category Filters -->
     <div style="background-color: white; border-bottom: 1px solid var(--border); padding: 15px 0; position: sticky; top: 80px; z-index: 900;">
+        <div class="container" style="margin-bottom: 12px;">
+            <div style="position: relative; max-width: 480px;">
+                <i class="fas fa-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-light);"></i>
+                <input type="search" id="buscador-propiedades" placeholder="Buscar por ubicación, tipo o título..."
+                       style="width: 100%; padding: 12px 16px 12px 42px; border: 1px solid var(--border); border-radius: 999px; font-family: 'Outfit', sans-serif; font-size: 0.95rem; outline: none;">
+            </div>
+        </div>
         <div class="container" style="display: flex; gap: 12px; overflow-x: auto; white-space: nowrap; align-items: center; justify-content: flex-start;">
             <button type="button" class="btn btn-outline filtro-categoria activo" data-categoria="todas" style="padding: 8px 16px; cursor: pointer;">Todas</button>
             <button type="button" class="btn btn-outline filtro-categoria" data-categoria="Vivienda Residencial" style="padding: 8px 16px; cursor: pointer;">Vivienda Residencial</button>
@@ -275,16 +282,28 @@
 
             let todasLasPropiedades = [];
             let filtroActivo = 'todas';
+            let filtroTexto = '';
+
+            const DIACRITICOS = new RegExp('[' + String.fromCharCode(0x0300) + '-' + String.fromCharCode(0x036f) + ']', 'g');
+            const normalizar = (s) => String(s || '').toLowerCase().normalize('NFD').replace(DIACRITICOS, '');
 
             function renderGrid() {
                 const grid = document.getElementById('grid-todas');
                 const vacioMsg = document.getElementById('grid-vacio-msg');
-                const filtradas = filtroActivo === 'todas'
+                const porCategoria = filtroActivo === 'todas'
                     ? todasLasPropiedades
                     : todasLasPropiedades.filter(p => p.categoria === filtroActivo);
+                const texto = normalizar(filtroTexto.trim());
+                const filtradas = !texto ? porCategoria : porCategoria.filter(p =>
+                    [p.titulo, p.ubicacion, p.tipo_propiedad_detalle, p.categoria, p.precio]
+                        .some(campo => normalizar(campo).includes(texto))
+                );
 
                 grid.innerHTML = filtradas.map((p, idx) => tarjeta(p, idx)).join('');
                 vacioMsg.style.display = filtradas.length ? 'none' : 'block';
+                vacioMsg.textContent = texto
+                    ? `No encontramos propiedades que coincidan con "${filtroTexto.trim()}".`
+                    : 'Todavía no hay propiedades cargadas en esta categoría.';
                 // Las tarjetas se insertan después de DOMContentLoaded — app.js
                 // ya pasó una vez, así que a estos botones de WhatsApp hay que
                 // procesarlos manualmente (href, target en celular, y registro
@@ -357,6 +376,11 @@
                         filtroActivo = btn.getAttribute('data-categoria');
                         renderGrid();
                     });
+                });
+                const buscador = document.getElementById('buscador-propiedades');
+                buscador.addEventListener('input', () => {
+                    filtroTexto = buscador.value;
+                    renderGrid();
                 });
             });
 
