@@ -80,6 +80,10 @@ img {
     padding: 100px 0;
 }
 
+.section.pt-0 {
+    padding-top: 0;
+}
+
 .section-title {
     font-size: 2.75rem;
     text-align: center;
