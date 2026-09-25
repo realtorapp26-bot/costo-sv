@@ -260,6 +260,17 @@
     <!-- Botón Flotante WA -->
     <a data-whatsapp href="#" class="floating-whatsapp"><i class="fab fa-whatsapp"></i></a>
 
+    <!-- Visor de fotos ampliado (lightbox) -->
+    <div class="lightbox-overlay" id="lightbox-overlay" onclick="if(event.target===this) cerrarLightbox()">
+        <button class="lightbox-cerrar" onclick="cerrarLightbox()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+        <button class="lightbox-compartir" onclick="compartirLightbox()"><i class="fas fa-share-nodes"></i> <span>Compartir</span></button>
+        <button class="lightbox-prev" id="lightbox-prev" onclick="moverLightbox(-1)" aria-label="Foto anterior"><i class="fas fa-chevron-left"></i></button>
+        <button class="lightbox-next" id="lightbox-next" onclick="moverLightbox(1)" aria-label="Foto siguiente"><i class="fas fa-chevron-right"></i></button>
+        <img id="lightbox-img" src="" alt="">
+        <div class="lightbox-contador" id="lightbox-contador"></div>
+        <div class="lightbox-toast" id="lightbox-toast"></div>
+    </div>
+
     <!-- Scripts -->
     <script src="config.js?v=2"></script>
     <script src="app.js?v=3"></script>
@@ -361,9 +372,18 @@
             function renderGaleria(fotos) {
                 if (!fotos || !fotos.length) return;
                 document.getElementById('gl-galeria-seccion').style.display = '';
-                document.getElementById('gl-galeria').innerHTML = fotos.map((f) => `
+                const cont = document.getElementById('gl-galeria');
+                cont.innerHTML = fotos.map((f) => `
                     <a href="${f}" target="_blank" rel="noopener"><img src="${f}" alt="Golden Lake, Costa del Sol" loading="lazy" decoding="async" onerror="this.closest('a').remove()"></a>
                 `).join('');
+                // Al hacer clic se abre el visor de pantalla completa (con
+                // flechas para recorrer todas) en vez de una pestaña nueva.
+                cont.querySelectorAll('a').forEach((a, idx) => {
+                    a.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        if (window.abrirLightbox) window.abrirLightbox(fotos, idx);
+                    });
+                });
             }
 
             function renderMapa(lat, lng) {
