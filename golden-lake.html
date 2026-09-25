@@ -136,11 +136,14 @@
 
     <!-- Por qué Golden Lake -->
     <section class="section">
-        <div class="container">
-            <h2 class="section-title">Por qué invertir en Golden Lake</h2>
-            <p class="section-subtitle">Un desarrollo pensado para vivir junto al mar o para invertir con plusvalía real.</p>
-            <div id="gl-sobre-texto" style="max-width: 780px; margin: 0 auto 40px; color: var(--text-light); font-size: 1.05rem; line-height: 1.8;"></div>
-            <div class="card-grid" id="gl-amenidades"></div>
+        <div class="container landing-layout">
+            <div class="landing-content">
+                <h2 class="section-title" style="text-align:left;">Por qué invertir en Golden Lake</h2>
+                <p class="section-subtitle" style="text-align:left; margin-left:0;">Un desarrollo pensado para vivir junto al mar o para invertir con plusvalía real.</p>
+                <div id="gl-sobre-texto" style="color: var(--text-light); font-size: 1.05rem; line-height: 1.8; margin-bottom: 30px;"></div>
+                <ul class="benefits-list" id="gl-amenidades" style="margin: 0;"></ul>
+            </div>
+            <div class="landing-sidebar" id="gl-sidebar-foto"></div>
         </div>
     </section>
 
@@ -300,7 +303,7 @@
                 ],
                 fotos: [],
             };
-            const ICONOS_AMENIDADES = ['fa-lock', 'fa-water', 'fa-table-tennis-paddle-ball', 'fa-umbrella-beach', 'fa-id-card', 'fa-chart-line'];
+            const ICONOS_AMENIDADES = ['fa-lock', 'fa-water', 'fa-table-tennis-paddle-ball', 'fa-umbrella-beach', 'fa-anchor', 'fa-chart-line'];
 
             function youtubeId(u) {
                 if (!u) return null;
@@ -321,11 +324,16 @@
             function renderAmenidades(lista) {
                 const cont = document.getElementById('gl-amenidades');
                 cont.innerHTML = lista.map((texto, i) => `
-                    <div class="service-card">
-                        <div class="service-icon"><i class="fas ${ICONOS_AMENIDADES[i % ICONOS_AMENIDADES.length]}"></i></div>
-                        <h3 style="font-size:1.05rem;">${texto}</h3>
-                    </div>
+                    <li><i class="fas ${ICONOS_AMENIDADES[i % ICONOS_AMENIDADES.length]}"></i> <div>${texto}</div></li>
                 `).join('');
+            }
+
+            function renderFotoLateral(foto) {
+                const cont = document.getElementById('gl-sidebar-foto');
+                if (!foto) { cont.style.display = 'none'; return; }
+                cont.innerHTML = `<img src="${foto}" alt="Golden Lake, Costa del Sol" loading="lazy" decoding="async"
+                    style="width:100%; border-radius:var(--radius-md); box-shadow:var(--shadow-lg); object-fit:cover; aspect-ratio:3/4;"
+                    onerror="this.closest('.landing-sidebar').style.display='none'">`;
             }
 
             function renderVideoHero(videoUrl) {
@@ -435,6 +443,7 @@
                     heroBg.src = fotos[0];
                 }
                 renderAmenidades(amenidades);
+                renderFotoLateral(fotos[1] || fotos[0]);
                 renderVideoHero(videoHero);
                 renderVideos(videos);
                 renderGaleria(fotos.slice(1));
