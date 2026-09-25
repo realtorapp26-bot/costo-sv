@@ -64,6 +64,8 @@
             .gl-hero .hero-tagline { font-size: 0.78rem; letter-spacing: 2px; margin-bottom: 8px; }
         }
         .gl-stat { background: white; box-shadow: var(--shadow-lg); border-radius: var(--radius-md); padding: 20px 32px; text-align: center; min-width: 180px; }
+        .gl-amenidad-icono { width: 46px; height: 46px; min-width: 46px; border-radius: 50%; background: rgba(212,175,55,0.14); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 1.15rem; transition: var(--transition); }
+        .benefits-list li:hover .gl-amenidad-icono { background: var(--gold); color: var(--primary); }
         .gl-stat .num { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--primary); font-weight: 700; }
         .gl-stat .lbl { font-size: 0.78rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
         .gl-badge-vip { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(120deg, #d4af37, #f4e2a1); color: var(--primary); font-weight: 700; font-size: 0.85rem; padding: 8px 18px; border-radius: 999px; margin-bottom: 18px; }
@@ -81,6 +83,9 @@
         .ficha-mapa iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
         .ficha-mapa-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; color: var(--primary); text-decoration: none; font-weight: 500; }
         .ficha-mapa-link:hover { color: var(--gold); }
+        .gl-modelo-stats { display: flex; flex-wrap: wrap; gap: 14px; margin: 20px 0 30px; }
+        .gl-modelo-stat { display: flex; align-items: center; gap: 10px; background: white; border: 1px solid var(--border); border-radius: 999px; padding: 10px 18px; font-size: 0.9rem; font-weight: 600; color: var(--primary); }
+        .gl-modelo-stat i { color: var(--gold); }
         .gl-plantas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 24px; }
         .gl-planta-card { background: white; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; cursor: zoom-in; }
         .gl-planta-card img { width: 100%; aspect-ratio: 3 / 2; object-fit: contain; background: #f8fafc; border-radius: var(--radius-sm); display: block; }
@@ -159,11 +164,15 @@
         </div>
     </section>
 
-    <!-- Plantas arquitectónicas -->
-    <section class="section pt-0" id="gl-plantas-seccion" style="display:none; background-color: var(--bg-alt);">
-        <div class="container">
-            <h2 class="section-title">Plantas arquitectónicas</h2>
-            <p class="section-subtitle">Distribución completa de la casa nueva, nivel por nivel.</p>
+    <!-- Modelo de casa nueva -->
+    <section class="section pt-0" id="gl-modelo-seccion" style="display:none; background-color: var(--bg-alt);">
+        <div class="container" id="gl-modelo-info" style="display:none; max-width: 900px;">
+            <h2 class="section-title" id="gl-modelo-nombre">Así son las casas nuevas</h2>
+            <div class="gl-modelo-stats" id="gl-modelo-stats"></div>
+            <div id="gl-modelo-texto" style="color: var(--text-light); font-size: 1.05rem; line-height: 1.8;"></div>
+        </div>
+        <div class="container" id="gl-plantas-seccion" style="display:none; margin-top: 50px;">
+            <h3 style="text-align:center; font-family:'Playfair Display', serif; font-size:1.4rem; color:var(--primary); margin-bottom:24px;">Plantas arquitectónicas</h3>
             <div class="gl-plantas-grid" id="gl-plantas"></div>
         </div>
     </section>
@@ -303,6 +312,9 @@
             // nada por el panel de administración (tabla "proyectos").
             const RESPALDO = {
                 descripcion: 'Uno de los residenciales con mayor desarrollo y plusvalía de El Salvador: comunidad cerrada, lagos artificiales, muelle al estero de Jaltepeque y membresía VIP con acceso a la playa en Tesoro Beach.',
+                modeloNombre: 'Casa nueva de dos niveles — diseño contemporáneo con doble altura',
+                modeloStats: '4 Habitaciones · 5 Baños · 5 Terrazas · 2 Niveles · Parqueo 2 vehículos',
+                modeloDescripcion: 'Primer nivel: sala, comedor y cocina integrados en un espacio de doble altura, con mueblería de cocina aérea, barra de cuarzo y conexión directa a la piscina — perfecto para recibir. La escalera flotante deja pasar luz natural desde el segundo nivel. Incluye habitación junior con baño completo, cuarto de servicio, baño de visitas, bodega y cuarto de lavado. Una terraza frontal y una terraza lateral completan el nivel.\n\nSegundo nivel: sala de estar con acceso a patio propio. La habitación master es completa: terraza privada, closet y baño con división de cristal. Dos habitaciones más, ambas completas — una de ellas con su propia terraza.',
                 videos: ['https://www.youtube.com/watch?v=zqrdUcA1hK8'],
                 latitud: 13.334941,
                 longitud: -88.975586,
@@ -337,16 +349,27 @@
             function renderAmenidades(lista) {
                 const cont = document.getElementById('gl-amenidades');
                 cont.innerHTML = lista.map((texto, i) => `
-                    <li><i class="fas ${ICONOS_AMENIDADES[i % ICONOS_AMENIDADES.length]}"></i> <div>${texto}</div></li>
+                    <li><span class="gl-amenidad-icono"><i class="fas ${ICONOS_AMENIDADES[i % ICONOS_AMENIDADES.length]}"></i></span> <div>${texto}</div></li>
                 `).join('');
             }
 
-            function renderFotoLateral(foto) {
+            function renderFotoLateral(fotos) {
                 const cont = document.getElementById('gl-sidebar-foto');
-                if (!foto) { cont.style.display = 'none'; return; }
-                cont.innerHTML = `<img src="${foto}" alt="Golden Lake, Costa del Sol" loading="lazy" decoding="async"
-                    style="width:100%; border-radius:var(--radius-md); box-shadow:var(--shadow-lg); object-fit:cover; aspect-ratio:3/4;"
+                const lista = (fotos || []).filter(Boolean);
+                if (!lista.length) { cont.style.display = 'none'; return; }
+                cont.innerHTML = `<img id="gl-sidebar-img" src="${lista[0]}" alt="Golden Lake, Costa del Sol" loading="lazy" decoding="async"
+                    style="width:100%; border-radius:var(--radius-md); box-shadow:var(--shadow-lg); object-fit:cover; aspect-ratio:3/4; transition:opacity 0.5s ease;"
                     onerror="this.closest('.landing-sidebar').style.display='none'">`;
+                if (lista.length > 1) {
+                    let idx = 0;
+                    setInterval(() => {
+                        const img = document.getElementById('gl-sidebar-img');
+                        if (!img) return;
+                        idx = (idx + 1) % lista.length;
+                        img.style.opacity = '0';
+                        setTimeout(() => { img.src = lista[idx]; img.style.opacity = '1'; }, 500);
+                    }, 4000);
+                }
             }
 
             function renderVideoHero(videoUrl) {
@@ -391,8 +414,35 @@
                 `).join('');
             }
 
+            function iconoStat(texto) {
+                const t = texto.toLowerCase();
+                if (t.includes('habitacion') || t.includes('dormitorio') || t.includes('cuarto')) return 'fa-bed';
+                if (t.includes('baño')) return 'fa-bath';
+                if (t.includes('terraza')) return 'fa-sun';
+                if (t.includes('nivel') || t.includes('piso')) return 'fa-layer-group';
+                if (t.includes('parqueo') || t.includes('vehiculo') || t.includes('vehículo') || t.includes('garaje')) return 'fa-car';
+                return 'fa-circle-check';
+            }
+
+            function renderModelo(nombre, stats, descripcion) {
+                if (!nombre && !stats && !descripcion) return;
+                document.getElementById('gl-modelo-seccion').style.display = '';
+                document.getElementById('gl-modelo-info').style.display = '';
+                if (nombre) document.getElementById('gl-modelo-nombre').textContent = nombre;
+                const statsCont = document.getElementById('gl-modelo-stats');
+                const items = (stats || '').split('·').map((s) => s.trim()).filter(Boolean);
+                statsCont.innerHTML = items.map((texto) => `
+                    <div class="gl-modelo-stat"><i class="fas ${iconoStat(texto)}"></i> ${texto}</div>
+                `).join('');
+                document.getElementById('gl-modelo-texto').innerHTML = (descripcion || '')
+                    .split(/\n{2,}/)
+                    .map((parrafo) => `<p style="margin-bottom:16px;">${parrafo.trim()}</p>`)
+                    .join('');
+            }
+
             function renderPlantas(plantas) {
                 if (!plantas || !plantas.length) return;
+                document.getElementById('gl-modelo-seccion').style.display = '';
                 document.getElementById('gl-plantas-seccion').style.display = '';
                 const cont = document.getElementById('gl-plantas');
                 cont.innerHTML = plantas.map((p, i) => `
@@ -454,6 +504,9 @@
                 const videoHero = (p && p.video_hero) || null;
                 const fotos = (p && p.fotos && p.fotos.length) ? p.fotos : RESPALDO.fotos;
                 const plantas = (p && p.plantas) || [];
+                const modeloNombre = (p && p.modelo_nombre) || RESPALDO.modeloNombre;
+                const modeloStats = (p && p.modelo_stats) || RESPALDO.modeloStats;
+                const modeloDescripcion = (p && p.modelo_descripcion) || RESPALDO.modeloDescripcion;
                 const lat = (p && p.latitud) || RESPALDO.latitud;
                 const lng = (p && p.longitud) || RESPALDO.longitud;
 
@@ -474,9 +527,10 @@
                     heroBg.src = fotos[0];
                 }
                 renderAmenidades(amenidades);
-                renderFotoLateral(fotos[1] || fotos[0]);
+                renderFotoLateral(fotos.length > 1 ? fotos.slice(1, 6) : fotos);
                 renderVideoHero(videoHero);
                 renderVideos(videos);
+                renderModelo(modeloNombre, modeloStats, modeloDescripcion);
                 renderPlantas(plantas);
                 renderGaleria(fotos.slice(1));
                 renderMapa(lat, lng);
