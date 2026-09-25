@@ -52,6 +52,12 @@
            overflow:hidden y se dibuja encima de la barra de navegación
            (bug conocido de WebKit con iframes + position:sticky). */
         .hero-video-bg { position: absolute; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; -webkit-mask-image: -webkit-radial-gradient(white, black); }
+        /* El menú ocupa mucho espacio frente al hero (que ya es bajo en
+           celular) y "corta" el video. Se esconde al bajar y vuelve al
+           subir — nunca desaparece del todo, solo mientras se aleja del
+           hero hacia abajo. */
+        .navbar { transition: transform 0.3s ease; }
+        .navbar.gl-nav-oculto { transform: translateY(-100%); }
         .hero-video-bg iframe { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 0; }
         /* El oscurecimiento de .hero::after (styles.css) es para fotos fijas —
            con el video de fondo Walter pidió sacarlo del todo. */
@@ -607,6 +613,23 @@
                 }
             }
             window.addEventListener('resize', ajustarVideoHero);
+
+            // Menú: se esconde al bajar (para que el video del hero respire
+            // en celular), y vuelve apenas se sube — nunca queda inaccesible.
+            (function () {
+                const nav = document.querySelector('.navbar');
+                if (!nav) return;
+                let ultimoScroll = window.scrollY;
+                window.addEventListener('scroll', () => {
+                    const actual = window.scrollY;
+                    if (actual > ultimoScroll && actual > nav.offsetHeight) {
+                        nav.classList.add('gl-nav-oculto');
+                    } else {
+                        nav.classList.remove('gl-nav-oculto');
+                    }
+                    ultimoScroll = actual;
+                }, { passive: true });
+            })();
 
             function renderVideos(videoUrls) {
                 const ids = (videoUrls || []).map(youtubeId).filter(Boolean);
