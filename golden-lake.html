@@ -80,7 +80,10 @@
         .ficha-mapa iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
         .ficha-mapa-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; color: var(--primary); text-decoration: none; font-weight: 500; }
         .ficha-mapa-link:hover { color: var(--gold); }
-        .gl-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; max-width: 900px; margin: 0 auto; }
+        .gl-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+        .gl-gallery:has(a:nth-child(3):last-child),
+        .gl-gallery:has(a:nth-child(2):last-child),
+        .gl-gallery:has(a:only-child) { max-width: 900px; margin: 0 auto; }
         .gl-gallery a { display: block; border-radius: var(--radius-sm); overflow: hidden; aspect-ratio: 4/3; }
         .gl-gallery img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
         .gl-gallery a:hover img { transform: scale(1.06); }
