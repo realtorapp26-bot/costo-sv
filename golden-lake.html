@@ -62,7 +62,6 @@
             .gl-hero { padding: 70px 0 36px; }
             .gl-hero .hero-title { font-size: 2rem; margin-bottom: 10px; }
             .gl-hero .hero-tagline { font-size: 0.78rem; letter-spacing: 2px; margin-bottom: 8px; }
-            .gl-hero .hero-subtitle { font-size: 0.92rem; line-height: 1.5; margin-bottom: 18px; }
         }
         .gl-stat { background: white; box-shadow: var(--shadow-lg); border-radius: var(--radius-md); padding: 20px 32px; text-align: center; min-width: 180px; }
         .gl-stat .num { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--primary); font-weight: 700; }
@@ -119,7 +118,6 @@
             <div class="hero-content">
                 <div class="hero-tagline">Costa del Sol, La Herradura, La Paz</div>
                 <h1 class="hero-title">Golden Lake</h1>
-                <p class="hero-subtitle" id="gl-hero-desc">Uno de los residenciales de playa con mayor desarrollo y plusvalía de El Salvador: comunidad cerrada, lagos artificiales y acceso directo a la playa.</p>
                 <div class="hero-buttons">
                     <a href="#inventario" class="btn btn-gold"><i class="fas fa-house"></i> Ver propiedades disponibles</a>
                     <a data-whatsapp data-wa="Hola Walter, vi la página de Golden Lake y quiero más información." href="#" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> Hablar por WhatsApp</a>
@@ -132,18 +130,12 @@
         <div class="gl-stats" id="gl-stats"></div>
     </div>
 
-    <!-- Sobre el desarrollo -->
-    <section class="section" id="gl-sobre-seccion" style="display:none;">
-        <div class="container" style="max-width: 780px;">
-            <div id="gl-sobre-texto" style="color: var(--text-light); font-size: 1.05rem; line-height: 1.8;"></div>
-        </div>
-    </section>
-
     <!-- Por qué Golden Lake -->
     <section class="section">
         <div class="container">
             <h2 class="section-title">Por qué invertir en Golden Lake</h2>
             <p class="section-subtitle">Un desarrollo pensado para vivir junto al mar o para invertir con plusvalía real.</p>
+            <div id="gl-sobre-texto" style="max-width: 780px; margin: 0 auto 40px; color: var(--text-light); font-size: 1.05rem; line-height: 1.8;"></div>
             <div class="card-grid" id="gl-amenidades"></div>
         </div>
     </section>
@@ -403,19 +395,13 @@
 
                 document.title = document.title.replace('Golden Lake', nombre);
 
-                // La descripción completa (2 párrafos) es demasiado larga para
-                // el hero — ahí va solo la primera oración, corta. El texto
-                // completo se muestra en su propia sección más abajo, para no
-                // perder nada de lo que se escribió.
-                const primeraOracion = descripcion.split(/(?<=[.!?])\s+/)[0];
-                document.getElementById('gl-hero-desc').textContent = primeraOracion;
-                if (descripcion !== primeraOracion) {
-                    document.getElementById('gl-sobre-seccion').style.display = '';
-                    document.getElementById('gl-sobre-texto').innerHTML = descripcion
-                        .split(/\n{2,}/)
-                        .map((parrafo) => `<p style="margin-bottom:18px;">${parrafo.trim()}</p>`)
-                        .join('');
-                }
+                // El hero va limpio (video + título + botones, sin párrafo). La
+                // descripción completa se muestra junto a los íconos de
+                // "Por qué invertir en Golden Lake".
+                document.getElementById('gl-sobre-texto').innerHTML = descripcion
+                    .split(/\n{2,}/)
+                    .map((parrafo) => `<p style="margin-bottom:18px;">${parrafo.trim()}</p>`)
+                    .join('');
 
                 if (fotos.length) {
                     const heroBg = document.getElementById('gl-hero-bg');
