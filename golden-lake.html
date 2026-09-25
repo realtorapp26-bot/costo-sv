@@ -81,6 +81,10 @@
         .ficha-mapa iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
         .ficha-mapa-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; color: var(--primary); text-decoration: none; font-weight: 500; }
         .ficha-mapa-link:hover { color: var(--gold); }
+        .gl-plantas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 24px; }
+        .gl-planta-card { background: white; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; cursor: zoom-in; }
+        .gl-planta-card img { width: 100%; aspect-ratio: 3 / 2; object-fit: contain; background: #f8fafc; border-radius: var(--radius-sm); display: block; }
+        .gl-planta-card .lbl { text-align: center; font-size: 0.85rem; color: var(--text-light); margin-top: 12px; text-transform: uppercase; letter-spacing: 1px; }
         .gl-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
         .gl-gallery:has(a:nth-child(3):last-child),
         .gl-gallery:has(a:nth-child(2):last-child),
@@ -152,6 +156,15 @@
         <div class="container">
             <h2 class="section-title" style="text-align:center;">Conocé Golden Lake</h2>
             <div class="gl-video-grid" id="gl-video-grid"></div>
+        </div>
+    </section>
+
+    <!-- Plantas arquitectónicas -->
+    <section class="section pt-0" id="gl-plantas-seccion" style="display:none; background-color: var(--bg-alt);">
+        <div class="container">
+            <h2 class="section-title">Plantas arquitectónicas</h2>
+            <p class="section-subtitle">Distribución completa de la casa nueva, nivel por nivel.</p>
+            <div class="gl-plantas-grid" id="gl-plantas"></div>
         </div>
     </section>
 
@@ -378,6 +391,23 @@
                 `).join('');
             }
 
+            function renderPlantas(plantas) {
+                if (!plantas || !plantas.length) return;
+                document.getElementById('gl-plantas-seccion').style.display = '';
+                const cont = document.getElementById('gl-plantas');
+                cont.innerHTML = plantas.map((p, i) => `
+                    <div class="gl-planta-card">
+                        <img src="${p}" alt="Planta arquitectónica nivel ${i + 1}" loading="lazy" decoding="async">
+                        <div class="lbl">Nivel ${i + 1}</div>
+                    </div>
+                `).join('');
+                cont.querySelectorAll('.gl-planta-card').forEach((card, idx) => {
+                    card.addEventListener('click', () => {
+                        if (window.abrirLightbox) window.abrirLightbox(plantas, idx);
+                    });
+                });
+            }
+
             function renderGaleria(fotos) {
                 if (!fotos || !fotos.length) return;
                 document.getElementById('gl-galeria-seccion').style.display = '';
@@ -423,6 +453,7 @@
                 const videos = (p && p.videos && p.videos.length) ? p.videos : RESPALDO.videos;
                 const videoHero = (p && p.video_hero) || null;
                 const fotos = (p && p.fotos && p.fotos.length) ? p.fotos : RESPALDO.fotos;
+                const plantas = (p && p.plantas) || [];
                 const lat = (p && p.latitud) || RESPALDO.latitud;
                 const lng = (p && p.longitud) || RESPALDO.longitud;
 
@@ -446,6 +477,7 @@
                 renderFotoLateral(fotos[1] || fotos[0]);
                 renderVideoHero(videoHero);
                 renderVideos(videos);
+                renderPlantas(plantas);
                 renderGaleria(fotos.slice(1));
                 renderMapa(lat, lng);
             }

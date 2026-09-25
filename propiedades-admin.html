@@ -207,6 +207,15 @@
                     <select id="py-publicado"><option value="true">Sí, visible en el sitio</option><option value="false">No, oculto</option></select>
                 </div>
                 <div class="full">
+                    <label>Plantas arquitectónicas (Nivel 1, Nivel 2... en ese orden)</label>
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                        <input type="file" accept="image/*" multiple onchange="CostoSVAuth.subirFotosA(this, 'py-plantas', () => previsualizarFotos('py-plantas', 'py-plantas-preview'))">
+                        <span style="display:none; font-size:0.8rem; color:var(--text-light);"></span>
+                    </div>
+                    <textarea id="py-plantas" oninput="previsualizarFotos('py-plantas', 'py-plantas-preview')"></textarea>
+                    <div class="fotos-edit-preview" id="py-plantas-preview"></div>
+                </div>
+                <div class="full">
                     <label>Fotos generales del desarrollo (subí archivos de tu celular/PC)</label>
                     <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
                         <input type="file" accept="image/*" multiple onchange="CostoSVAuth.subirFotosA(this, 'py-fotos', () => previsualizarFotos('py-fotos', 'py-fotos-preview'))">
@@ -993,6 +1002,8 @@
                 document.getElementById('py-publicado').value = String(p.publicado !== false);
                 document.getElementById('py-fotos').value = (p.fotos || []).join('\n');
                 previsualizarFotos('py-fotos', 'py-fotos-preview');
+                document.getElementById('py-plantas').value = (p.plantas || []).join('\n');
+                previsualizarFotos('py-plantas', 'py-plantas-preview');
             } catch (ex) {
                 console.error('cargarProyectoGL:', ex);
             }
@@ -1009,6 +1020,7 @@
                 videos: document.getElementById('py-videos').value.split('\n').map(s => s.trim()).filter(Boolean),
                 publicado: document.getElementById('py-publicado').value === 'true',
                 fotos: obtenerUrlsFotosDe('py-fotos'),
+                plantas: obtenerUrlsFotosDe('py-plantas'),
             };
             try {
                 const headers = await CostoSVAuth.authHeaders();
