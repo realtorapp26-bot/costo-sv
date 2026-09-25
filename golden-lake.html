@@ -109,6 +109,34 @@
         .gl-gallery img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
         .gl-gallery a:hover img { transform: scale(1.06); }
         .gl-empty-inventario { text-align: center; color: var(--text-light); padding: 40px 20px; }
+
+        /* Progressive disclosure en celular: esconder lo que sobrecarga el
+           scroll por defecto, y que el cliente lo despliegue si quiere. Todo
+           vía CSS (no display inline por JS) para que sobreviva a un resize
+           o giro de pantalla sin quedar "atascado" oculto en desktop. */
+        .gl-ver-mas-btn { display: none; }
+        @media (max-width: 700px) {
+            #gl-amenidades:not(.gl-mostrar-todo) .gl-extra,
+            #gl-video-grid:not(.gl-mostrar-todo) .gl-extra,
+            #gl-galeria:not(.gl-mostrar-todo) .gl-extra {
+                display: none;
+            }
+            .gl-ver-mas-btn {
+                display: flex; align-items: center; justify-content: center; gap: 8px;
+                width: 100%; margin-top: 16px; padding: 13px; background: white;
+                border: 1px solid var(--border); border-radius: var(--radius-sm);
+                color: var(--primary); font-weight: 600; font-size: 0.9rem;
+                cursor: pointer; transition: var(--transition);
+            }
+            .gl-ver-mas-btn:hover { border-color: var(--gold); color: var(--gold); }
+            #gl-modelo-texto.gl-clamp { max-height: 150px; overflow: hidden; position: relative; }
+            #gl-modelo-texto.gl-clamp::after {
+                content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 60px;
+                background: linear-gradient(rgba(255,255,255,0), var(--bg-alt));
+            }
+            #gl-modelo-texto.gl-clamp.gl-mostrar-todo { max-height: none; }
+            #gl-modelo-texto.gl-clamp.gl-mostrar-todo::after { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -417,6 +445,50 @@
                 cont.innerHTML = lista.map((texto, i) => `
                     <li><span class="gl-amenidad-icono"><i class="fas ${ICONOS_AMENIDADES[i % ICONOS_AMENIDADES.length]}"></i></span> <div>${texto}</div></li>
                 `).join('');
+                agregarVerMas('gl-amenidades', 3, (n) => `Ver ${n} amenidad${n === 1 ? '' : 'es'} más`, 'Ver menos');
+            }
+
+            // Progressive disclosure en celular: marca los ítems que pasan de
+            // maxVisible con .gl-extra (el CSS los esconde solo en mobile) y
+            // agrega un botón "ver más" que alterna .gl-mostrar-todo en el
+            // contenedor. En desktop el media query no aplica y no hace nada.
+            function agregarVerMas(containerId, maxVisible, labelMostrar, labelOcultar) {
+                const cont = document.getElementById(containerId);
+                if (!cont) return;
+                const items = [...cont.children];
+                if (items.length <= maxVisible) return;
+                items.slice(maxVisible).forEach((el) => el.classList.add('gl-extra'));
+                const restantes = items.length - maxVisible;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'gl-ver-mas-btn';
+                btn.innerHTML = `<span></span><i class="fas fa-chevron-down"></i>`;
+                const setLabel = (expandido) => {
+                    btn.querySelector('span').textContent = expandido ? labelOcultar : labelMostrar(restantes);
+                    btn.querySelector('i').style.transform = expandido ? 'rotate(180deg)' : '';
+                };
+                setLabel(false);
+                btn.addEventListener('click', () => {
+                    const expandido = cont.classList.toggle('gl-mostrar-todo');
+                    setLabel(expandido);
+                    if (!expandido) cont.scrollIntoView({ block: 'nearest' });
+                });
+                cont.insertAdjacentElement('afterend', btn);
+            }
+
+            function agregarVerMasClamp(el, labelMostrar, labelOcultar) {
+                el.classList.add('gl-clamp');
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'gl-ver-mas-btn';
+                btn.innerHTML = `<span>${labelMostrar}</span><i class="fas fa-chevron-down"></i>`;
+                btn.addEventListener('click', () => {
+                    const expandido = el.classList.toggle('gl-mostrar-todo');
+                    btn.querySelector('span').textContent = expandido ? labelOcultar : labelMostrar;
+                    btn.querySelector('i').style.transform = expandido ? 'rotate(180deg)' : '';
+                    if (!expandido) el.scrollIntoView({ block: 'nearest' });
+                });
+                el.insertAdjacentElement('afterend', btn);
             }
 
             function renderFotoLateral(fotos, contId, imgId) {
@@ -481,6 +553,7 @@
                         </button>
                     </div>
                 `).join('');
+                agregarVerMas('gl-video-grid', 4, (n) => `Ver ${n} video${n === 1 ? '' : 's'} más`, 'Ver menos');
             }
 
             function iconoStat(texto) {
@@ -509,10 +582,14 @@
                     document.getElementById('gl-modelo-precio').textContent = precio || '';
                     document.getElementById('gl-modelo-reserva').textContent = reserva || '';
                 }
-                document.getElementById('gl-modelo-texto').innerHTML = (descripcion || '')
+                const textoEl = document.getElementById('gl-modelo-texto');
+                textoEl.innerHTML = (descripcion || '')
                     .split(/\n{2,}/)
                     .map((parrafo) => `<p style="margin-bottom:16px;">${parrafo.trim()}</p>`)
                     .join('');
+                if (descripcion && descripcion.length > 220) {
+                    agregarVerMasClamp(textoEl, 'Ver detalles del diseño', 'Ver menos');
+                }
                 renderFotoLateral(fotos, 'gl-modelo-foto', 'gl-modelo-img');
             }
 
@@ -549,6 +626,7 @@
                         if (window.abrirLightbox) window.abrirLightbox(fotos, idx);
                     });
                 });
+                agregarVerMas('gl-galeria', 6, (n) => `Ver ${n} foto${n === 1 ? '' : 's'} más`, 'Ver menos');
             }
 
             function renderMapa(lat, lng) {
