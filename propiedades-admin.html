@@ -200,7 +200,7 @@
                 <div class="full"><label>Ubicación</label><input type="text" id="py-ubicacion" placeholder="Costa del Sol, La Herradura, La Paz, El Salvador"></div>
                 <div class="full"><label>Descripción / historia de venta</label><textarea id="py-descripcion" style="min-height:100px;" placeholder="Qué hace atractivo al desarrollo en general (no una casa puntual)..."></textarea></div>
                 <div class="full"><label>Amenidades (una por línea)</label><textarea id="py-amenidades" placeholder="Comunidad cerrada y segura&#10;Lagos artificiales&#10;Cancha de tenis&#10;Club social&#10;Acceso directo a la playa"></textarea></div>
-                <div><label>Video (link de YouTube)</label><input type="url" id="py-video" placeholder="https://www.youtube.com/watch?v=..."></div>
+                <div class="full"><label>Videos (un link de YouTube por línea — podés subir varios clips, o reemplazarlos después por un solo reel editado)</label><textarea id="py-videos" placeholder="https://www.youtube.com/watch?v=...&#10;https://www.youtube.com/watch?v=..."></textarea></div>
                 <div>
                     <label>Publicado</label>
                     <select id="py-publicado"><option value="true">Sí, visible en el sitio</option><option value="false">No, oculto</option></select>
@@ -987,7 +987,7 @@
                 document.getElementById('py-ubicacion').value = p.ubicacion || '';
                 document.getElementById('py-descripcion').value = p.descripcion || '';
                 document.getElementById('py-amenidades').value = (p.amenidades || []).join('\n');
-                document.getElementById('py-video').value = p.video_url || '';
+                document.getElementById('py-videos').value = (p.videos || []).join('\n');
                 document.getElementById('py-publicado').value = String(p.publicado !== false);
                 document.getElementById('py-fotos').value = (p.fotos || []).join('\n');
                 previsualizarFotos('py-fotos', 'py-fotos-preview');
@@ -1003,7 +1003,7 @@
                 ubicacion: document.getElementById('py-ubicacion').value.trim() || null,
                 descripcion: document.getElementById('py-descripcion').value.trim() || null,
                 amenidades: document.getElementById('py-amenidades').value.split('\n').map(s => s.trim()).filter(Boolean),
-                video_url: document.getElementById('py-video').value.trim() || null,
+                videos: document.getElementById('py-videos').value.split('\n').map(s => s.trim()).filter(Boolean),
                 publicado: document.getElementById('py-publicado').value === 'true',
                 fotos: obtenerUrlsFotosDe('py-fotos'),
             };

@@ -53,6 +53,9 @@
         .gl-stat .lbl { font-size: 0.78rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
         .gl-badge-vip { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(120deg, #d4af37, #f4e2a1); color: var(--primary); font-weight: 700; font-size: 0.85rem; padding: 8px 18px; border-radius: 999px; margin-bottom: 18px; }
         .ficha-video { position: relative; aspect-ratio: 16 / 9; border-radius: var(--radius-md); overflow: hidden; background: #000; max-width: 900px; margin: 0 auto; }
+        .gl-video-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+        .gl-video-grid:has(.ficha-video:only-child) { grid-template-columns: 1fr; max-width: 900px; margin: 0 auto; }
+        .gl-video-grid .ficha-video { max-width: none; margin: 0; }
         .ficha-video iframe, .ficha-video .yt-facade { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
         .yt-facade { display: flex; align-items: center; justify-content: center; background-size: cover; background-position: center; cursor: pointer; padding: 0; }
         .yt-facade::after { content: ''; position: absolute; inset: 0; background: rgba(10, 15, 28, 0.28); transition: background 0.25s ease; }
@@ -121,11 +124,11 @@
         </div>
     </section>
 
-    <!-- Video -->
+    <!-- Videos -->
     <section class="section pt-0" id="gl-video-seccion" style="display:none;">
-        <div class="container" style="text-align:center;">
-            <h2 class="section-title">Conocé Golden Lake</h2>
-            <div class="ficha-video" id="gl-video-wrap"></div>
+        <div class="container">
+            <h2 class="section-title" style="text-align:center;">Conocé Golden Lake</h2>
+            <div class="gl-video-grid" id="gl-video-grid"></div>
         </div>
     </section>
 
@@ -252,7 +255,7 @@
             // la página se vea completa desde el día uno, aunque todavía no haya subido
             // nada por el panel de administración (tabla "proyectos").
             const RESPALDO = {
-                video_url: 'https://www.youtube.com/watch?v=zqrdUcA1hK8',
+                videos: ['https://www.youtube.com/watch?v=zqrdUcA1hK8'],
                 latitud: 13.334941,
                 longitud: -88.975586,
                 amenidades: [
@@ -293,16 +296,19 @@
                 `).join('');
             }
 
-            function renderVideo(videoUrl) {
-                const ytId = youtubeId(videoUrl);
-                if (!ytId) return;
+            function renderVideos(videoUrls) {
+                const ids = (videoUrls || []).map(youtubeId).filter(Boolean);
+                if (!ids.length) return;
                 document.getElementById('gl-video-seccion').style.display = '';
-                document.getElementById('gl-video-wrap').innerHTML = `
-                    <button type="button" class="yt-facade" data-yt="${ytId}" onclick="cargarYtGL(this)"
-                            style="background-image:url('https://i.ytimg.com/vi/${ytId}/hqdefault.jpg')"
-                            aria-label="Reproducir el video de Golden Lake">
-                        <span class="yt-play"><i class="fas fa-play"></i></span>
-                    </button>`;
+                document.getElementById('gl-video-grid').innerHTML = ids.map((ytId, i) => `
+                    <div class="ficha-video">
+                        <button type="button" class="yt-facade" data-yt="${ytId}" onclick="cargarYtGL(this)"
+                                style="background-image:url('https://i.ytimg.com/vi/${ytId}/hqdefault.jpg')"
+                                aria-label="Reproducir video ${i + 1} de Golden Lake">
+                            <span class="yt-play"><i class="fas fa-play"></i></span>
+                        </button>
+                    </div>
+                `).join('');
             }
 
             function renderGaleria(fotos) {
@@ -338,7 +344,7 @@
                 const nombre = (p && p.nombre) || 'Golden Lake';
                 const descripcion = (p && p.descripcion) || document.getElementById('gl-hero-desc').textContent;
                 const amenidades = (p && p.amenidades && p.amenidades.length) ? p.amenidades : RESPALDO.amenidades;
-                const videoUrl = (p && p.video_url) || RESPALDO.video_url;
+                const videos = (p && p.videos && p.videos.length) ? p.videos : RESPALDO.videos;
                 const fotos = (p && p.fotos && p.fotos.length) ? p.fotos : RESPALDO.fotos;
                 const lat = (p && p.latitud) || RESPALDO.latitud;
                 const lng = (p && p.longitud) || RESPALDO.longitud;
@@ -347,7 +353,7 @@
                 document.getElementById('gl-hero-desc').textContent = descripcion;
                 if (fotos.length) document.getElementById('gl-hero-bg').src = fotos[0];
                 renderAmenidades(amenidades);
-                renderVideo(videoUrl);
+                renderVideos(videos);
                 renderGaleria(fotos.slice(1));
                 renderMapa(lat, lng);
             }
