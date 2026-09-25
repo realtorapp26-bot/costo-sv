@@ -732,6 +732,7 @@
                 const modeloDescripcion = (p && p.modelo_descripcion) || RESPALDO.modeloDescripcion;
                 const modeloPrecio = (p && p.modelo_precio) || RESPALDO.modeloPrecio;
                 const modeloReserva = (p && p.modelo_reserva) || RESPALDO.modeloReserva;
+                const modeloIncluye = (p && p.modelo_incluye && p.modelo_incluye.length) ? p.modelo_incluye : RESPALDO.modeloIncluye;
                 const fotosModelo = fotos.length > 6 ? fotos.slice().reverse().slice(0, 5) : fotos;
                 const lat = (p && p.latitud) || RESPALDO.latitud;
                 const lng = (p && p.longitud) || RESPALDO.longitud;
@@ -756,7 +757,7 @@
                 renderFotoLateral(fotos.length > 1 ? fotos.slice(1, 6) : fotos);
                 renderVideoHero(videoHero);
                 renderVideos(videos);
-                renderModelo(modeloNombre, modeloStats, modeloDescripcion, modeloPrecio, modeloReserva, fotosModelo, RESPALDO.modeloIncluye);
+                renderModelo(modeloNombre, modeloStats, modeloDescripcion, modeloPrecio, modeloReserva, fotosModelo, modeloIncluye);
                 renderPlantas(plantas);
                 renderGaleria(fotos.slice(1));
                 renderMapa(lat, lng);

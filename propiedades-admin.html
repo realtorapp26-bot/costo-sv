@@ -210,6 +210,7 @@
                 <div class="full"><label>Resumen del modelo (separado por "·")</label><input type="text" id="py-modelo-stats" placeholder="4 Habitaciones · 5 Baños · 5 Terrazas · 2 Niveles · Parqueo 2 vehículos"></div>
                 <div><label>Precio del modelo</label><input type="text" id="py-modelo-precio" placeholder="$395,000 (negociable)"></div>
                 <div><label>Condición de reserva</label><input type="text" id="py-modelo-reserva" placeholder="Reservá con el 30% de prima"></div>
+                <div class="full"><label>Incluye en la promoción (una por línea)</label><textarea id="py-modelo-incluye" style="min-height:100px;" placeholder="Amueblada con línea blanca&#10;Aire acondicionado tipo cassette&#10;Agua caliente"></textarea></div>
                 <div class="full"><label>Descripción del modelo, por nivel</label><textarea id="py-modelo-descripcion" style="min-height:140px;" placeholder="Primer nivel: ...&#10;&#10;Segundo nivel: ..."></textarea></div>
                 <div class="full">
                     <label>Plantas arquitectónicas (Nivel 1, Nivel 2... en ese orden)</label>
@@ -1011,6 +1012,7 @@
                 document.getElementById('py-modelo-stats').value = p.modelo_stats || '';
                 document.getElementById('py-modelo-precio').value = p.modelo_precio || '';
                 document.getElementById('py-modelo-reserva').value = p.modelo_reserva || '';
+                document.getElementById('py-modelo-incluye').value = (p.modelo_incluye || []).join('\n');
                 document.getElementById('py-modelo-descripcion').value = p.modelo_descripcion || '';
                 document.getElementById('py-plantas').value = (p.plantas || []).join('\n');
                 previsualizarFotos('py-plantas', 'py-plantas-preview');
@@ -1034,6 +1036,7 @@
                 modelo_stats: document.getElementById('py-modelo-stats').value.trim() || null,
                 modelo_precio: document.getElementById('py-modelo-precio').value.trim() || null,
                 modelo_reserva: document.getElementById('py-modelo-reserva').value.trim() || null,
+                modelo_incluye: document.getElementById('py-modelo-incluye').value.split('\n').map(s => s.trim()).filter(Boolean),
                 modelo_descripcion: document.getElementById('py-modelo-descripcion').value.trim() || null,
                 plantas: obtenerUrlsFotosDe('py-plantas'),
             };
