@@ -797,6 +797,20 @@ img {
     border: 1px solid rgba(0,0,0,0.05);
 }
 
+@media (max-width: 600px) {
+    .form-wrapper {
+        padding: 30px 22px;
+    }
+
+    /* Varios formularios ponen "grid-template-columns: 1fr 1fr" inline
+       (nombre + correo lado a lado) — en celular angosto eso deja cada
+       campo con ~110px de ancho. El inline style gana sobre cualquier
+       regla externa salvo con !important. */
+    .form-group[style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+
 .form-group {
     margin-bottom: 25px;
 }
