@@ -351,7 +351,12 @@ function render(p) {
                 <div class="footer-col">
                     <h4>Walter Guerrero | RE/MAX Elite</h4>
                     <p style="color: #cbd5e1; max-width: 300px;">Agente inmobiliario profesional dedicado a tu éxito financiero a través de bienes raíces en El Salvador.</p>
-                    <a class="footer-yt" href="https://www.youtube.com/@WalterGuerreroSV" target="_blank" rel="noopener"><i class="fab fa-youtube"></i> Nuestro canal de YouTube</a>
+                    <div class="footer-social">
+                        <a class="yt" href="https://www.youtube.com/@WalterGuerreroSV" target="_blank" rel="noopener"><i class="fab fa-youtube"></i> YouTube</a>
+                        <a class="ig" href="https://www.instagram.com/walter.guerrero_remax/" target="_blank" rel="noopener"><i class="fab fa-instagram"></i> Instagram</a>
+                        <a class="fb" href="https://www.facebook.com/profile.php?id=61556364535348" target="_blank" rel="noopener"><i class="fab fa-facebook"></i> Facebook</a>
+                        <a class="tiktok" href="https://www.tiktok.com/@walter.realtor2" target="_blank" rel="noopener"><i class="fab fa-tiktok"></i> TikTok</a>
+                    </div>
                 </div>
                 <div class="footer-col">
                     <h4>Servicios</h4>

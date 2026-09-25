@@ -1012,11 +1012,17 @@ footer {
     font-size: 0.95rem;
 }
 
-.footer-yt {
+.footer-social {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.footer-social a {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    margin-top: 18px;
     color: white;
     text-decoration: none;
     font-weight: 500;
@@ -1024,14 +1030,18 @@ footer {
     transition: var(--transition);
 }
 
-.footer-yt i {
-    color: #ff0000;
+.footer-social a i {
     font-size: 1.4rem;
 }
 
-.footer-yt:hover {
+.footer-social a:hover {
     color: var(--gold);
 }
+
+.footer-social a.yt i { color: #ff0000; }
+.footer-social a.ig i { color: #e1306c; }
+.footer-social a.fb i { color: #1877f2; }
+.footer-social a.tiktok i { color: #ffffff; }
 
 /* Floating WhatsApp */
 .floating-whatsapp {

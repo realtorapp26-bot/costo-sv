@@ -23,7 +23,12 @@ const BIZ = {
   email: 'walter.guerrero@remax.com.sv',
   siteName: 'Walter Guerrero · RE/MAX Elite',
   ogImage: '%%SITE_URL%%/assets/walter-guerrero-retocada.png',
-  sameAs: ['https://www.youtube.com/@WalterGuerreroSV'],
+  sameAs: [
+    'https://www.youtube.com/@WalterGuerreroSV',
+    'https://www.instagram.com/walter.guerrero_remax/',
+    'https://www.facebook.com/profile.php?id=61556364535348',
+    'https://www.tiktok.com/@walter.realtor2',
+  ],
 };
 
 // file -> etiqueta corta para el breadcrumb (index no lleva breadcrumb)
