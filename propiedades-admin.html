@@ -178,6 +178,12 @@
         </div>
 
         <div class="tab-panel active" id="tab-prop">
+            <div style="position: relative; max-width: 420px; margin-bottom: 16px;">
+                <i class="fas fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 0.85rem;"></i>
+                <input type="search" id="buscador-prop-admin" placeholder="Buscar por título o ubicación..."
+                       oninput="filtroPropAdmin = this.value; render();"
+                       style="width: 100%; padding: 9px 12px 9px 36px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: 'Outfit', sans-serif; font-size: 0.9rem; outline: none;">
+            </div>
             <div class="prop-list" id="tabla-body">
                 <div class="prop-empty">Cargando...</div>
             </div>
@@ -373,6 +379,9 @@
         const SUPA_URL = window.SITE_CONFIG.SUPABASE_URL;
         let propiedades = [];
         let franquicias = [];
+        let filtroPropAdmin = '';
+        const DIACRITICOS_ADMIN = new RegExp('[' + String.fromCharCode(0x0300) + '-' + String.fromCharCode(0x036f) + ']', 'g');
+        const normalizarAdmin = (s) => String(s || '').toLowerCase().normalize('NFD').replace(DIACRITICOS_ADMIN, '');
 
         let toastTimer = null;
         function mostrarToast(mensaje) {
@@ -460,7 +469,21 @@
                 body.innerHTML = '<div class="prop-empty">Todavía no hay propiedades cargadas.</div>';
                 return;
             }
-            body.innerHTML = propiedades.map((p, idx) => {
+            const textoFiltro = normalizarAdmin(filtroPropAdmin.trim());
+            const hayFiltro = !!textoFiltro;
+            // idx real (posición en la lista completa, no en la filtrada) — el orden
+            // manual y la marca de "Destacada" dependen de la posición verdadera,
+            // no de dónde cae la tarjeta dentro de los resultados de la búsqueda.
+            const visibles = propiedades
+                .map((p, idxReal) => ({ p, idxReal }))
+                .filter(({ p }) => !textoFiltro || [p.titulo, p.ubicacion, p.categoria].some(c => normalizarAdmin(c).includes(textoFiltro)));
+
+            if (!visibles.length) {
+                body.innerHTML = `<div class="prop-empty">No encontramos propiedades que coincidan con "${filtroPropAdmin.trim()}".</div>`;
+                return;
+            }
+
+            body.innerHTML = visibles.map(({ p, idxReal: idx }) => {
                 const foto = (p.fotos && p.fotos[0]) || '';
                 const fecha = new Date(p.created_at).toLocaleDateString('es-SV', { day: '2-digit', month: 'short', year: 'numeric' });
                 const montoNum = String(p.precio || '').replace(/[^0-9.]/g, '');
@@ -473,10 +496,10 @@
                 return `
                     <div class="prop-card${idx === 0 ? ' prop-card-destacada' : ''}" data-id="${p.id}">
                         <div class="prop-card-main">
-                            <button type="button" class="prop-drag-handle" title="Arrastrar para reordenar" aria-label="Arrastrar para reordenar" onpointerdown="iniciarArrastre(event, '${p.id}')"><i class="fas fa-grip-lines"></i></button>
+                            <button type="button" class="prop-drag-handle" title="${hayFiltro ? 'Borrá la búsqueda para reordenar' : 'Arrastrar para reordenar'}" aria-label="Arrastrar para reordenar" ${hayFiltro ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : `onpointerdown="iniciarArrastre(event, '${p.id}')"`}><i class="fas fa-grip-lines"></i></button>
                             <div class="prop-card-orden">
-                                <button class="prop-orden-btn" title="Mostrar antes" onclick="moverPropiedad('${p.id}','arriba')" ${idx === 0 ? 'disabled' : ''}><i class="fas fa-chevron-up"></i></button>
-                                <button class="prop-orden-btn" title="Mostrar después" onclick="moverPropiedad('${p.id}','abajo')" ${idx === propiedades.length - 1 ? 'disabled' : ''}><i class="fas fa-chevron-down"></i></button>
+                                <button class="prop-orden-btn" title="${hayFiltro ? 'Borrá la búsqueda para reordenar' : 'Mostrar antes'}" onclick="moverPropiedad('${p.id}','arriba')" ${hayFiltro || idx === 0 ? 'disabled' : ''}><i class="fas fa-chevron-up"></i></button>
+                                <button class="prop-orden-btn" title="${hayFiltro ? 'Borrá la búsqueda para reordenar' : 'Mostrar después'}" onclick="moverPropiedad('${p.id}','abajo')" ${hayFiltro || idx === propiedades.length - 1 ? 'disabled' : ''}><i class="fas fa-chevron-down"></i></button>
                             </div>
                             ${foto
                                 ? `<img src="${foto}" class="prop-card-foto" onerror="this.style.display='none'">`
