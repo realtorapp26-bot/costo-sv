@@ -86,6 +86,10 @@
         .gl-modelo-stats { display: flex; flex-wrap: wrap; gap: 14px; margin: 20px 0 30px; }
         .gl-modelo-stat { display: flex; align-items: center; gap: 10px; background: white; border: 1px solid var(--border); border-radius: 999px; padding: 10px 18px; font-size: 0.9rem; font-weight: 600; color: var(--primary); }
         .gl-modelo-stat i { color: var(--gold); }
+        .gl-modelo-precio { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 18px; background: var(--primary); color: #fff; border-radius: var(--radius-md); padding: 22px 26px; margin-bottom: 28px; }
+        .gl-modelo-precio-num { font-family: 'Playfair Display', serif; font-size: 1.9rem; font-weight: 700; color: var(--gold); line-height: 1.2; }
+        .gl-modelo-precio-reserva { font-size: 0.85rem; color: rgba(255,255,255,0.8); margin-top: 4px; }
+        @media (max-width: 600px) { .gl-modelo-precio { flex-direction: column; align-items: flex-start; } }
         .gl-plantas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 24px; }
         .gl-planta-card { background: white; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; cursor: zoom-in; }
         .gl-planta-card img { width: 100%; aspect-ratio: 3 / 2; object-fit: contain; background: #f8fafc; border-radius: var(--radius-sm); display: block; }
@@ -131,10 +135,6 @@
             <div class="hero-content">
                 <div class="hero-tagline">Costa del Sol, La Herradura, La Paz</div>
                 <h1 class="hero-title">Golden Lake</h1>
-                <div class="hero-buttons">
-                    <a href="#inventario" class="btn btn-gold"><i class="fas fa-house"></i> Ver propiedades disponibles</a>
-                    <a data-whatsapp data-wa="Hola Walter, vi la página de Golden Lake y quiero más información." href="#" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> Hablar por WhatsApp</a>
-                </div>
             </div>
         </div>
     </section>
@@ -166,12 +166,22 @@
 
     <!-- Modelo de casa nueva -->
     <section class="section pt-0" id="gl-modelo-seccion" style="display:none; background-color: var(--bg-alt);">
-        <div class="container" id="gl-modelo-info" style="display:none; max-width: 900px;">
-            <h2 class="section-title" id="gl-modelo-nombre">Así son las casas nuevas</h2>
-            <div class="gl-modelo-stats" id="gl-modelo-stats"></div>
-            <div id="gl-modelo-texto" style="color: var(--text-light); font-size: 1.05rem; line-height: 1.8;"></div>
+        <div class="container landing-layout" id="gl-modelo-info" style="display:none;">
+            <div class="landing-content">
+                <h2 class="section-title" id="gl-modelo-nombre" style="text-align:left;">Así son las casas nuevas</h2>
+                <div class="gl-modelo-stats" id="gl-modelo-stats"></div>
+                <div class="gl-modelo-precio" id="gl-modelo-precio-wrap" style="display:none;">
+                    <div>
+                        <div class="gl-modelo-precio-num" id="gl-modelo-precio"></div>
+                        <div class="gl-modelo-precio-reserva" id="gl-modelo-reserva"></div>
+                    </div>
+                    <a data-whatsapp data-wa="Hola Walter, quiero reservar una casa nueva en Golden Lake. ¿Me das más información?" href="#" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> Quiero reservar</a>
+                </div>
+                <div id="gl-modelo-texto" style="color: var(--text-light); font-size: 1.05rem; line-height: 1.8;"></div>
+            </div>
+            <div class="landing-sidebar" id="gl-modelo-foto"></div>
         </div>
-        <div class="container" id="gl-plantas-seccion" style="display:none; margin-top: 50px;">
+        <div class="container" id="gl-plantas-seccion" style="display:none; margin-top: 60px;">
             <h3 style="text-align:center; font-family:'Playfair Display', serif; font-size:1.4rem; color:var(--primary); margin-bottom:24px;">Plantas arquitectónicas</h3>
             <div class="gl-plantas-grid" id="gl-plantas"></div>
         </div>
@@ -313,8 +323,10 @@
             const RESPALDO = {
                 descripcion: 'Uno de los residenciales con mayor desarrollo y plusvalía de El Salvador: comunidad cerrada, lagos artificiales, muelle al estero de Jaltepeque y membresía VIP con acceso a la playa en Tesoro Beach.',
                 modeloNombre: 'Casa nueva de dos niveles — diseño contemporáneo con doble altura',
-                modeloStats: '4 Habitaciones · 5 Baños · 5 Terrazas · 2 Niveles · Parqueo 2 vehículos',
+                modeloStats: '4 Habitaciones · 5 Baños · 5 Terrazas · 2 Niveles · Parqueo 2 vehículos · 308.33 m² de terreno',
                 modeloDescripcion: 'Primer nivel: sala, comedor y cocina integrados en un espacio de doble altura, con mueblería de cocina aérea, barra de cuarzo y conexión directa a la piscina — perfecto para recibir. La escalera flotante deja pasar luz natural desde el segundo nivel. Incluye habitación junior con baño completo, cuarto de servicio, baño de visitas, bodega y cuarto de lavado. Una terraza frontal y una terraza lateral completan el nivel.\n\nSegundo nivel: sala de estar con acceso a patio propio. La habitación master es completa: terraza privada, closet y baño con división de cristal. Dos habitaciones más, ambas completas — una de ellas con su propia terraza.',
+                modeloPrecio: '$395,000 (negociable)',
+                modeloReserva: 'Reservá con el 30% de prima',
                 videos: ['https://www.youtube.com/watch?v=zqrdUcA1hK8'],
                 latitud: 13.334941,
                 longitud: -88.975586,
@@ -353,17 +365,20 @@
                 `).join('');
             }
 
-            function renderFotoLateral(fotos) {
-                const cont = document.getElementById('gl-sidebar-foto');
+            function renderFotoLateral(fotos, contId, imgId) {
+                contId = contId || 'gl-sidebar-foto';
+                imgId = imgId || 'gl-sidebar-img';
+                const cont = document.getElementById(contId);
+                if (!cont) return;
                 const lista = (fotos || []).filter(Boolean);
                 if (!lista.length) { cont.style.display = 'none'; return; }
-                cont.innerHTML = `<img id="gl-sidebar-img" src="${lista[0]}" alt="Golden Lake, Costa del Sol" loading="lazy" decoding="async"
+                cont.innerHTML = `<img id="${imgId}" src="${lista[0]}" alt="Golden Lake, Costa del Sol" loading="lazy" decoding="async"
                     style="width:100%; border-radius:var(--radius-md); box-shadow:var(--shadow-lg); object-fit:cover; aspect-ratio:3/4; transition:opacity 0.5s ease;"
                     onerror="this.closest('.landing-sidebar').style.display='none'">`;
                 if (lista.length > 1) {
                     let idx = 0;
                     setInterval(() => {
-                        const img = document.getElementById('gl-sidebar-img');
+                        const img = document.getElementById(imgId);
                         if (!img) return;
                         idx = (idx + 1) % lista.length;
                         img.style.opacity = '0';
@@ -421,10 +436,11 @@
                 if (t.includes('terraza')) return 'fa-sun';
                 if (t.includes('nivel') || t.includes('piso')) return 'fa-layer-group';
                 if (t.includes('parqueo') || t.includes('vehiculo') || t.includes('vehículo') || t.includes('garaje')) return 'fa-car';
+                if (t.includes('terreno') || t.includes('m2') || t.includes('m²') || t.includes('area') || t.includes('área')) return 'fa-vector-square';
                 return 'fa-circle-check';
             }
 
-            function renderModelo(nombre, stats, descripcion) {
+            function renderModelo(nombre, stats, descripcion, precio, reserva, fotos) {
                 if (!nombre && !stats && !descripcion) return;
                 document.getElementById('gl-modelo-seccion').style.display = '';
                 document.getElementById('gl-modelo-info').style.display = '';
@@ -434,10 +450,16 @@
                 statsCont.innerHTML = items.map((texto) => `
                     <div class="gl-modelo-stat"><i class="fas ${iconoStat(texto)}"></i> ${texto}</div>
                 `).join('');
+                if (precio || reserva) {
+                    document.getElementById('gl-modelo-precio-wrap').style.display = '';
+                    document.getElementById('gl-modelo-precio').textContent = precio || '';
+                    document.getElementById('gl-modelo-reserva').textContent = reserva || '';
+                }
                 document.getElementById('gl-modelo-texto').innerHTML = (descripcion || '')
                     .split(/\n{2,}/)
                     .map((parrafo) => `<p style="margin-bottom:16px;">${parrafo.trim()}</p>`)
                     .join('');
+                renderFotoLateral(fotos, 'gl-modelo-foto', 'gl-modelo-img');
             }
 
             function renderPlantas(plantas) {
@@ -507,12 +529,15 @@
                 const modeloNombre = (p && p.modelo_nombre) || RESPALDO.modeloNombre;
                 const modeloStats = (p && p.modelo_stats) || RESPALDO.modeloStats;
                 const modeloDescripcion = (p && p.modelo_descripcion) || RESPALDO.modeloDescripcion;
+                const modeloPrecio = (p && p.modelo_precio) || RESPALDO.modeloPrecio;
+                const modeloReserva = (p && p.modelo_reserva) || RESPALDO.modeloReserva;
+                const fotosModelo = fotos.length > 6 ? fotos.slice().reverse().slice(0, 5) : fotos;
                 const lat = (p && p.latitud) || RESPALDO.latitud;
                 const lng = (p && p.longitud) || RESPALDO.longitud;
 
                 document.title = document.title.replace('Golden Lake', nombre);
 
-                // El hero va limpio (video + título + botones, sin párrafo). La
+                // El hero va limpio (video + título, sin párrafo ni botones). La
                 // descripción completa se muestra junto a los íconos de
                 // "Por qué invertir en Golden Lake".
                 document.getElementById('gl-sobre-texto').innerHTML = descripcion
@@ -530,7 +555,7 @@
                 renderFotoLateral(fotos.length > 1 ? fotos.slice(1, 6) : fotos);
                 renderVideoHero(videoHero);
                 renderVideos(videos);
-                renderModelo(modeloNombre, modeloStats, modeloDescripcion);
+                renderModelo(modeloNombre, modeloStats, modeloDescripcion, modeloPrecio, modeloReserva, fotosModelo);
                 renderPlantas(plantas);
                 renderGaleria(fotos.slice(1));
                 renderMapa(lat, lng);

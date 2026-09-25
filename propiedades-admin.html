@@ -208,6 +208,8 @@
                 </div>
                 <div class="full"><label>Nombre del modelo de casa</label><input type="text" id="py-modelo-nombre" placeholder="Casa nueva de dos niveles"></div>
                 <div class="full"><label>Resumen del modelo (separado por "·")</label><input type="text" id="py-modelo-stats" placeholder="4 Habitaciones · 5 Baños · 5 Terrazas · 2 Niveles · Parqueo 2 vehículos"></div>
+                <div><label>Precio del modelo</label><input type="text" id="py-modelo-precio" placeholder="$395,000 (negociable)"></div>
+                <div><label>Condición de reserva</label><input type="text" id="py-modelo-reserva" placeholder="Reservá con el 30% de prima"></div>
                 <div class="full"><label>Descripción del modelo, por nivel</label><textarea id="py-modelo-descripcion" style="min-height:140px;" placeholder="Primer nivel: ...&#10;&#10;Segundo nivel: ..."></textarea></div>
                 <div class="full">
                     <label>Plantas arquitectónicas (Nivel 1, Nivel 2... en ese orden)</label>
@@ -1007,6 +1009,8 @@
                 previsualizarFotos('py-fotos', 'py-fotos-preview');
                 document.getElementById('py-modelo-nombre').value = p.modelo_nombre || '';
                 document.getElementById('py-modelo-stats').value = p.modelo_stats || '';
+                document.getElementById('py-modelo-precio').value = p.modelo_precio || '';
+                document.getElementById('py-modelo-reserva').value = p.modelo_reserva || '';
                 document.getElementById('py-modelo-descripcion').value = p.modelo_descripcion || '';
                 document.getElementById('py-plantas').value = (p.plantas || []).join('\n');
                 previsualizarFotos('py-plantas', 'py-plantas-preview');
@@ -1028,6 +1032,8 @@
                 fotos: obtenerUrlsFotosDe('py-fotos'),
                 modelo_nombre: document.getElementById('py-modelo-nombre').value.trim() || null,
                 modelo_stats: document.getElementById('py-modelo-stats').value.trim() || null,
+                modelo_precio: document.getElementById('py-modelo-precio').value.trim() || null,
+                modelo_reserva: document.getElementById('py-modelo-reserva').value.trim() || null,
                 modelo_descripcion: document.getElementById('py-modelo-descripcion').value.trim() || null,
                 plantas: obtenerUrlsFotosDe('py-plantas'),
             };
