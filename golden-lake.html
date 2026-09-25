@@ -93,6 +93,9 @@
         .gl-modelo-stats { display: flex; flex-wrap: wrap; gap: 14px; margin: 20px 0 30px; }
         .gl-modelo-stat { display: flex; align-items: center; gap: 10px; background: white; border: 1px solid var(--border); border-radius: 999px; padding: 10px 18px; font-size: 0.9rem; font-weight: 600; color: var(--primary); }
         .gl-modelo-stat i { color: var(--gold); }
+        .gl-modelo-incluye { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px 20px; margin-bottom: 28px; }
+        .gl-modelo-incluye-item { display: flex; align-items: center; gap: 10px; font-size: 0.92rem; color: var(--text-main); font-weight: 500; }
+        .gl-modelo-incluye-item i { color: #25d366; font-size: 0.95rem; }
         .gl-modelo-precio { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 18px; background: var(--primary); color: #fff; border-radius: var(--radius-md); padding: 22px 26px; margin-bottom: 28px; }
         .gl-modelo-precio-num { font-family: 'Playfair Display', serif; font-size: 1.9rem; font-weight: 700; color: var(--gold); line-height: 1.2; }
         .gl-modelo-precio-reserva { font-size: 0.85rem; color: rgba(255,255,255,0.8); margin-top: 4px; }
@@ -224,6 +227,7 @@
         <div class="container">
         <div class="landing-layout" id="gl-modelo-info" style="display:none;">
             <div class="landing-content">
+                <div class="gl-badge-vip"><i class="fas fa-drafting-compass"></i> Promoción en planos</div>
                 <h2 class="section-title" id="gl-modelo-nombre" style="text-align:left;">Así son las casas nuevas</h2>
                 <div class="gl-modelo-stats" id="gl-modelo-stats"></div>
                 <div class="gl-modelo-precio" id="gl-modelo-precio-wrap" style="display:none;">
@@ -233,6 +237,7 @@
                     </div>
                     <a data-whatsapp data-wa="Hola Walter, quiero reservar una casa nueva en Golden Lake. ¿Me das más información?" href="#" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> Quiero reservar</a>
                 </div>
+                <div class="gl-modelo-incluye" id="gl-modelo-incluye"></div>
                 <div id="gl-modelo-texto" style="color: var(--text-light); font-size: 1.05rem; line-height: 1.8;"></div>
             </div>
             <div class="landing-sidebar" id="gl-modelo-foto"></div>
@@ -459,8 +464,15 @@
                 modeloNombre: 'Casa nueva de dos niveles — diseño contemporáneo con doble altura',
                 modeloStats: '4 Habitaciones · 5 Baños · 5 Terrazas · 2 Niveles · Parqueo 2 vehículos · 308.33 m² de terreno',
                 modeloDescripcion: 'Primer nivel: sala, comedor y cocina integrados en un espacio de doble altura, con mueblería de cocina aérea, barra de cuarzo y conexión directa a la piscina — perfecto para recibir. La escalera flotante deja pasar luz natural desde el segundo nivel. Incluye habitación junior con baño completo, cuarto de servicio, baño de visitas, bodega y cuarto de lavado. Una terraza frontal y una terraza lateral completan el nivel.\n\nSegundo nivel: sala de estar con acceso a patio propio. La habitación master es completa: terraza privada, closet y baño con división de cristal. Dos habitaciones más, ambas completas — una de ellas con su propia terraza.',
-                modeloPrecio: '$395,000 (negociable)',
-                modeloReserva: 'Reservá con el 30% de prima',
+                modeloPrecio: '$350,000',
+                modeloReserva: 'Promoción en planos · Reservá con el 30% de prima',
+                modeloIncluye: [
+                    'Amueblada con línea blanca',
+                    'Aire acondicionado tipo cassette',
+                    'Aire acondicionado en todas las habitaciones',
+                    'Agua caliente',
+                    'Comedor y cocina amueblados',
+                ],
                 videos: ['https://www.youtube.com/watch?v=zqrdUcA1hK8'],
                 latitud: 13.334941,
                 longitud: -88.975586,
@@ -619,7 +631,7 @@
                 return 'fa-circle-check';
             }
 
-            function renderModelo(nombre, stats, descripcion, precio, reserva, fotos) {
+            function renderModelo(nombre, stats, descripcion, precio, reserva, fotos, incluye) {
                 if (!nombre && !stats && !descripcion) return;
                 document.getElementById('gl-modelo-seccion').style.display = '';
                 document.getElementById('gl-modelo-info').style.display = '';
@@ -633,6 +645,11 @@
                     document.getElementById('gl-modelo-precio-wrap').style.display = '';
                     document.getElementById('gl-modelo-precio').textContent = precio || '';
                     document.getElementById('gl-modelo-reserva').textContent = reserva || '';
+                }
+                if (incluye && incluye.length) {
+                    document.getElementById('gl-modelo-incluye').innerHTML = incluye.map((texto) => `
+                        <div class="gl-modelo-incluye-item"><i class="fas fa-circle-check"></i> ${texto}</div>
+                    `).join('');
                 }
                 const textoEl = document.getElementById('gl-modelo-texto');
                 textoEl.innerHTML = (descripcion || '')
@@ -739,7 +756,7 @@
                 renderFotoLateral(fotos.length > 1 ? fotos.slice(1, 6) : fotos);
                 renderVideoHero(videoHero);
                 renderVideos(videos);
-                renderModelo(modeloNombre, modeloStats, modeloDescripcion, modeloPrecio, modeloReserva, fotosModelo);
+                renderModelo(modeloNombre, modeloStats, modeloDescripcion, modeloPrecio, modeloReserva, fotosModelo, RESPALDO.modeloIncluye);
                 renderPlantas(plantas);
                 renderGaleria(fotos.slice(1));
                 renderMapa(lat, lng);
