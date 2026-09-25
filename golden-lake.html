@@ -47,7 +47,11 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .hero-video-bg { position: absolute; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+        /* -webkit-mask-image fuerza a iOS Safari a recortar el iframe de
+           verdad — sin esto, el video de YouTube a veces "se escapa" del
+           overflow:hidden y se dibuja encima de la barra de navegación
+           (bug conocido de WebKit con iframes + position:sticky). */
+        .hero-video-bg { position: absolute; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; -webkit-mask-image: -webkit-radial-gradient(white, black); }
         .hero-video-bg iframe { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 0; }
         /* El oscurecimiento de .hero::after (styles.css) es para fotos fijas —
            con el video de fondo Walter pidió sacarlo del todo. */
