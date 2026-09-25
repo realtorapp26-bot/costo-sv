@@ -614,8 +614,9 @@
             }
             window.addEventListener('resize', ajustarVideoHero);
 
-            // Menú: se esconde al bajar (para que el video del hero respire
-            // en celular), y vuelve apenas se sube — nunca queda inaccesible.
+            // Menú: se esconde solo a los pocos segundos de entrar (para que
+            // el video del hero se vea completo sin que el usuario tenga que
+            // scrollear), y vuelve apenas se sube — nunca queda inaccesible.
             (function () {
                 const nav = document.querySelector('.navbar');
                 if (!nav) return;
@@ -624,11 +625,12 @@
                     const actual = window.scrollY;
                     if (actual > ultimoScroll && actual > nav.offsetHeight) {
                         nav.classList.add('gl-nav-oculto');
-                    } else {
+                    } else if (actual < ultimoScroll) {
                         nav.classList.remove('gl-nav-oculto');
                     }
                     ultimoScroll = actual;
                 }, { passive: true });
+                setTimeout(() => nav.classList.add('gl-nav-oculto'), 1800);
             })();
 
             function renderVideos(videoUrls) {
