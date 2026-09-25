@@ -53,6 +53,17 @@
         /* El oscurecimiento de .hero::after (styles.css) es para fotos fijas —
            con el video de fondo se sentía demasiado oscuro. Ajuste solo acá. */
         .hero::after { background: linear-gradient(135deg, rgba(10,15,28,0.72) 0%, rgba(10,15,28,0.4) 100%); }
+        /* El hero alto (78vh) es para pantalla grande, para que el video
+           respire. En celular el bloque de texto solo ocupaba casi toda la
+           pantalla tapando el video — acá se achica al contenido y el texto
+           queda más compacto, para que el video se note más. */
+        @media (min-width: 1025px) { .gl-hero { min-height: 78vh; } }
+        @media (max-width: 600px) {
+            .gl-hero { padding: 70px 0 36px; }
+            .gl-hero .hero-title { font-size: 2rem; margin-bottom: 10px; }
+            .gl-hero .hero-tagline { font-size: 0.78rem; letter-spacing: 2px; margin-bottom: 8px; }
+            .gl-hero .hero-subtitle { font-size: 0.92rem; line-height: 1.5; margin-bottom: 18px; }
+        }
         .gl-stat { background: white; box-shadow: var(--shadow-lg); border-radius: var(--radius-md); padding: 20px 32px; text-align: center; min-width: 180px; }
         .gl-stat .num { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--primary); font-weight: 700; }
         .gl-stat .lbl { font-size: 0.78rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
@@ -101,7 +112,7 @@
     </header>
 
     <!-- Hero -->
-    <section class="hero" style="min-height: 78vh;">
+    <section class="hero gl-hero">
         <img id="gl-hero-bg" src="https://remaxcaribbeanandcentralamerica.azureedge.net/images/002523093003/v3/HDPhotos/IMG_6090.png" alt="" role="presentation" class="hero-bg" fetchpriority="high" decoding="async">
         <div class="hero-video-bg" id="gl-hero-video-bg"></div>
         <div class="container">
