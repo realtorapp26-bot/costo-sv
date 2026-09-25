@@ -306,6 +306,7 @@ function render(p) {
                 <a href="/comprar.html">Comprar</a>
                 <a href="/invertir.html">Invertir</a>
                 <a href="/propiedades.html" class="active">Propiedades</a>
+                <a href="/golden-lake.html">Golden Lake</a>
                 <a href="/menajes.html">Menajes</a>
                 <a href="/costo-vida.html">Costo de Vida</a>
                 <a data-whatsapp href="#" class="btn btn-gold btn-whatsapp"><i class="fab fa-whatsapp"></i> Contactar</a>

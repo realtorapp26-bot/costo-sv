@@ -50,8 +50,8 @@
         .hero-video-bg { position: absolute; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
         .hero-video-bg iframe { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 0; }
         /* El oscurecimiento de .hero::after (styles.css) es para fotos fijas —
-           con el video de fondo se sentía demasiado oscuro. Ajuste solo acá. */
-        .hero::after { background: linear-gradient(135deg, rgba(10,15,28,0.72) 0%, rgba(10,15,28,0.4) 100%); }
+           con el video de fondo Walter pidió sacarlo del todo. */
+        .hero::after { background: none; }
         /* El hero alto (78vh) es para pantalla grande, para que el video
            respire. En celular el bloque de texto solo ocupaba casi toda la
            pantalla tapando el video — acá se achica al contenido y el texto
