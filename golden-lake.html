@@ -47,7 +47,6 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .gl-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; margin-top: -40px; position: relative; z-index: 3; }
         .hero-video-bg { position: absolute; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
         .hero-video-bg iframe { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 0; }
         /* El oscurecimiento de .hero::after (styles.css) es para fotos fijas —
@@ -63,11 +62,12 @@
             .gl-hero .hero-title { font-size: 2rem; margin-bottom: 10px; }
             .gl-hero .hero-tagline { font-size: 0.78rem; letter-spacing: 2px; margin-bottom: 8px; }
         }
-        .gl-stat { background: white; box-shadow: var(--shadow-lg); border-radius: var(--radius-md); padding: 20px 32px; text-align: center; min-width: 180px; }
-        .gl-amenidad-icono { width: 46px; height: 46px; min-width: 46px; border-radius: 50%; background: rgba(212,175,55,0.14); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 1.15rem; transition: var(--transition); }
-        .benefits-list li:hover .gl-amenidad-icono { background: var(--gold); color: var(--primary); }
-        .gl-stat .num { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--primary); font-weight: 700; }
-        .gl-stat .lbl { font-size: 0.78rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+        #gl-amenidades { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin: 30px 0; }
+        #gl-amenidades li { margin-bottom: 0; padding: 20px 18px; flex-direction: column; align-items: flex-start; gap: 14px; }
+        .gl-amenidad-icono { width: 50px; height: 50px; min-width: 50px; border-radius: 50%; background: rgba(212,175,55,0.14); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; transition: var(--transition); }
+        #gl-amenidades li:hover .gl-amenidad-icono { background: var(--gold); color: var(--primary); }
+        #gl-amenidades li > div { font-size: 0.98rem; line-height: 1.5; color: var(--text-main); font-weight: 500; }
+        @media (max-width: 700px) { #gl-amenidades { grid-template-columns: 1fr; } }
         .gl-badge-vip { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(120deg, #d4af37, #f4e2a1); color: var(--primary); font-weight: 700; font-size: 0.85rem; padding: 8px 18px; border-radius: 999px; margin-bottom: 18px; }
         .ficha-video { position: relative; aspect-ratio: 16 / 9; border-radius: var(--radius-md); overflow: hidden; background: #000; max-width: 900px; margin: 0 auto; }
         .gl-video-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
@@ -139,10 +139,6 @@
         </div>
     </section>
 
-    <div class="container">
-        <div class="gl-stats" id="gl-stats"></div>
-    </div>
-
     <!-- Por qué Golden Lake -->
     <section class="section">
         <div class="container landing-layout">
@@ -150,7 +146,7 @@
                 <h2 class="section-title" style="text-align:left;">Por qué invertir en Golden Lake</h2>
                 <p class="section-subtitle" style="text-align:left; margin-left:0;">Un desarrollo pensado para vivir junto al mar o para invertir con plusvalía real.</p>
                 <div id="gl-sobre-texto" style="color: var(--text-light); font-size: 1.05rem; line-height: 1.8; margin-bottom: 30px;"></div>
-                <ul class="benefits-list" id="gl-amenidades" style="margin: 0;"></ul>
+                <ul class="benefits-list" id="gl-amenidades"></ul>
             </div>
             <div class="landing-sidebar" id="gl-sidebar-foto"></div>
         </div>
@@ -598,20 +594,6 @@
                 `;
             }
 
-            function renderStats(propiedades) {
-                const cont = document.getElementById('gl-stats');
-                if (!propiedades.length) { cont.innerHTML = ''; return; }
-                const precios = propiedades.map(p => Number(String(p.precio || '').replace(/[^0-9.]/g, ''))).filter(n => n > 0);
-                const min = precios.length ? Math.min(...precios) : null;
-                const max = precios.length ? Math.max(...precios) : null;
-                const fmt = (n) => '$' + Math.round(n).toLocaleString('es-SV');
-                cont.innerHTML = `
-                    <div class="gl-stat"><div class="num">${propiedades.length}</div><div class="lbl">Propiedades disponibles</div></div>
-                    ${min && max ? `<div class="gl-stat"><div class="num">${fmt(min)} – ${fmt(max)}</div><div class="lbl">Rango de precios</div></div>` : ''}
-                    <div class="gl-stat"><div class="num">Costa del Sol</div><div class="lbl">La Herradura, La Paz</div></div>
-                `;
-            }
-
             async function cargarInventario() {
                 const cont = document.getElementById('gl-inventario');
                 try {
@@ -621,7 +603,6 @@
                     });
                     if (!res.ok) throw new Error('No se pudo cargar el inventario');
                     const propiedades = await res.json();
-                    renderStats(propiedades);
                     if (!propiedades.length) {
                         cont.innerHTML = '<div class="gl-empty-inventario">Por el momento no hay unidades publicadas — escribinos y te avisamos apenas haya disponibilidad.</div>';
                         return;
