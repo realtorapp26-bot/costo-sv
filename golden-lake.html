@@ -47,6 +47,11 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* El padding de .section (100px, definido en styles.css para todo
+           el sitio) dejaba demasiado espacio vacío entre secciones acá.
+           Se reduce solo en esta página. */
+        .section { padding: 60px 0; }
+        @media (max-width: 700px) { .section { padding: 40px 0; } }
         /* -webkit-mask-image fuerza a iOS Safari a recortar el iframe de
            verdad — sin esto, el video de YouTube a veces "se escapa" del
            overflow:hidden y se dibuja encima de la barra de navegación
@@ -179,8 +184,8 @@
     <header class="navbar">
         <div class="container">
             <a href="index.html" class="logo" style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-decoration: none; margin-top: 5px;">
-                <img decoding="async" src="assets/logo-remax.png" alt="RE/MAX Logo" style="height: 35px; object-fit: contain;">
-                <span style="color: white; font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 500; letter-spacing: 0.5px; opacity: 0.9;">Walter Guerrero</span>
+                <img decoding="async" src="assets/logo-remax.png" alt="RE/MAX Logo" style="height: 20px; object-fit: contain;">
+                <span style="color: white; font-family: 'Inter', sans-serif; font-size: 1.15rem; font-weight: 700; letter-spacing: 0.3px;">Walter Guerrero</span>
             </a>
             <button class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
             <nav class="nav-links">
