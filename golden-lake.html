@@ -52,12 +52,15 @@
            Se reduce solo en esta página. */
         .section { padding: 60px 0; }
         @media (max-width: 700px) { .section { padding: 40px 0; } }
-        /* .landing-layout (styles.css) es flex con stretch por defecto: la
-           columna de la foto se estira para igualar la altura del texto
-           largo, pero la imagen tiene aspect-ratio fijo (3/4) y no la
-           llena — queda un hueco vacío debajo en PC. Con flex-start la
-           columna de la foto solo ocupa su alto natural. */
-        .landing-layout { align-items: flex-start; }
+        /* La foto lateral (modelo y "por qué invertir") usaba aspect-ratio
+           fijo: si el texto de al lado es más alto, o más bajo, que esa
+           proporción, queda un hueco en blanco en PC. Con height:100% +
+           object-fit:cover (más abajo, en renderFotoLateral) la foto
+           siempre llena exacto la altura de la columna de texto,
+           recortando en vez de dejar espacio vacío — funciona sin
+           importar cuál lado sea más alto. */
+        .landing-sidebar { align-self: stretch; }
+        @media (min-width: 961px) { .landing-sidebar img { height: 100%; } }
         /* styles.css fuerza el logo a 60px !important debajo de 900px
            (para el navbar estándar sin nombre). Acá el logo va chico y el
            nombre grande, así que se sobreescribe solo en esta página. */
