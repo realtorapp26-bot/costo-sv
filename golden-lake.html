@@ -155,7 +155,8 @@
                 content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 60px;
                 background: linear-gradient(rgba(255,255,255,0), var(--bg-alt));
             }
-            #gl-sobre-texto.gl-clamp::after { background: linear-gradient(rgba(255,255,255,0), var(--bg-main)); }
+            #gl-sobre-texto.gl-clamp { max-height: 32px; }
+            #gl-sobre-texto.gl-clamp::after { height: 26px; background: linear-gradient(rgba(255,255,255,0), var(--bg-main)); }
             .gl-clamp.gl-mostrar-todo { max-height: none; }
             .gl-clamp.gl-mostrar-todo::after { display: none; }
         }
