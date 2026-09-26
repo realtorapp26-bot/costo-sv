@@ -77,7 +77,12 @@
         .gl-amenidad-icono { width: 50px; height: 50px; min-width: 50px; border-radius: 50%; background: rgba(212,175,55,0.14); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; transition: var(--transition); }
         #gl-amenidades li:hover .gl-amenidad-icono { background: var(--gold); color: var(--primary); }
         #gl-amenidades li > div { font-size: 0.98rem; line-height: 1.5; color: var(--text-main); font-weight: 500; }
-        @media (max-width: 700px) { #gl-amenidades { grid-template-columns: 1fr; } }
+        @media (max-width: 700px) {
+            #gl-amenidades { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+            #gl-amenidades li { padding: 14px 10px; align-items: center; text-align: center; gap: 8px; }
+            .gl-amenidad-icono { width: 38px; height: 38px; min-width: 38px; font-size: 1rem; }
+            #gl-amenidades li > div { font-size: 0.8rem; line-height: 1.3; }
+        }
         .gl-badge-vip { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(120deg, #d4af37, #f4e2a1); color: var(--primary); font-weight: 700; font-size: 0.85rem; padding: 8px 18px; border-radius: 999px; margin-bottom: 18px; }
         .gl-cita-banner { display: flex; align-items: center; gap: 28px; background: linear-gradient(120deg, var(--primary), var(--primary-light)); color: #fff; border-radius: var(--radius-md); padding: 36px 40px; box-shadow: var(--shadow-lg); }
         .gl-cita-banner-icono { width: 64px; height: 64px; min-width: 64px; border-radius: 50%; background: rgba(212,175,55,0.18); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; }
