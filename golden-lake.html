@@ -78,8 +78,16 @@
         #gl-amenidades li:hover .gl-amenidad-icono { background: var(--gold); color: var(--primary); }
         #gl-amenidades li > div { font-size: 0.98rem; line-height: 1.5; color: var(--text-main); font-weight: 500; }
         @media (max-width: 700px) {
-            #gl-amenidades { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
-            #gl-amenidades li { padding: 14px 10px; align-items: center; text-align: center; gap: 8px; }
+            /* Carrusel horizontal en vez de grid con boton "ver mas": el
+               cliente desliza para ver las 6 amenidades, sin cortar nada. */
+            #gl-amenidades {
+                display: flex; flex-wrap: nowrap; overflow-x: auto;
+                scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+                gap: 10px; margin: 20px -24px 6px; padding: 0 24px 10px;
+                scrollbar-width: none;
+            }
+            #gl-amenidades::-webkit-scrollbar { display: none; }
+            #gl-amenidades li { flex: 0 0 128px; scroll-snap-align: start; padding: 14px 10px; align-items: center; text-align: center; gap: 8px; }
             .gl-amenidad-icono { width: 38px; height: 38px; min-width: 38px; font-size: 1rem; }
             #gl-amenidades li > div { font-size: 0.8rem; line-height: 1.3; }
         }
@@ -142,7 +150,6 @@
            o giro de pantalla sin quedar "atascado" oculto en desktop. */
         .gl-ver-mas-btn { display: none; }
         @media (max-width: 700px) {
-            #gl-amenidades:not(.gl-mostrar-todo) .gl-extra,
             #gl-video-grid:not(.gl-mostrar-todo) .gl-extra,
             #gl-galeria:not(.gl-mostrar-todo) .gl-extra {
                 display: none;
@@ -526,7 +533,6 @@
                 cont.innerHTML = lista.map((texto, i) => `
                     <li><span class="gl-amenidad-icono"><i class="fas ${ICONOS_AMENIDADES[i % ICONOS_AMENIDADES.length]}"></i></span> <div>${texto}</div></li>
                 `).join('');
-                agregarVerMas('gl-amenidades', 3, (n) => `Ver ${n} amenidad${n === 1 ? '' : 'es'} más`, 'Ver menos');
             }
 
             // Progressive disclosure en celular: marca los ítems que pasan de
