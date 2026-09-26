@@ -94,18 +94,8 @@
         #gl-amenidades li { margin-bottom: 0; padding: 20px 18px; flex-direction: column; align-items: flex-start; gap: 14px; }
         .gl-amenidad-icono { width: 50px; height: 50px; min-width: 50px; border-radius: 50%; background: rgba(212,175,55,0.14); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; transition: var(--transition); }
         #gl-amenidades li:hover .gl-amenidad-icono { background: var(--gold); color: var(--primary); }
-        #gl-amenidades li > div { font-size: 0.98rem; line-height: 1.5; color: var(--text-main); font-weight: 500; }
-        /* Cada amenidad clave trae un dato extra al tocarla — despliegue de
-           info, no solo el icono + una línea. */
-        .gl-amenidad-clicable { position: relative; cursor: pointer; }
-        .gl-amenidad-toggle { position: absolute; top: 16px; right: 16px; font-size: 0.8rem; color: var(--gold); transition: transform 0.25s ease; }
-        .gl-amenidad-clicable.abierta .gl-amenidad-toggle { transform: rotate(45deg); }
-        .gl-amenidad-detalle {
-            max-height: 0; overflow: hidden; opacity: 0; width: 100%;
-            transition: max-height 0.35s ease, opacity 0.35s ease, margin-top 0.35s ease;
-            font-size: 0.85rem; color: var(--text-light); line-height: 1.5; margin-top: 0;
-        }
-        .gl-amenidad-clicable.abierta .gl-amenidad-detalle { max-height: 200px; opacity: 1; margin-top: 10px; }
+        .gl-amenidad-titulo { font-size: 1.05rem; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+        .gl-amenidad-desc { font-size: 0.92rem; line-height: 1.55; color: var(--text-light); font-weight: 400; }
         @media (max-width: 700px) {
             /* Carrusel horizontal en vez de grid con boton "ver mas": el
                cliente desliza para ver las 6 amenidades, sin cortar nada. */
@@ -116,11 +106,10 @@
                 scrollbar-width: none;
             }
             #gl-amenidades::-webkit-scrollbar { display: none; }
-            #gl-amenidades li { flex: 0 0 158px; scroll-snap-align: start; padding: 14px 10px; align-items: center; text-align: center; gap: 8px; }
-            .gl-amenidad-icono { width: 38px; height: 38px; min-width: 38px; font-size: 1rem; }
-            #gl-amenidades li > div { font-size: 0.8rem; line-height: 1.3; }
-            .gl-amenidad-toggle { top: 8px; right: 8px; font-size: 0.7rem; }
-            .gl-amenidad-detalle { font-size: 0.72rem; text-align: left; }
+            #gl-amenidades li { flex: 0 0 230px; scroll-snap-align: start; padding: 16px 14px; align-items: flex-start; text-align: left; gap: 10px; }
+            .gl-amenidad-icono { width: 40px; height: 40px; min-width: 40px; font-size: 1rem; }
+            .gl-amenidad-titulo { font-size: 0.95rem; }
+            .gl-amenidad-desc { font-size: 0.82rem; line-height: 1.45; }
         }
         .gl-badge-vip { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(120deg, #d4af37, #f4e2a1); color: var(--primary); font-weight: 700; font-size: 0.85rem; padding: 8px 18px; border-radius: 999px; margin-bottom: 18px; }
         .gl-cita-banner { display: flex; align-items: center; gap: 28px; background: linear-gradient(120deg, var(--primary), var(--primary-light)); color: #fff; border-radius: var(--radius-md); padding: 36px 40px; box-shadow: var(--shadow-lg); }
@@ -264,8 +253,8 @@
     <!-- Por qué Golden Lake -->
     <section class="section" style="padding-bottom:40px;">
         <div class="container">
-            <h2 class="section-title">Por qué invertir en Golden Lake</h2>
-            <p class="section-subtitle">Un desarrollo pensado para vivir junto al mar, invertir con plusvalía real, o las dos cosas a la vez.</p>
+            <h2 class="section-title">¿Por qué Golden Lake?</h2>
+            <p class="section-subtitle"><strong>No se trata solamente de dónde comprar una propiedad. Se trata de cómo querés vivirla.</strong><br>Golden Lake combina privacidad, naturaleza, amenidades y acceso a algunas de las experiencias más atractivas de Costa del Sol, en un entorno pensado para disfrutar hoy y proyectar a futuro.</p>
             <div class="landing-layout" style="padding-top:10px;">
                 <div class="landing-content">
                     <div id="gl-sobre-texto" style="color: var(--text-light); font-size: 1.05rem; line-height: 1.8; margin-bottom: 30px;"></div>
@@ -540,16 +529,15 @@
                 latitud: 13.334941,
                 longitud: -88.975586,
                 amenidades: [
-                    'Comunidad cerrada y segura',
-                    'Lagos artificiales dentro del residencial',
-                    'Cancha de tenis y club social',
-                    'Membresía VIP con acceso a la playa en Tesoro Beach',
-                    'Muelle privado con acceso al estero de Jaltepeque',
-                    'Uno de los residenciales con mayor desarrollo y plusvalía de Costa del Sol',
+                    { icono: 'fa-lock', titulo: 'Privacidad y seguridad', descripcion: 'Residencial cerrado con acceso controlado y vigilancia, pensado para que vos y tu familia disfrutéis con tranquilidad de un entorno privado.' },
+                    { icono: 'fa-water', titulo: 'Vivir junto al agua', descripcion: 'Lagos artificiales integrados al diseño del residencial que crean un entorno diferente, con espacios de agua y paisajismo alrededor de las propiedades.' },
+                    { icono: 'fa-anchor', titulo: 'Tu conexión con el estero', descripcion: 'Muelle privado con acceso al estero de Jaltepeque: un espacio para salir en lancha, disfrutar del agua o simplemente contemplar el entorno.' },
+                    { icono: 'fa-table-tennis-paddle-ball', titulo: 'Tenis, club y vida social', descripcion: 'Cancha de tenis y club social para disfrutar el residencial más allá de tu casa, compartir con familia y amigos y aprovechar tus días de descanso.' },
+                    { icono: 'fa-umbrella-beach', titulo: 'Tu acceso a Tesoro Beach', descripcion: 'Como propietario de Golden Lake, disfrutás de membresía VIP a Tesoro Beach, el club de playa de Costa del Sol, sin pagar una entrada aparte.' },
+                    { icono: 'fa-chart-line', titulo: 'Costa del Sol está creciendo', descripcion: 'Golden Lake está ubicado en una zona que continúa desarrollándose, con nuevos proyectos, servicios y actividad inmobiliaria. Una ubicación para disfrutar hoy y considerar con visión de largo plazo.' },
                 ],
                 fotos: [],
             };
-            const ICONOS_AMENIDADES = ['fa-lock', 'fa-water', 'fa-table-tennis-paddle-ball', 'fa-umbrella-beach', 'fa-anchor', 'fa-chart-line'];
             // Descripción propia de cada planta arquitectónica (por índice:
             // 0 = Nivel 1, 1 = Nivel 2...). Todavía no hay columna en la
             // base de datos para esto, así que vive acá hasta que se agregue.
@@ -574,38 +562,28 @@
                 el.replaceWith(f);
             };
 
-            // Dato extra por amenidad, para el toque "ver más" en la tarjeta.
-            // Se busca por palabra clave sobre el texto real (editable desde
-            // el panel) — si no coincide con ninguna, la tarjeta queda simple.
-            const DETALLE_AMENIDADES = [
-                { claves: ['comunidad cerrada'], texto: 'Acceso controlado 24/7 y un solo ingreso vigilado, para vivir tranquilo vos y tu familia.' },
-                { claves: ['lagos artificiales'], texto: 'Espejos de agua alrededor de las casas: le dan frescura y vista a todo el residencial, no solo a las que están en primera línea.' },
-                { claves: ['cancha de tenis', 'club social'], texto: 'Un espacio para hacer deporte y socializar sin salir del residencial — ideal también para los más chicos.' },
-                { claves: ['membresía vip', 'tesoro beach'], texto: 'Como residente entrás a Tesoro Beach, el club de playa de Costa del Sol, sin pagar entrada aparte.' },
-                { claves: ['muelle privado', 'jaltepeque'], texto: 'Acceso directo en lancha al estero de Jaltepeque — ideal para pesca, paseos en bote o ver el atardecer desde el agua.' },
-                { claves: ['mayor desarrollo', 'plusvalía'], texto: 'Costa del Sol es una de las zonas con más crecimiento turístico e inmobiliario de El Salvador — comprar temprano acá suele traducirse en plusvalía real.' },
-            ];
-            function detalleDeAmenidad(texto) {
-                const t = texto.toLowerCase();
-                const encontrado = DETALLE_AMENIDADES.find((d) => d.claves.some((k) => t.includes(k)));
-                return encontrado ? encontrado.texto : null;
-            }
+            // Íconos por defecto para cuando una amenidad viene como texto
+            // plano (formato viejo, o cargada desde el panel/DB todavía sin
+            // migrar a título + descripción).
+            const ICONOS_AMENIDADES_DEFECTO = ['fa-lock', 'fa-water', 'fa-anchor', 'fa-table-tennis-paddle-ball', 'fa-umbrella-beach', 'fa-chart-line'];
 
             function renderAmenidades(lista) {
                 const cont = document.getElementById('gl-amenidades');
-                cont.innerHTML = lista.map((texto, i) => {
-                    const detalle = detalleDeAmenidad(texto);
+                cont.innerHTML = lista.map((item, i) => {
+                    const esObjeto = item && typeof item === 'object';
+                    const icono = esObjeto && item.icono ? item.icono : ICONOS_AMENIDADES_DEFECTO[i % ICONOS_AMENIDADES_DEFECTO.length];
+                    const titulo = esObjeto ? item.titulo : item;
+                    const descripcion = esObjeto ? item.descripcion : '';
                     return `
-                        <li class="${detalle ? 'gl-amenidad-clicable' : ''}">
-                            <span class="gl-amenidad-icono"><i class="fas ${ICONOS_AMENIDADES[i % ICONOS_AMENIDADES.length]}"></i></span>
-                            <div>${texto}</div>
-                            ${detalle ? `<i class="fas fa-plus gl-amenidad-toggle"></i><div class="gl-amenidad-detalle">${detalle}</div>` : ''}
+                        <li>
+                            <span class="gl-amenidad-icono"><i class="fas ${icono}"></i></span>
+                            <div>
+                                <div class="gl-amenidad-titulo">${titulo}</div>
+                                ${descripcion ? `<div class="gl-amenidad-desc">${descripcion}</div>` : ''}
+                            </div>
                         </li>
                     `;
                 }).join('');
-                cont.querySelectorAll('.gl-amenidad-clicable').forEach((li) => {
-                    li.addEventListener('click', () => li.classList.toggle('abierta'));
-                });
             }
 
             function agregarVerMasClamp(el, labelMostrar, labelOcultar) {
@@ -835,7 +813,7 @@
 
                 // El hero va limpio (video + título, sin párrafo ni botones). La
                 // descripción completa se muestra junto a los íconos de
-                // "Por qué invertir en Golden Lake".
+                // "¿Por qué Golden Lake?".
                 const sobreTextoEl = document.getElementById('gl-sobre-texto');
                 sobreTextoEl.innerHTML = descripcion;
                 if (descripcion && descripcion.length > 220) {
