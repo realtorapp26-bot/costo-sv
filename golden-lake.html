@@ -653,7 +653,7 @@
                         </button>
                     </div>
                 `).join('');
-                agregarVerMas('gl-video-grid', 4, (n) => `Ver ${n} video${n === 1 ? '' : 's'} más`, 'Ver menos');
+                agregarVerMas('gl-video-grid', 1, () => 'Ver videos del render', 'Ver menos');
             }
 
             function iconoStat(texto) {
@@ -731,7 +731,7 @@
                         if (window.abrirLightbox) window.abrirLightbox(fotos, idx);
                     });
                 });
-                agregarVerMas('gl-galeria', 6, (n) => `Ver ${n} foto${n === 1 ? '' : 's'} más`, 'Ver menos');
+                agregarVerMas('gl-galeria', 2, () => 'Ver fotos del render', 'Ver menos');
             }
 
             function renderMapa(lat, lng) {
