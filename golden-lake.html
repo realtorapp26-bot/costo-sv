@@ -95,6 +95,18 @@
             #gl-amenidades li { flex: 0 0 128px; scroll-snap-align: start; padding: 14px 10px; align-items: center; text-align: center; gap: 8px; }
             .gl-amenidad-icono { width: 38px; height: 38px; min-width: 38px; font-size: 1rem; }
             #gl-amenidades li > div { font-size: 0.8rem; line-height: 1.3; }
+            /* Mismo trato que amenidades: galería horizontal en vez de
+               "ver más / ver menos". En PC (fuera de este media query)
+               siguen siendo el grid normal, que ya muestra todo. */
+            .gl-video-grid, .gl-gallery {
+                display: flex; flex-wrap: nowrap; overflow-x: auto;
+                scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+                gap: 14px; margin: 0 -24px; padding: 4px 24px 10px;
+                scrollbar-width: none;
+            }
+            .gl-video-grid::-webkit-scrollbar, .gl-gallery::-webkit-scrollbar { display: none; }
+            .gl-video-grid .ficha-video { flex: 0 0 82%; scroll-snap-align: start; max-width: none; }
+            .gl-gallery a { flex: 0 0 62%; scroll-snap-align: start; }
         }
         .gl-badge-vip { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(120deg, #d4af37, #f4e2a1); color: var(--primary); font-weight: 700; font-size: 0.85rem; padding: 8px 18px; border-radius: 999px; margin-bottom: 18px; }
         .gl-cita-banner { display: flex; align-items: center; gap: 28px; background: linear-gradient(120deg, var(--primary), var(--primary-light)); color: #fff; border-radius: var(--radius-md); padding: 36px 40px; box-shadow: var(--shadow-lg); }
@@ -155,10 +167,6 @@
            o giro de pantalla sin quedar "atascado" oculto en desktop. */
         .gl-ver-mas-btn { display: none; }
         @media (max-width: 700px) {
-            #gl-video-grid:not(.gl-mostrar-todo) .gl-extra,
-            #gl-galeria:not(.gl-mostrar-todo) .gl-extra {
-                display: none;
-            }
             .gl-ver-mas-btn {
                 display: flex; align-items: center; justify-content: center; gap: 8px;
                 width: 100%; margin-top: 16px; padding: 13px; background: white;
@@ -540,34 +548,6 @@
                 `).join('');
             }
 
-            // Progressive disclosure en celular: marca los ítems que pasan de
-            // maxVisible con .gl-extra (el CSS los esconde solo en mobile) y
-            // agrega un botón "ver más" que alterna .gl-mostrar-todo en el
-            // contenedor. En desktop el media query no aplica y no hace nada.
-            function agregarVerMas(containerId, maxVisible, labelMostrar, labelOcultar) {
-                const cont = document.getElementById(containerId);
-                if (!cont) return;
-                const items = [...cont.children];
-                if (items.length <= maxVisible) return;
-                items.slice(maxVisible).forEach((el) => el.classList.add('gl-extra'));
-                const restantes = items.length - maxVisible;
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'gl-ver-mas-btn';
-                btn.innerHTML = `<span></span><i class="fas fa-chevron-down"></i>`;
-                const setLabel = (expandido) => {
-                    btn.querySelector('span').textContent = expandido ? labelOcultar : labelMostrar(restantes);
-                    btn.querySelector('i').style.transform = expandido ? 'rotate(180deg)' : '';
-                };
-                setLabel(false);
-                btn.addEventListener('click', () => {
-                    const expandido = cont.classList.toggle('gl-mostrar-todo');
-                    setLabel(expandido);
-                    if (!expandido) cont.scrollIntoView({ block: 'nearest' });
-                });
-                cont.insertAdjacentElement('afterend', btn);
-            }
-
             function agregarVerMasClamp(el, labelMostrar, labelOcultar) {
                 el.classList.add('gl-clamp');
                 const btn = document.createElement('button');
@@ -664,7 +644,6 @@
                         </button>
                     </div>
                 `).join('');
-                agregarVerMas('gl-video-grid', 1, () => 'Ver videos del render', 'Ver menos');
             }
 
             function iconoStat(texto) {
@@ -742,7 +721,6 @@
                         if (window.abrirLightbox) window.abrirLightbox(fotos, idx);
                     });
                 });
-                agregarVerMas('gl-galeria', 2, () => 'Ver fotos del render', 'Ver menos');
             }
 
             function renderMapa(lat, lng) {
