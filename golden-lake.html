@@ -726,6 +726,7 @@
                 }
                 const textoEl = document.getElementById('gl-modelo-texto');
                 textoEl.innerHTML = (descripcion || '')
+                    .replace(/\r\n/g, '\n')
                     .split(/\n{2,}/)
                     .map((parrafo) => `<p style="margin-bottom:16px;">${parrafo.trim()}</p>`)
                     .join('');
@@ -816,6 +817,7 @@
                 // "Por qué invertir en Golden Lake".
                 const sobreTextoEl = document.getElementById('gl-sobre-texto');
                 sobreTextoEl.innerHTML = descripcion
+                    .replace(/\r\n/g, '\n')
                     .split(/\n{2,}/)
                     .map((parrafo) => `<p style="margin-bottom:18px;">${parrafo.trim()}</p>`)
                     .join('');
