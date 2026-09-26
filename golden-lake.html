@@ -68,7 +68,7 @@
            queda más compacto, para que el video se note más. */
         @media (min-width: 1025px) { .gl-hero { min-height: 78vh; } }
         @media (max-width: 600px) {
-            .gl-hero { padding: 70px 0 36px; }
+            .gl-hero { padding: 70px 0 36px; min-height: 52vh; }
             .gl-hero .hero-title { font-size: 2rem; margin-bottom: 10px; }
             .gl-hero .hero-tagline { font-size: 0.78rem; letter-spacing: 2px; margin-bottom: 8px; }
         }
@@ -150,13 +150,14 @@
                 cursor: pointer; transition: var(--transition);
             }
             .gl-ver-mas-btn:hover { border-color: var(--gold); color: var(--gold); }
-            #gl-modelo-texto.gl-clamp { max-height: 150px; overflow: hidden; position: relative; }
-            #gl-modelo-texto.gl-clamp::after {
+            .gl-clamp { max-height: 150px; overflow: hidden; position: relative; }
+            .gl-clamp::after {
                 content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 60px;
                 background: linear-gradient(rgba(255,255,255,0), var(--bg-alt));
             }
-            #gl-modelo-texto.gl-clamp.gl-mostrar-todo { max-height: none; }
-            #gl-modelo-texto.gl-clamp.gl-mostrar-todo::after { display: none; }
+            #gl-sobre-texto.gl-clamp::after { background: linear-gradient(rgba(255,255,255,0), var(--bg-main)); }
+            .gl-clamp.gl-mostrar-todo { max-height: none; }
+            .gl-clamp.gl-mostrar-todo::after { display: none; }
         }
     </style>
 </head>
@@ -771,10 +772,14 @@
                 // El hero va limpio (video + título, sin párrafo ni botones). La
                 // descripción completa se muestra junto a los íconos de
                 // "Por qué invertir en Golden Lake".
-                document.getElementById('gl-sobre-texto').innerHTML = descripcion
+                const sobreTextoEl = document.getElementById('gl-sobre-texto');
+                sobreTextoEl.innerHTML = descripcion
                     .split(/\n{2,}/)
                     .map((parrafo) => `<p style="margin-bottom:18px;">${parrafo.trim()}</p>`)
                     .join('');
+                if (descripcion && descripcion.length > 220) {
+                    agregarVerMasClamp(sobreTextoEl, 'Ver más', 'Ver menos');
+                }
 
                 if (fotos.length) {
                     const heroBg = document.getElementById('gl-hero-bg');
