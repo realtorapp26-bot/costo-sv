@@ -96,6 +96,7 @@
         #gl-amenidades li:hover .gl-amenidad-icono { background: var(--gold); color: var(--primary); }
         .gl-amenidad-titulo { font-size: 1.05rem; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
         .gl-amenidad-desc { font-size: 0.92rem; line-height: 1.55; color: var(--text-light); font-weight: 400; }
+        .gl-amenidad-foto { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius-sm); display: block; }
         @media (max-width: 700px) {
             /* Carrusel horizontal en vez de grid con boton "ver mas": el
                cliente desliza para ver las 6 amenidades, sin cortar nada. */
@@ -528,13 +529,16 @@
                 videos: ['https://www.youtube.com/watch?v=zqrdUcA1hK8'],
                 latitud: 13.334941,
                 longitud: -88.975586,
+                // "foto" es opcional: si Walter manda una foto real por
+                // amenidad, se muestra arriba de la tarjeta en vez del
+                // ícono. Sin foto, la tarjeta se ve como hasta ahora.
                 amenidades: [
-                    { icono: 'fa-lock', titulo: 'Privacidad y seguridad', descripcion: 'Residencial cerrado con acceso controlado y vigilancia, pensado para que vos y tu familia disfrutéis con tranquilidad de un entorno privado.' },
-                    { icono: 'fa-water', titulo: 'Vivir junto al agua', descripcion: 'Lagos artificiales integrados al diseño del residencial que crean un entorno diferente, con espacios de agua y paisajismo alrededor de las propiedades.' },
-                    { icono: 'fa-anchor', titulo: 'Tu conexión con el estero', descripcion: 'Muelle privado con acceso al estero de Jaltepeque: un espacio para salir en lancha, disfrutar del agua o simplemente contemplar el entorno.' },
-                    { icono: 'fa-table-tennis-paddle-ball', titulo: 'Tenis, club y vida social', descripcion: 'Cancha de tenis y club social para disfrutar el residencial más allá de tu casa, compartir con familia y amigos y aprovechar tus días de descanso.' },
-                    { icono: 'fa-umbrella-beach', titulo: 'Tu acceso a Tesoro Beach', descripcion: 'Como propietario de Golden Lake, disfrutás de membresía VIP a Tesoro Beach, el club de playa de Costa del Sol, sin pagar una entrada aparte.' },
-                    { icono: 'fa-chart-line', titulo: 'Costa del Sol está creciendo', descripcion: 'Golden Lake está ubicado en una zona que continúa desarrollándose, con nuevos proyectos, servicios y actividad inmobiliaria. Una ubicación para disfrutar hoy y considerar con visión de largo plazo.' },
+                    { icono: 'fa-lock', foto: '', titulo: 'Privacidad y seguridad', descripcion: 'Residencial cerrado con acceso controlado y vigilancia, pensado para que vos y tu familia disfrutéis con tranquilidad de un entorno privado.' },
+                    { icono: 'fa-water', foto: '', titulo: 'Vivir junto al agua', descripcion: 'Lagos artificiales integrados al diseño del residencial que crean un entorno diferente, con espacios de agua y paisajismo alrededor de las propiedades.' },
+                    { icono: 'fa-anchor', foto: '', titulo: 'Tu conexión con el estero', descripcion: 'Muelle privado con acceso al estero de Jaltepeque: un espacio para salir en lancha, disfrutar del agua o simplemente contemplar el entorno.' },
+                    { icono: 'fa-table-tennis-paddle-ball', foto: '', titulo: 'Tenis, club y vida social', descripcion: 'Cancha de tenis y club social para disfrutar el residencial más allá de tu casa, compartir con familia y amigos y aprovechar tus días de descanso.' },
+                    { icono: 'fa-umbrella-beach', foto: '', titulo: 'Tu acceso a Tesoro Beach', descripcion: 'Como propietario de Golden Lake, disfrutás de membresía VIP a Tesoro Beach, el club de playa de Costa del Sol, sin pagar una entrada aparte.' },
+                    { icono: 'fa-chart-line', foto: '', titulo: 'Costa del Sol está creciendo', descripcion: 'Golden Lake está ubicado en una zona que continúa desarrollándose, con nuevos proyectos, servicios y actividad inmobiliaria. Una ubicación para disfrutar hoy y considerar con visión de largo plazo.' },
                 ],
                 fotos: [],
             };
@@ -572,11 +576,14 @@
                 cont.innerHTML = lista.map((item, i) => {
                     const esObjeto = item && typeof item === 'object';
                     const icono = esObjeto && item.icono ? item.icono : ICONOS_AMENIDADES_DEFECTO[i % ICONOS_AMENIDADES_DEFECTO.length];
+                    const foto = esObjeto ? item.foto : '';
                     const titulo = esObjeto ? item.titulo : item;
                     const descripcion = esObjeto ? item.descripcion : '';
                     return `
                         <li>
-                            <span class="gl-amenidad-icono"><i class="fas ${icono}"></i></span>
+                            ${foto
+                                ? `<img class="gl-amenidad-foto" src="${foto}" alt="${titulo}" loading="lazy" decoding="async">`
+                                : `<span class="gl-amenidad-icono"><i class="fas ${icono}"></i></span>`}
                             <div>
                                 <div class="gl-amenidad-titulo">${titulo}</div>
                                 ${descripcion ? `<div class="gl-amenidad-desc">${descripcion}</div>` : ''}
