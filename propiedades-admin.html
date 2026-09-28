@@ -142,9 +142,12 @@
         .btn-modal-cancel { background: none; border: 1px solid var(--border); color: var(--text-main); border-radius: var(--radius-sm); padding: 10px 20px; cursor: pointer; }
         .btn-modal-guardar { background: var(--gold); color: var(--primary); border: none; border-radius: var(--radius-sm); padding: 10px 20px; font-weight: 700; cursor: pointer; }
         .fotos-edit-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-        .fotos-edit-thumb { width: 90px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: white; position: relative; }
-        .fotos-edit-thumb img { width: 100%; height: 65px; object-fit: cover; display: block; }
+        .fotos-edit-thumb { width: 90px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: white; position: relative; cursor: grab; }
+        .fotos-edit-thumb.arrastrando { opacity: 0.35; }
+        .fotos-edit-thumb.arrastre-sobre { outline: 2px solid var(--gold); outline-offset: -2px; }
+        .fotos-edit-thumb img { width: 100%; height: 65px; object-fit: cover; display: block; pointer-events: none; }
         .fotos-edit-thumb .fotos-edit-principal { position: absolute; top: 3px; left: 3px; z-index: 2; background: var(--gold); color: var(--primary); font-size: 0.52rem; font-weight: 700; padding: 1px 4px; border-radius: 3px; }
+        .fotos-edit-thumb .fotos-edit-pos { position: absolute; top: 3px; right: 3px; z-index: 2; background: rgba(15,23,42,0.75); color: #fff; font-size: 0.6rem; font-weight: 700; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         .fotos-edit-thumb .fotos-edit-actions { display: flex; }
         .fotos-edit-thumb .fotos-edit-actions button { flex: 1; border: none; background: #f1f5f9; color: var(--text-main); font-size: 0.65rem; padding: 3px; cursor: pointer; }
         .fotos-edit-thumb .fotos-edit-actions button.quitar { background: #fef2f2; color: #b91c1c; }
@@ -201,7 +204,7 @@
                 <div class="full"><label>Descripción / historia de venta</label><textarea id="py-descripcion" style="min-height:100px;" placeholder="Qué hace atractivo al desarrollo en general (no una casa puntual)..."></textarea></div>
                 <div class="full"><label>Amenidades (una por línea)</label><textarea id="py-amenidades" placeholder="Comunidad cerrada y segura&#10;Lagos artificiales&#10;Cancha de tenis&#10;Club social&#10;Acceso directo a la playa"></textarea></div>
                 <div class="full">
-                    <label>Fotos de las amenidades (en el mismo orden que la lista de arriba — la 1ª foto es para la 1ª amenidad, y así. No se mezclan con las fotos generales del desarrollo.)</label>
+                    <label>Fotos de las amenidades (en el mismo orden que la lista de arriba — la 1ª foto es para la 1ª amenidad, y así. Arrastrá cada miniatura para acomodar el orden. No se mezclan con las fotos generales del desarrollo.)</label>
                     <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
                         <input type="file" accept="image/*" multiple onchange="CostoSVAuth.subirFotosA(this, 'py-amenidades-fotos', () => previsualizarFotos('py-amenidades-fotos', 'py-amenidades-fotos-preview'))">
                     </div>
@@ -221,7 +224,7 @@
                 <div class="full"><label>Incluye en la promoción (una por línea)</label><textarea id="py-modelo-incluye" style="min-height:100px;" placeholder="Amueblada con línea blanca&#10;Aire acondicionado tipo cassette&#10;Agua caliente"></textarea></div>
                 <div class="full"><label>Descripción del modelo, por nivel</label><textarea id="py-modelo-descripcion" style="min-height:140px;" placeholder="Primer nivel: ...&#10;&#10;Segundo nivel: ..."></textarea></div>
                 <div class="full">
-                    <label>Plantas arquitectónicas (Nivel 1, Nivel 2... en ese orden)</label>
+                    <label>Plantas arquitectónicas (Nivel 1, Nivel 2... en ese orden — arrastrá cada miniatura para acomodar el orden)</label>
                     <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
                         <input type="file" accept="image/*" multiple onchange="CostoSVAuth.subirFotosA(this, 'py-plantas', () => previsualizarFotos('py-plantas', 'py-plantas-preview'))">
                         <span style="display:none; font-size:0.8rem; color:var(--text-light);"></span>
@@ -805,16 +808,28 @@
             return parsearFotos(document.getElementById(textareaId).value);
         }
 
+        // Campos donde el ORDEN tiene un significado propio (posición N =
+        // amenidad N, planta N), no solo "cuál es la principal". Ahí se
+        // numeran las fotos en vez de mostrar la estrella "Principal".
+        const CAMPOS_FOTOS_POSICIONALES = new Set(['py-amenidades-fotos', 'py-plantas']);
+
         function previsualizarFotos(textareaId, previewId) {
             const cont = document.getElementById(previewId);
             const urls = obtenerUrlsFotosDe(textareaId);
-            const cabecera = `<div class="fotos-edit-count">${urls.length} foto${urls.length === 1 ? '' : 's'} cargada${urls.length === 1 ? '' : 's'}${urls.length > 1 ? ' — la primera es la principal (la que se ve en la tarjeta)' : ''}</div>`;
+            const posicional = CAMPOS_FOTOS_POSICIONALES.has(textareaId);
+            const cabecera = `<div class="fotos-edit-count">${urls.length} foto${urls.length === 1 ? '' : 's'} cargada${urls.length === 1 ? '' : 's'}${urls.length > 1 ? (posicional ? ' — arrastrá cada foto a la posición que le corresponde' : ' — la primera es la principal (la que se ve en la tarjeta). Arrastrá para reordenar') : ''}</div>`;
             const miniaturas = urls.map((u, i) => `
-                <div class="fotos-edit-thumb">
-                    ${i === 0 ? '<span class="fotos-edit-principal"><i class="fas fa-star"></i> Principal</span>' : ''}
+                <div class="fotos-edit-thumb" draggable="true" data-indice="${i}"
+                    ondragstart="arrastrarFotoInicio(event)"
+                    ondragover="arrastrarFotoSobre(event)"
+                    ondragleave="arrastrarFotoSale(event)"
+                    ondrop="arrastrarFotoSoltar(event, '${textareaId}', '${previewId}')"
+                    ondragend="arrastrarFotoFin(event)">
+                    <span class="fotos-edit-pos">${i + 1}</span>
+                    ${(!posicional && i === 0) ? '<span class="fotos-edit-principal"><i class="fas fa-star"></i> Principal</span>' : ''}
                     <img src="${u}" onerror="this.style.display='none'">
                     <div class="fotos-edit-actions">
-                        ${i !== 0 ? `<button type="button" onclick="hacerFotoPrincipal('${textareaId}', '${previewId}', ${i})" title="Usar como foto principal"><i class="fas fa-star"></i></button>` : ''}
+                        ${(!posicional && i !== 0) ? `<button type="button" onclick="hacerFotoPrincipal('${textareaId}', '${previewId}', ${i})" title="Usar como foto principal"><i class="fas fa-star"></i></button>` : ''}
                         <button type="button" class="quitar" onclick="quitarFoto('${textareaId}', '${previewId}', ${i})" title="Borrar foto"><i class="fas fa-trash"></i></button>
                     </div>
                 </div>
@@ -835,6 +850,42 @@
             urls.unshift(foto);
             document.getElementById(textareaId).value = urls.join('\n');
             previsualizarFotos(textareaId, previewId);
+        }
+
+        // ---------- Arrastrar y soltar para reordenar fotos ----------
+        let arrastreFotoOrigen = null;
+
+        function arrastrarFotoInicio(e) {
+            arrastreFotoOrigen = Number(e.currentTarget.dataset.indice);
+            e.dataTransfer.effectAllowed = 'move';
+            e.currentTarget.classList.add('arrastrando');
+        }
+
+        function arrastrarFotoSobre(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            e.currentTarget.classList.add('arrastre-sobre');
+        }
+
+        function arrastrarFotoSale(e) {
+            e.currentTarget.classList.remove('arrastre-sobre');
+        }
+
+        function arrastrarFotoSoltar(e, textareaId, previewId) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('arrastre-sobre');
+            const destino = Number(e.currentTarget.dataset.indice);
+            if (arrastreFotoOrigen === null || arrastreFotoOrigen === destino) return;
+            const urls = obtenerUrlsFotosDe(textareaId);
+            const [foto] = urls.splice(arrastreFotoOrigen, 1);
+            urls.splice(destino, 0, foto);
+            document.getElementById(textareaId).value = urls.join('\n');
+            arrastreFotoOrigen = null;
+            previsualizarFotos(textareaId, previewId);
+        }
+
+        function arrastrarFotoFin(e) {
+            e.currentTarget.classList.remove('arrastrando');
         }
 
         // ---------- Edicion de franquicias ----------
