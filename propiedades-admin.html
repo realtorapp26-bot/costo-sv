@@ -151,6 +151,15 @@
         .fotos-edit-thumb .fotos-edit-actions { display: flex; }
         .fotos-edit-thumb .fotos-edit-actions button { flex: 1; border: none; background: #f1f5f9; color: var(--text-main); font-size: 0.65rem; padding: 3px; cursor: pointer; }
         .fotos-edit-thumb .fotos-edit-actions button.quitar { background: #fef2f2; color: #b91c1c; }
+        .amenidad-bloque { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px; background: #fafafa; }
+        .amenidad-bloque input, .amenidad-bloque textarea { margin-bottom: 6px; }
+        .amenidad-bloque textarea { min-height: 60px; }
+        .amenidad-bloque-cabecera { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .amenidad-bloque-cabecera span { font-weight: 700; font-size: 0.85rem; color: var(--primary); }
+        .amenidad-bloque-cabecera button.quitar { border: none; background: #fef2f2; color: #b91c1c; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.75rem; }
+        .amenidad-bloque-destacada { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-light); }
+        .btn-agregar-amenidad { border: 1px dashed var(--gold); background: none; color: var(--primary); border-radius: var(--radius-sm); padding: 8px 14px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+        .btn-agregar-amenidad:hover { background: rgba(212,175,55,0.08); }
         .fotos-edit-count { font-size: 0.75rem; color: var(--text-light); margin-top: 4px; }
         .modal-form-grid textarea[id$="-fotos"] { min-height: 50px; }
         .modal-checks { display: flex; gap: 16px; flex-wrap: wrap; }
@@ -202,9 +211,13 @@
                 <div class="full"><label>Nombre del proyecto</label><input type="text" id="py-nombre" placeholder="Golden Lake, Costa del Sol"></div>
                 <div class="full"><label>Ubicación</label><input type="text" id="py-ubicacion" placeholder="Costa del Sol, La Herradura, La Paz, El Salvador"></div>
                 <div class="full"><label>Descripción / historia de venta</label><textarea id="py-descripcion" style="min-height:100px;" placeholder="Qué hace atractivo al desarrollo en general (no una casa puntual)..."></textarea></div>
-                <div class="full"><label>Amenidades (una por línea)</label><textarea id="py-amenidades" placeholder="Comunidad cerrada y segura&#10;Lagos artificiales&#10;Cancha de tenis&#10;Club social&#10;Acceso directo a la playa"></textarea></div>
                 <div class="full">
-                    <label>Fotos de las amenidades (en el mismo orden que la lista de arriba — la 1ª foto es para la 1ª amenidad, y así. Arrastrá cada miniatura para acomodar el orden. No se mezclan con las fotos generales del desarrollo.)</label>
+                    <label>Amenidades (título, categoría y descripción de cada una — así se arman las tarjetas del sitio, todo junto para que no se desordene)</label>
+                    <div id="py-amenidades-bloques"></div>
+                    <button type="button" class="btn-agregar-amenidad" onclick="agregarAmenidadBloque()"><i class="fas fa-plus"></i> Agregar amenidad</button>
+                </div>
+                <div class="full">
+                    <label>Fotos de las amenidades (en el mismo orden que los bloques de arriba — la 1ª foto es para la 1ª amenidad, y así. Arrastrá cada miniatura para acomodar el orden. No se mezclan con las fotos generales del desarrollo.)</label>
                     <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
                         <input type="file" accept="image/*" multiple onchange="CostoSVAuth.subirFotosA(this, 'py-amenidades-fotos', () => previsualizarFotos('py-amenidades-fotos', 'py-amenidades-fotos-preview'))">
                     </div>
@@ -1045,6 +1058,61 @@
         const PROYECTO_SLUG = 'golden-lake';
         let proyectoGLId = null;
 
+        // Mismo contenido que RESPALDO.amenidades en golden-lake.html: si la
+        // base de datos todavía no tiene nada guardado, el panel arranca
+        // mostrando el texto real que ya está visible en el sitio (no un
+        // ejemplo genérico), para que nunca se vea desalineado con lo que
+        // ve el cliente.
+        const AMENIDADES_GOLDEN_LAKE_DEFECTO = [
+            { titulo: 'Privacidad y seguridad', etiqueta: 'Seguridad', descripcion: 'Residencial cerrado con acceso controlado y vigilancia, pensado para que vos y tu familia disfrutéis con tranquilidad de un entorno privado.', destacada: false },
+            { titulo: 'Vivir junto al agua', etiqueta: 'Naturaleza', descripcion: 'Lagos artificiales integrados al diseño del residencial que crean un entorno diferente, con espacios de agua y paisajismo alrededor de las propiedades.', destacada: false },
+            { titulo: 'Tu conexión con el estero', etiqueta: 'Estilo de vida', descripcion: 'Muelle privado con acceso al estero de Jaltepeque: un espacio para salir en lancha, disfrutar del agua o simplemente contemplar el entorno.', destacada: false },
+            { titulo: 'Tenis, club y vida social', etiqueta: 'Comunidad', descripcion: 'Cancha de tenis y club social para disfrutar el residencial más allá de tu casa, compartir con familia y amigos y aprovechar tus días de descanso.', destacada: false },
+            { titulo: 'Tu acceso a Tesoro Beach', etiqueta: 'Exclusivo', descripcion: 'Como propietario de Golden Lake, disfrutás de membresía VIP a Tesoro Beach, el club de playa de Costa del Sol, sin pagar una entrada aparte.', destacada: true },
+            { titulo: 'Costa del Sol está creciendo', etiqueta: 'Inversión', descripcion: 'Golden Lake está ubicado en una zona que continúa desarrollándose, con nuevos proyectos, servicios y actividad inmobiliaria. Una ubicación para disfrutar hoy y considerar con visión de largo plazo.', destacada: false },
+        ];
+
+        function escapeHtmlTexto(s) {
+            return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function leerAmenidadesBloques() {
+            return [...document.querySelectorAll('#py-amenidades-bloques .amenidad-bloque')].map((b) => ({
+                titulo: b.querySelector('.am-titulo').value.trim(),
+                etiqueta: b.querySelector('.am-etiqueta').value.trim(),
+                descripcion: b.querySelector('.am-descripcion').value.trim(),
+                destacada: b.querySelector('.am-destacada').checked,
+            }));
+        }
+
+        function renderAmenidadesBloques(lista) {
+            const cont = document.getElementById('py-amenidades-bloques');
+            cont.innerHTML = lista.map((a, i) => `
+                <div class="amenidad-bloque">
+                    <div class="amenidad-bloque-cabecera">
+                        <span>Amenidad ${i + 1}${i === 4 ? ' — así se ve en la tarjeta de "Tu acceso a Tesoro Beach"' : ''}</span>
+                        <button type="button" class="quitar" onclick="quitarAmenidadBloque(${i})" title="Quitar esta amenidad"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <input type="text" class="am-titulo" placeholder="Título (ej. Privacidad y seguridad)" value="${escapeHtmlTexto(a.titulo)}">
+                    <input type="text" class="am-etiqueta" placeholder="Categoría corta (ej. Seguridad)" value="${escapeHtmlTexto(a.etiqueta)}">
+                    <textarea class="am-descripcion" placeholder="Descripción de la amenidad">${escapeHtmlTexto(a.descripcion)}</textarea>
+                    <label class="amenidad-bloque-destacada"><input type="checkbox" class="am-destacada" ${a.destacada ? 'checked' : ''}> Destacar con cinta "Incluido con tu compra"</label>
+                </div>
+            `).join('');
+        }
+
+        function agregarAmenidadBloque() {
+            const lista = leerAmenidadesBloques();
+            lista.push({ titulo: '', etiqueta: '', descripcion: '', destacada: false });
+            renderAmenidadesBloques(lista);
+        }
+
+        function quitarAmenidadBloque(indice) {
+            const lista = leerAmenidadesBloques();
+            lista.splice(indice, 1);
+            renderAmenidadesBloques(lista);
+        }
+
         async function cargarProyectoGL() {
             try {
                 const headers = await CostoSVAuth.authHeaders();
@@ -1055,13 +1123,19 @@
                 if (!p) {
                     document.getElementById('py-nombre').value = 'Golden Lake, Costa del Sol';
                     document.getElementById('py-publicado').value = 'true';
+                    renderAmenidadesBloques(AMENIDADES_GOLDEN_LAKE_DEFECTO);
                     return;
                 }
                 proyectoGLId = p.id;
                 document.getElementById('py-nombre').value = p.nombre || '';
                 document.getElementById('py-ubicacion').value = p.ubicacion || '';
                 document.getElementById('py-descripcion').value = p.descripcion || '';
-                document.getElementById('py-amenidades').value = (p.amenidades || []).join('\n');
+                const detalle = (p.amenidades_detalle && p.amenidades_detalle.length)
+                    ? p.amenidades_detalle
+                    : ((p.amenidades && p.amenidades.length)
+                        ? p.amenidades.map((t) => ({ titulo: t, etiqueta: '', descripcion: '', destacada: false }))
+                        : AMENIDADES_GOLDEN_LAKE_DEFECTO);
+                renderAmenidadesBloques(detalle);
                 document.getElementById('py-amenidades-fotos').value = (p.amenidades_fotos || []).join('\n');
                 previsualizarFotos('py-amenidades-fotos', 'py-amenidades-fotos-preview');
                 document.getElementById('py-video-hero').value = p.video_hero || '';
@@ -1083,12 +1157,14 @@
         }
 
         async function guardarProyectoGL() {
+            const amenidadesDetalle = leerAmenidadesBloques().filter((a) => a.titulo);
             const body = {
                 slug: PROYECTO_SLUG,
                 nombre: document.getElementById('py-nombre').value.trim() || 'Golden Lake, Costa del Sol',
                 ubicacion: document.getElementById('py-ubicacion').value.trim() || null,
                 descripcion: document.getElementById('py-descripcion').value.trim() || null,
-                amenidades: document.getElementById('py-amenidades').value.split('\n').map(s => s.trim()).filter(Boolean),
+                amenidades_detalle: amenidadesDetalle,
+                amenidades: amenidadesDetalle.map((a) => a.titulo),
                 amenidades_fotos: obtenerUrlsFotosDe('py-amenidades-fotos'),
                 video_hero: document.getElementById('py-video-hero').value.trim() || null,
                 videos: document.getElementById('py-videos').value.split('\n').map(s => s.trim()).filter(Boolean),

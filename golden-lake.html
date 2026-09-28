@@ -822,7 +822,10 @@
                 const nombre = (p && p.nombre) || 'Golden Lake';
                 const descripcion = (p && p.descripcion) || RESPALDO.descripcion;
                 const amenidadesFotos = (p && p.amenidades_fotos) || [];
-                const amenidades = ((p && p.amenidades && p.amenidades.length) ? p.amenidades : RESPALDO.amenidades)
+                const amenidadesBase = (p && p.amenidades_detalle && p.amenidades_detalle.length)
+                    ? p.amenidades_detalle
+                    : ((p && p.amenidades && p.amenidades.length) ? p.amenidades : RESPALDO.amenidades);
+                const amenidades = amenidadesBase
                     .map((item, i) => {
                         const foto = amenidadesFotos[i];
                         if (!foto) return item;
