@@ -801,7 +801,13 @@
 
                 const nombre = (p && p.nombre) || 'Golden Lake';
                 const descripcion = (p && p.descripcion) || RESPALDO.descripcion;
-                const amenidades = (p && p.amenidades && p.amenidades.length) ? p.amenidades : RESPALDO.amenidades;
+                const amenidadesFotos = (p && p.amenidades_fotos) || [];
+                const amenidades = ((p && p.amenidades && p.amenidades.length) ? p.amenidades : RESPALDO.amenidades)
+                    .map((item, i) => {
+                        const foto = amenidadesFotos[i];
+                        if (!foto) return item;
+                        return (typeof item === 'string') ? { titulo: item, foto } : { ...item, foto };
+                    });
                 const videos = (p && p.videos && p.videos.length) ? p.videos : RESPALDO.videos;
                 const videoHero = (p && p.video_hero) || null;
                 const fotos = (p && p.fotos && p.fotos.length) ? p.fotos : RESPALDO.fotos;

@@ -200,6 +200,14 @@
                 <div class="full"><label>Ubicación</label><input type="text" id="py-ubicacion" placeholder="Costa del Sol, La Herradura, La Paz, El Salvador"></div>
                 <div class="full"><label>Descripción / historia de venta</label><textarea id="py-descripcion" style="min-height:100px;" placeholder="Qué hace atractivo al desarrollo en general (no una casa puntual)..."></textarea></div>
                 <div class="full"><label>Amenidades (una por línea)</label><textarea id="py-amenidades" placeholder="Comunidad cerrada y segura&#10;Lagos artificiales&#10;Cancha de tenis&#10;Club social&#10;Acceso directo a la playa"></textarea></div>
+                <div class="full">
+                    <label>Fotos de las amenidades (en el mismo orden que la lista de arriba — la 1ª foto es para la 1ª amenidad, y así. No se mezclan con las fotos generales del desarrollo.)</label>
+                    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                        <input type="file" accept="image/*" multiple onchange="CostoSVAuth.subirFotosA(this, 'py-amenidades-fotos', () => previsualizarFotos('py-amenidades-fotos', 'py-amenidades-fotos-preview'))">
+                    </div>
+                    <textarea id="py-amenidades-fotos" oninput="previsualizarFotos('py-amenidades-fotos', 'py-amenidades-fotos-preview')"></textarea>
+                    <div class="fotos-edit-preview" id="py-amenidades-fotos-preview"></div>
+                </div>
                 <div class="full"><label>Video de fondo del hero (un solo link de YouTube — se reproduce en loop, sin sonido, detrás del título)</label><input type="url" id="py-video-hero" placeholder="https://www.youtube.com/watch?v=..."></div>
                 <div class="full"><label>Videos (un link de YouTube por línea — podés subir varios clips, o reemplazarlos después por un solo reel editado)</label><textarea id="py-videos" placeholder="https://www.youtube.com/watch?v=...&#10;https://www.youtube.com/watch?v=..."></textarea></div>
                 <div>
@@ -1003,6 +1011,8 @@
                 document.getElementById('py-ubicacion').value = p.ubicacion || '';
                 document.getElementById('py-descripcion').value = p.descripcion || '';
                 document.getElementById('py-amenidades').value = (p.amenidades || []).join('\n');
+                document.getElementById('py-amenidades-fotos').value = (p.amenidades_fotos || []).join('\n');
+                previsualizarFotos('py-amenidades-fotos', 'py-amenidades-fotos-preview');
                 document.getElementById('py-video-hero').value = p.video_hero || '';
                 document.getElementById('py-videos').value = (p.videos || []).join('\n');
                 document.getElementById('py-publicado').value = String(p.publicado !== false);
@@ -1028,6 +1038,7 @@
                 ubicacion: document.getElementById('py-ubicacion').value.trim() || null,
                 descripcion: document.getElementById('py-descripcion').value.trim() || null,
                 amenidades: document.getElementById('py-amenidades').value.split('\n').map(s => s.trim()).filter(Boolean),
+                amenidades_fotos: obtenerUrlsFotosDe('py-amenidades-fotos'),
                 video_hero: document.getElementById('py-video-hero').value.trim() || null,
                 videos: document.getElementById('py-videos').value.split('\n').map(s => s.trim()).filter(Boolean),
                 publicado: document.getElementById('py-publicado').value === 'true',
