@@ -102,10 +102,18 @@
         #gl-amenidades {
             display: flex; flex-wrap: nowrap; overflow-x: auto;
             scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
-            gap: 14px; margin: 30px 0 6px; padding: 4px 4px 14px;
-            scrollbar-width: none;
+            gap: 14px; margin: 30px 0 6px; padding: 4px 4px 18px;
         }
-        #gl-amenidades::-webkit-scrollbar { display: none; }
+        /* En PC no hay gesto de swipe, así que la barra de scroll queda
+           visible (con estilo propio) para que se note que se puede
+           desplazar. En mobile se esconde porque ahí el swipe es natural. */
+        @media (min-width: 701px) {
+            #gl-amenidades { scrollbar-width: thin; scrollbar-color: var(--gold) #f0e6d2; }
+            #gl-amenidades::-webkit-scrollbar { height: 8px; }
+            #gl-amenidades::-webkit-scrollbar-track { background: #f0e6d2; border-radius: 999px; }
+            #gl-amenidades::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 999px; }
+            #gl-amenidades::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+        }
         #gl-amenidades li { flex: 0 0 250px; scroll-snap-align: start; margin-bottom: 0; padding: 22px 20px; flex-direction: column; align-items: flex-start; gap: 14px; position: relative; overflow: hidden; }
         .gl-amenidad-icono { width: 52px; height: 52px; min-width: 52px; border-radius: 50%; background: linear-gradient(135deg, #d4af37, #b8912c); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; box-shadow: 0 6px 16px rgba(184,145,44,0.35); transition: var(--transition); }
         #gl-amenidades li:hover .gl-amenidad-icono { transform: scale(1.08); box-shadow: 0 8px 20px rgba(184,145,44,0.45); }
@@ -116,7 +124,8 @@
         #gl-amenidades li.gl-amenidad-destacada { background: linear-gradient(160deg, #fffaf0, #fff); border: 1px solid rgba(212,175,55,0.5); box-shadow: 0 10px 28px rgba(184,145,44,0.18); }
         #gl-amenidades li.gl-amenidad-destacada::after { content: 'Incluido con tu compra'; position: absolute; top: 14px; right: -34px; transform: rotate(40deg); background: var(--gold); color: var(--primary); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 4px 38px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
         @media (max-width: 700px) {
-            #gl-amenidades { margin: 20px -24px 6px; padding: 4px 24px 14px; }
+            #gl-amenidades { margin: 20px -24px 6px; padding: 4px 24px 14px; scrollbar-width: none; }
+            #gl-amenidades::-webkit-scrollbar { display: none; }
             #gl-amenidades li { flex: 0 0 230px; padding: 16px 14px; gap: 10px; }
             .gl-amenidad-icono { width: 40px; height: 40px; min-width: 40px; font-size: 1rem; }
             .gl-amenidad-etiqueta { font-size: 0.62rem; }
