@@ -91,12 +91,15 @@
             .gl-hero .hero-tagline { font-size: 0.78rem; letter-spacing: 2px; margin-bottom: 8px; }
         }
         #gl-amenidades { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin: 30px 0; }
-        #gl-amenidades li { margin-bottom: 0; padding: 20px 18px; flex-direction: column; align-items: flex-start; gap: 14px; }
-        .gl-amenidad-icono { width: 50px; height: 50px; min-width: 50px; border-radius: 50%; background: rgba(212,175,55,0.14); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; transition: var(--transition); }
-        #gl-amenidades li:hover .gl-amenidad-icono { background: var(--gold); color: var(--primary); }
+        #gl-amenidades li { margin-bottom: 0; padding: 22px 20px; flex-direction: column; align-items: flex-start; gap: 14px; position: relative; overflow: hidden; }
+        .gl-amenidad-icono { width: 52px; height: 52px; min-width: 52px; border-radius: 50%; background: linear-gradient(135deg, #d4af37, #b8912c); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; box-shadow: 0 6px 16px rgba(184,145,44,0.35); transition: var(--transition); }
+        #gl-amenidades li:hover .gl-amenidad-icono { transform: scale(1.08); box-shadow: 0 8px 20px rgba(184,145,44,0.45); }
+        .gl-amenidad-etiqueta { font-size: 0.7rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
         .gl-amenidad-titulo { font-size: 1.05rem; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
         .gl-amenidad-desc { font-size: 0.92rem; line-height: 1.55; color: var(--text-light); font-weight: 400; }
         .gl-amenidad-foto { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius-sm); display: block; }
+        #gl-amenidades li.gl-amenidad-destacada { background: linear-gradient(160deg, #fffaf0, #fff); border: 1px solid rgba(212,175,55,0.5); box-shadow: 0 10px 28px rgba(184,145,44,0.18); }
+        #gl-amenidades li.gl-amenidad-destacada::after { content: 'Incluido con tu compra'; position: absolute; top: 14px; right: -34px; transform: rotate(40deg); background: var(--gold); color: var(--primary); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 4px 38px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
         @media (max-width: 700px) {
             /* Carrusel horizontal en vez de grid con boton "ver mas": el
                cliente desliza para ver las 6 amenidades, sin cortar nada. */
@@ -109,8 +112,10 @@
             #gl-amenidades::-webkit-scrollbar { display: none; }
             #gl-amenidades li { flex: 0 0 230px; scroll-snap-align: start; padding: 16px 14px; align-items: flex-start; text-align: left; gap: 10px; }
             .gl-amenidad-icono { width: 40px; height: 40px; min-width: 40px; font-size: 1rem; }
+            .gl-amenidad-etiqueta { font-size: 0.62rem; }
             .gl-amenidad-titulo { font-size: 0.95rem; }
             .gl-amenidad-desc { font-size: 0.82rem; line-height: 1.45; }
+            #gl-amenidades li.gl-amenidad-destacada::after { top: 10px; right: -36px; font-size: 0.55rem; padding: 3px 36px; }
         }
         .gl-badge-vip { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(120deg, #d4af37, #f4e2a1); color: var(--primary); font-weight: 700; font-size: 0.85rem; padding: 8px 18px; border-radius: 999px; margin-bottom: 18px; }
         .gl-cita-banner { display: flex; align-items: center; gap: 28px; background: linear-gradient(120deg, var(--primary), var(--primary-light)); color: #fff; border-radius: var(--radius-md); padding: 36px 40px; box-shadow: var(--shadow-lg); }
@@ -257,11 +262,11 @@
             <h2 class="section-title">¿Por qué Golden Lake?</h2>
             <p class="section-subtitle"><strong>No se trata solamente de dónde comprar una propiedad. Se trata de cómo querés vivirla.</strong><br>Golden Lake combina privacidad, naturaleza, amenidades y acceso a algunas de las experiencias más atractivas de Costa del Sol, en un entorno pensado para disfrutar hoy y proyectar a futuro.</p>
             <div class="landing-layout" style="padding-top:10px;">
+                <div class="landing-sidebar" id="gl-sidebar-foto"></div>
                 <div class="landing-content">
                     <div id="gl-sobre-texto" style="color: var(--text-light); font-size: 1.05rem; line-height: 1.8; margin-bottom: 30px;"></div>
                     <ul class="benefits-list" id="gl-amenidades"></ul>
                 </div>
-                <div class="landing-sidebar" id="gl-sidebar-foto"></div>
             </div>
         </div>
     </section>
@@ -533,12 +538,12 @@
                 // amenidad, se muestra arriba de la tarjeta en vez del
                 // ícono. Sin foto, la tarjeta se ve como hasta ahora.
                 amenidades: [
-                    { icono: 'fa-lock', foto: '', titulo: 'Privacidad y seguridad', descripcion: 'Residencial cerrado con acceso controlado y vigilancia, pensado para que vos y tu familia disfrutéis con tranquilidad de un entorno privado.' },
-                    { icono: 'fa-water', foto: '', titulo: 'Vivir junto al agua', descripcion: 'Lagos artificiales integrados al diseño del residencial que crean un entorno diferente, con espacios de agua y paisajismo alrededor de las propiedades.' },
-                    { icono: 'fa-anchor', foto: '', titulo: 'Tu conexión con el estero', descripcion: 'Muelle privado con acceso al estero de Jaltepeque: un espacio para salir en lancha, disfrutar del agua o simplemente contemplar el entorno.' },
-                    { icono: 'fa-table-tennis-paddle-ball', foto: '', titulo: 'Tenis, club y vida social', descripcion: 'Cancha de tenis y club social para disfrutar el residencial más allá de tu casa, compartir con familia y amigos y aprovechar tus días de descanso.' },
-                    { icono: 'fa-umbrella-beach', foto: '', titulo: 'Tu acceso a Tesoro Beach', descripcion: 'Como propietario de Golden Lake, disfrutás de membresía VIP a Tesoro Beach, el club de playa de Costa del Sol, sin pagar una entrada aparte.' },
-                    { icono: 'fa-chart-line', foto: '', titulo: 'Costa del Sol está creciendo', descripcion: 'Golden Lake está ubicado en una zona que continúa desarrollándose, con nuevos proyectos, servicios y actividad inmobiliaria. Una ubicación para disfrutar hoy y considerar con visión de largo plazo.' },
+                    { icono: 'fa-lock', foto: '', etiqueta: 'Seguridad', titulo: 'Privacidad y seguridad', descripcion: 'Residencial cerrado con acceso controlado y vigilancia, pensado para que vos y tu familia disfrutéis con tranquilidad de un entorno privado.' },
+                    { icono: 'fa-water', foto: '', etiqueta: 'Naturaleza', titulo: 'Vivir junto al agua', descripcion: 'Lagos artificiales integrados al diseño del residencial que crean un entorno diferente, con espacios de agua y paisajismo alrededor de las propiedades.' },
+                    { icono: 'fa-anchor', foto: '', etiqueta: 'Estilo de vida', titulo: 'Tu conexión con el estero', descripcion: 'Muelle privado con acceso al estero de Jaltepeque: un espacio para salir en lancha, disfrutar del agua o simplemente contemplar el entorno.' },
+                    { icono: 'fa-table-tennis-paddle-ball', foto: '', etiqueta: 'Comunidad', titulo: 'Tenis, club y vida social', descripcion: 'Cancha de tenis y club social para disfrutar el residencial más allá de tu casa, compartir con familia y amigos y aprovechar tus días de descanso.' },
+                    { icono: 'fa-umbrella-beach', foto: '', etiqueta: 'Exclusivo', destacada: true, titulo: 'Tu acceso a Tesoro Beach', descripcion: 'Como propietario de Golden Lake, disfrutás de membresía VIP a Tesoro Beach, el club de playa de Costa del Sol, sin pagar una entrada aparte.' },
+                    { icono: 'fa-chart-line', foto: '', etiqueta: 'Inversión', titulo: 'Costa del Sol está creciendo', descripcion: 'Golden Lake está ubicado en una zona que continúa desarrollándose, con nuevos proyectos, servicios y actividad inmobiliaria. Una ubicación para disfrutar hoy y considerar con visión de largo plazo.' },
                 ],
                 fotos: [],
             };
@@ -579,12 +584,15 @@
                     const foto = esObjeto ? item.foto : '';
                     const titulo = esObjeto ? item.titulo : item;
                     const descripcion = esObjeto ? item.descripcion : '';
+                    const etiqueta = esObjeto ? item.etiqueta : '';
+                    const destacada = esObjeto && item.destacada;
                     return `
-                        <li>
+                        <li class="${destacada ? 'gl-amenidad-destacada' : ''}">
                             ${foto
                                 ? `<img class="gl-amenidad-foto" src="${foto}" alt="${titulo}" loading="lazy" decoding="async">`
                                 : `<span class="gl-amenidad-icono"><i class="fas ${icono}"></i></span>`}
                             <div>
+                                ${etiqueta ? `<div class="gl-amenidad-etiqueta">${etiqueta}</div>` : ''}
                                 <div class="gl-amenidad-titulo">${titulo}</div>
                                 ${descripcion ? `<div class="gl-amenidad-desc">${descripcion}</div>` : ''}
                             </div>
