@@ -133,6 +133,36 @@
             .gl-amenidad-desc { font-size: 0.82rem; line-height: 1.45; }
             #gl-amenidades li.gl-amenidad-destacada::after { top: 10px; right: -36px; font-size: 0.55rem; padding: 3px 36px; }
         }
+        #gl-amenidades li { cursor: pointer; }
+        /* Modal de amenidad: foto + descripción en grande al hacer clic en
+           una tarjeta. Es propio de esta página (no el lightbox de fotos
+           compartido de app.js), porque necesita mostrar título/descripción
+           además de la imagen. */
+        .gl-am-modal-overlay {
+            display: none; position: fixed; inset: 0; z-index: 5050;
+            background: rgba(5, 8, 15, 0.72); align-items: center; justify-content: center;
+            padding: 20px; backdrop-filter: blur(3px);
+        }
+        .gl-am-modal-overlay.show { display: flex; }
+        .gl-am-modal-card {
+            background: #fff; border-radius: var(--radius-md); max-width: 460px; width: 100%;
+            max-height: 88vh; overflow-y: auto; position: relative; box-shadow: 0 30px 70px rgba(0,0,0,0.35);
+        }
+        .gl-am-modal-cerrar {
+            position: absolute; top: 14px; right: 14px; z-index: 2; width: 38px; height: 38px;
+            border-radius: 50%; border: none; background: rgba(15,23,42,0.55); color: #fff;
+            font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        .gl-am-modal-card img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; }
+        .gl-am-modal-icono {
+            display: none; width: 100%; aspect-ratio: 16 / 9; background: linear-gradient(135deg, #d4af37, #b8912c);
+            color: var(--primary); align-items: center; justify-content: center; font-size: 2.4rem;
+        }
+        .gl-am-modal-texto { padding: 26px 26px 28px; }
+        .gl-am-modal-etiqueta { font-size: 0.72rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+        .gl-am-modal-texto h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--primary); margin: 0 0 10px; }
+        .gl-am-modal-texto p { font-size: 0.98rem; line-height: 1.65; color: var(--text-light); margin: 0; }
         .gl-badge-vip { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(120deg, #d4af37, #f4e2a1); color: var(--primary); font-weight: 700; font-size: 0.85rem; padding: 8px 18px; border-radius: 999px; margin-bottom: 18px; }
         .gl-cita-banner { display: flex; align-items: center; gap: 28px; background: linear-gradient(120deg, var(--primary), var(--primary-light)); color: #fff; border-radius: var(--radius-md); padding: 36px 40px; box-shadow: var(--shadow-lg); }
         .gl-cita-banner-icono { width: 64px; height: 64px; min-width: 64px; border-radius: 50%; background: rgba(212,175,55,0.18); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; }
@@ -516,6 +546,20 @@
         <div class="lightbox-toast" id="lightbox-toast"></div>
     </div>
 
+    <!-- Modal de amenidad (foto + descripción en grande) -->
+    <div class="gl-am-modal-overlay" id="gl-amenidad-modal" onclick="if(event.target===this) cerrarAmenidadModal()">
+        <div class="gl-am-modal-card">
+            <button class="gl-am-modal-cerrar" onclick="cerrarAmenidadModal()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+            <img id="gl-amenidad-modal-foto" src="" alt="">
+            <div class="gl-am-modal-icono" id="gl-amenidad-modal-icono"></div>
+            <div class="gl-am-modal-texto">
+                <div class="gl-am-modal-etiqueta" id="gl-amenidad-modal-etiqueta"></div>
+                <h3 id="gl-amenidad-modal-titulo"></h3>
+                <p id="gl-amenidad-modal-desc"></p>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="config.js?v=2"></script>
     <script src="app.js?v=3"></script>
@@ -590,28 +634,68 @@
 
             function renderAmenidades(lista) {
                 const cont = document.getElementById('gl-amenidades');
-                cont.innerHTML = lista.map((item, i) => {
+                const normalizada = lista.map((item, i) => {
                     const esObjeto = item && typeof item === 'object';
-                    const icono = esObjeto && item.icono ? item.icono : ICONOS_AMENIDADES_DEFECTO[i % ICONOS_AMENIDADES_DEFECTO.length];
-                    const foto = esObjeto ? item.foto : '';
-                    const titulo = esObjeto ? item.titulo : item;
-                    const descripcion = esObjeto ? item.descripcion : '';
-                    const etiqueta = esObjeto ? item.etiqueta : '';
-                    const destacada = esObjeto && item.destacada;
-                    return `
-                        <li class="${destacada ? 'gl-amenidad-destacada' : ''}">
-                            ${foto
-                                ? `<img class="gl-amenidad-foto" src="${foto}" alt="${titulo}" loading="lazy" decoding="async">`
-                                : `<span class="gl-amenidad-icono"><i class="fas ${icono}"></i></span>`}
-                            <div>
-                                ${etiqueta ? `<div class="gl-amenidad-etiqueta">${etiqueta}</div>` : ''}
-                                <div class="gl-amenidad-titulo">${titulo}</div>
-                                ${descripcion ? `<div class="gl-amenidad-desc">${descripcion}</div>` : ''}
-                            </div>
-                        </li>
-                    `;
-                }).join('');
+                    return {
+                        icono: (esObjeto && item.icono) ? item.icono : ICONOS_AMENIDADES_DEFECTO[i % ICONOS_AMENIDADES_DEFECTO.length],
+                        foto: esObjeto ? (item.foto || '') : '',
+                        titulo: esObjeto ? item.titulo : item,
+                        descripcion: esObjeto ? (item.descripcion || '') : '',
+                        etiqueta: esObjeto ? (item.etiqueta || '') : '',
+                        destacada: !!(esObjeto && item.destacada),
+                    };
+                });
+                cont.innerHTML = normalizada.map((a) => `
+                    <li class="${a.destacada ? 'gl-amenidad-destacada' : ''}">
+                        ${a.foto
+                            ? `<img class="gl-amenidad-foto" src="${a.foto}" alt="${a.titulo}" loading="lazy" decoding="async">`
+                            : `<span class="gl-amenidad-icono"><i class="fas ${a.icono}"></i></span>`}
+                        <div>
+                            ${a.etiqueta ? `<div class="gl-amenidad-etiqueta">${a.etiqueta}</div>` : ''}
+                            <div class="gl-amenidad-titulo">${a.titulo}</div>
+                            ${a.descripcion ? `<div class="gl-amenidad-desc">${a.descripcion}</div>` : ''}
+                        </div>
+                    </li>
+                `).join('');
+                cont.querySelectorAll('li').forEach((li, i) => {
+                    li.addEventListener('click', () => abrirAmenidadModal(normalizada[i]));
+                });
             }
+
+            // Modal propio (no el lightbox de fotos compartido de app.js, que
+            // no tiene lugar para título/descripción): al hacer clic en una
+            // tarjeta de amenidad, se ve la foto en grande junto con su texto.
+            function abrirAmenidadModal(item) {
+                const overlay = document.getElementById('gl-amenidad-modal');
+                const fotoEl = document.getElementById('gl-amenidad-modal-foto');
+                const iconoEl = document.getElementById('gl-amenidad-modal-icono');
+                if (item.foto) {
+                    fotoEl.src = item.foto;
+                    fotoEl.alt = item.titulo || '';
+                    fotoEl.style.display = '';
+                    iconoEl.style.display = 'none';
+                } else {
+                    fotoEl.style.display = 'none';
+                    iconoEl.style.display = 'flex';
+                    iconoEl.innerHTML = `<i class="fas ${item.icono}"></i>`;
+                }
+                const etiquetaEl = document.getElementById('gl-amenidad-modal-etiqueta');
+                etiquetaEl.textContent = item.etiqueta || '';
+                etiquetaEl.style.display = item.etiqueta ? '' : 'none';
+                document.getElementById('gl-amenidad-modal-titulo').textContent = item.titulo || '';
+                document.getElementById('gl-amenidad-modal-desc').textContent = item.descripcion || '';
+                document.getElementById('gl-amenidad-modal').classList.add('show');
+            }
+
+            function cerrarAmenidadModal() {
+                document.getElementById('gl-amenidad-modal').classList.remove('show');
+            }
+            window.cerrarAmenidadModal = cerrarAmenidadModal;
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && document.getElementById('gl-amenidad-modal').classList.contains('show')) {
+                    cerrarAmenidadModal();
+                }
+            });
 
             function agregarVerMasClamp(el, labelMostrar, labelOcultar) {
                 el.classList.add('gl-clamp');
