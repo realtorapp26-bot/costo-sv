@@ -67,9 +67,9 @@
   var overlay = document.createElement('div');
   overlay.className = 'gldsr-overlay';
   overlay.innerHTML =
-    '<div class="gldsr-card" role="dialog" aria-modal="true" aria-label="Recibir el dossier de venta de Golden Lake">' +
+    '<div class="gldsr-card" role="dialog" aria-modal="true" aria-label="Recibir la información de venta de Golden Lake">' +
       '<button class="gldsr-x" type="button" aria-label="Cerrar">&times;</button>' +
-      '<div class="gldsr-eyebrow">Dossier de venta</div>' +
+      '<div class="gldsr-eyebrow">Información de venta</div>' +
       '<h2 class="gldsr-title">Descargá la información completa de Golden Lake</h2>' +
       '<p class="gldsr-sub">Precios, características de la casa y contacto directo con Walter, en un PDF.</p>' +
       '<form id="gldsr-form" novalidate>' +
@@ -80,7 +80,7 @@
         '<div class="gldsr-field"><label for="gldsr-tel">Teléfono</label>' +
           '<input id="gldsr-tel" name="telefono" type="tel" inputmode="tel" autocomplete="tel" placeholder="7000 0000" required></div>' +
         '<p class="gldsr-err" id="gldsr-err"></p>' +
-        '<button class="gldsr-go" type="submit"><span class="gldsr-spin"></span><span class="gldsr-go-txt">Descargar dossier PDF</span></button>' +
+        '<button class="gldsr-go" type="submit"><span class="gldsr-spin"></span><span class="gldsr-go-txt">Descargar información de venta</span></button>' +
         '<p class="gldsr-nota">Usamos tus datos solo para dar seguimiento sobre Golden Lake.</p>' +
       '</form>' +
     '</div>';
@@ -144,7 +144,7 @@
     } finally {
       btn.disabled = false;
       btn.classList.remove('loading');
-      btnTxt.textContent = 'Descargar dossier PDF';
+      btnTxt.textContent = 'Descargar información de venta';
     }
   });
 
@@ -396,7 +396,7 @@
       pdf.addPage();
       var c2 = await window.html2canvas(p2, { scale: 2, useCORS: true, backgroundColor: '#ffffff', width: 794, height: 1123, windowWidth: 794, windowHeight: 1123 });
       pdf.addImage(c2.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 595.28, 841.89);
-      pdf.save('dossier-golden-lake.pdf');
+      pdf.save('informacion-de-venta-golden-lake.pdf');
     } finally {
       if (p1 && p1.parentNode) p1.parentNode.removeChild(p1);
       if (p2 && p2.parentNode) p2.parentNode.removeChild(p2);
