@@ -64,7 +64,11 @@ function limpiarPrecio(precio) {
 }
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36';
-const REGEX_FOTOS = /https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|webp)(?:\?[^\s"'<>]*)?/gi;
+// Se busca dentro de src="..."/href="..." (no en texto libre) porque algunos
+// nombres de archivo de RE/MAX traen espacios sin codificar (ej. "Foto ataco
+// 1.jpg") -- un regex de texto libre corta la URL en el espacio y la pierde.
+// Entre comillas se puede permitir el espacio y luego codificarlo a mano.
+const REGEX_FOTOS = /(?:src|href)="(https?:\/\/[^"]+\.(?:jpg|jpeg|png|webp))"/gi;
 
 // La tarjeta de la selección solo trae título/precio/ubicación/cuartos y
 // UNA foto — la descripción completa y el resto de las fotos viven en la
@@ -87,7 +91,7 @@ async function enriquecerConPaginaIndividual(propiedad) {
     const descM = html.match(/"description":\s*"([\s\S]*?)",\s*\n?\s*"[a-zA-Z_]+"\s*:/);
     const descripcion = descM ? decodificarEntidades(descM[1]) : null;
 
-    const fotos = [...new Set((html.match(REGEX_FOTOS) || []))]
+    const fotos = [...new Set([...html.matchAll(REGEX_FOTOS)].map((m) => m[1].replace(/ /g, '%20')))]
       .filter((u) => !/logo|favicon|icon|avatar|userfiles|profile/i.test(u));
 
     return {
