@@ -49,6 +49,47 @@ function limpiarPrecio(precio) {
   return limpio || null;
 }
 
+const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36';
+const REGEX_FOTOS = /https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|webp)(?:\?[^\s"'<>]*)?/gi;
+
+// La tarjeta de la selección solo trae título/precio/ubicación/cuartos y
+// UNA foto — la descripción completa y el resto de las fotos viven en la
+// página propia de cada propiedad (mismo link que ya sacamos arriba). Se
+// visita cada una en paralelo; si alguna falla, esa propiedad se queda
+// solo con lo que ya traía la selección (no se cae el resto del lote).
+async function enriquecerConPaginaIndividual(propiedad) {
+  try {
+    const r = await fetch(propiedad.link_referencia, {
+      redirect: 'follow',
+      headers: { 'User-Agent': USER_AGENT, Accept: 'text/html,application/xhtml+xml' },
+    });
+    if (!r.ok) return propiedad;
+    const html = await r.text();
+
+    const ldM = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/);
+    let descripcion = null;
+    if (ldM) {
+      try {
+        const datos = JSON.parse(ldM[1]);
+        const nodo = datos['@graph'] ? datos['@graph'].find((n) => n.description) : datos;
+        if (nodo && nodo.description) descripcion = decodificarEntidades(nodo.description);
+      } catch (_) { /* JSON-LD mal formado: se sigue sin descripción */ }
+    }
+
+    const fotos = [...new Set((html.match(REGEX_FOTOS) || []))]
+      .filter((u) => !/logo|favicon|icon|avatar|userfiles|profile/i.test(u));
+
+    return {
+      ...propiedad,
+      descripcion_original: descripcion,
+      fotos: fotos.length ? fotos : (propiedad.foto ? [propiedad.foto] : []),
+    };
+  } catch (e) {
+    console.error('enriquecerConPaginaIndividual:', propiedad.id_externo, e.message);
+    return propiedad;
+  }
+}
+
 function parsearSeleccion(html, origenHost) {
   const bloques = html.split('<div class="col-lg-4 col-md-6 col-sm-12">').slice(1);
   const propiedades = [];
@@ -114,10 +155,7 @@ export default async function handler(req, res) {
   try {
     const r = await fetch(url.href, {
       redirect: 'follow',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
-        Accept: 'text/html,application/xhtml+xml',
-      },
+      headers: { 'User-Agent': USER_AGENT, Accept: 'text/html,application/xhtml+xml' },
     });
     if (!r.ok) {
       res.status(502).json({ error: 'La selección respondió ' + r.status + '. Verificá que el link sea correcto y siga público.' });
@@ -134,11 +172,13 @@ export default async function handler(req, res) {
     }
 
     const html = buf.toString('utf8');
-    const propiedades = parsearSeleccion(html, url.hostname);
-    if (!propiedades.length) {
+    const propiedadesBase = parsearSeleccion(html, url.hostname);
+    if (!propiedadesBase.length) {
       res.status(502).json({ error: 'No se encontró ninguna propiedad en esa selección. Verificá el link.' });
       return;
     }
+
+    const propiedades = await Promise.all(propiedadesBase.map(enriquecerConPaginaIndividual));
 
     res.status(200).json({ propiedades });
   } catch (err) {
