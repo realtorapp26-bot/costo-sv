@@ -337,6 +337,15 @@
                 </div>
             </div>
 
+            <div class="panel" style="border: 2px dashed var(--gold);">
+                <h2>📦 Subir una selección completa</h2>
+                <label>Pegá el link de una selección de RE/MAX Connect (share.remax-ccamls.com/s/...) — trae y sube todas las propiedades de esa selección de una sola vez, sin revisión previa.</label>
+                <div class="actions-row">
+                    <input type="url" id="f-link-seleccion" placeholder="https://share.remax-ccamls.com/s/..." style="flex: 1 1 320px;">
+                    <button class="btn-action btn-primary" id="btn-traer-seleccion" onclick="subirSeleccionCompleta()">📦 Subir selección completa</button>
+                </div>
+            </div>
+
             <div class="panel-actions-row">
                 <button class="btn-action btn-secondary" onclick="abrirModalNuevaPropiedad()">➕ Agregar propiedad a mano</button>
             </div>
@@ -973,6 +982,67 @@
                 alert(ex.message || 'No se pudo traer el listado.');
             } finally {
                 btn.textContent = '🔗 Traer datos del link';
+                btn.disabled = false;
+            }
+        }
+
+        // Sube TODAS las propiedades de una selección de un solo saque, sin
+        // paso de revisión (decisión de Walter: velocidad antes que control
+        // fino). Salta las que ya existen (mismo id_externo) para poder
+        // pegar selecciones repetidas sin duplicar. No pasa por Claude: el
+        // HTML de la selección ya viene bien estructurado, se parsea directo
+        // en el servidor (api/traer-seleccion).
+        async function subirSeleccionCompleta() {
+            const btn = document.getElementById('btn-traer-seleccion');
+            const url = document.getElementById('f-link-seleccion').value.trim();
+            if (!url) { alert('Pegá primero el link de la selección.'); return; }
+
+            btn.textContent = 'Trayendo selección...';
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/traer-seleccion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'No se pudo traer la selección');
+
+                const headers = await CostoSVAuth.authHeaders();
+                const existentesRes = await fetch(`${SUPA_URL}/rest/v1/propiedades?select=id_externo&id_externo=not.is.null`, { headers });
+                const existentes = new Set((await existentesRes.json()).map(p => p.id_externo));
+
+                const nuevas = data.propiedades.filter(p => !existentes.has(p.id_externo));
+                const saltadas = data.propiedades.length - nuevas.length;
+
+                let subidas = 0;
+                for (const p of nuevas) {
+                    const body = {
+                        link_referencia: p.link_referencia,
+                        titulo: p.titulo,
+                        precio: p.precio || 'Precio a consultar',
+                        ubicacion: p.ubicacion,
+                        categoria: p.categoria,
+                        habitaciones: p.habitaciones,
+                        banos: p.banos,
+                        fotos: p.foto ? [p.foto] : [],
+                        tipo_contrato: p.tipo_contrato,
+                        tipo_propiedad_detalle: p.tipo_propiedad_detalle,
+                        id_externo: p.id_externo,
+                    };
+                    const r = await fetch(`${SUPA_URL}/rest/v1/propiedades`, {
+                        method: 'POST', headers: { ...headers, Prefer: 'return=minimal' }, body: JSON.stringify(body),
+                    });
+                    if (r.ok) subidas++;
+                }
+
+                await cargarPropiedades();
+                document.getElementById('f-link-seleccion').value = '';
+                alert(`Listo: ${subidas} propiedad${subidas === 1 ? '' : 'es'} nueva${subidas === 1 ? '' : 's'} subida${subidas === 1 ? '' : 's'}.` + (saltadas ? ` ${saltadas} ya estaba${saltadas === 1 ? '' : 'n'} publicada${saltadas === 1 ? '' : 's'} (se saltaron).` : ''));
+            } catch (ex) {
+                alert(ex.message || 'No se pudo subir la selección.');
+            } finally {
+                btn.textContent = '📦 Subir selección completa';
                 btn.disabled = false;
             }
         }
