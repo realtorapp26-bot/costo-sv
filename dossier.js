@@ -248,8 +248,10 @@
     if (extra.length < 2) return '';
     return '<div style="display:flex;gap:10px;margin-top:10px">' +
       extra.map(function (u) {
-        return '<div style="flex:1;height:104px;border-radius:10px;overflow:hidden;background:#e5e7eb">' +
-          '<img src="' + esc(proxear(u)) + '" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;display:block" alt=""></div>';
+        // Sin foto adentro: html2canvas no soporta object-fit y la estiraría
+        // -- se deja la caja vacía y se pega encima una versión recortada
+        // a mano (misma técnica que la foto principal, ver fotoNitidaDataUrl).
+        return '<div class="dsr-thumb" data-foto="' + esc(u) + '" style="flex:1;height:104px;border-radius:10px;overflow:hidden;background:#e5e7eb"></div>';
       }).join('') + '</div>';
   }
 
@@ -350,23 +352,28 @@
     await Promise.all(Array.prototype.map.call(wrap.querySelectorAll('img'), cargarImagen));
     await new Promise(function (r) { setTimeout(r, 120); }); // deja pintar el QR
 
-    // Rect de la foto principal relativo al wrap -- se usa después para
-    // pegar encima una versión nítida (ver fotoNitidaDataUrl), porque toda
-    // la plantilla se achata como UNA sola captura de pantalla y ahí la
-    // foto pierde nitidez aunque el original sea de alta resolución.
-    var cajaFoto = wrap.querySelector('#dsr-hero').parentElement;
+    // Rects relativos al wrap de la foto principal y las miniaturas --
+    // se usan después para pegar encima versiones nítidas (ver más abajo),
+    // porque toda la plantilla se achata como UNA sola captura de pantalla
+    // y ahí las fotos pierden nitidez (o, en el caso de las miniaturas,
+    // quedan estiradas: html2canvas no soporta object-fit).
     var rWrap = wrap.getBoundingClientRect();
+    var cajaFoto = wrap.querySelector('#dsr-hero').parentElement;
     var rCaja = cajaFoto.getBoundingClientRect();
     var heroBox = { x: rCaja.left - rWrap.left, y: rCaja.top - rWrap.top, w: rCaja.width, h: rCaja.height };
+    var thumbBoxes = Array.prototype.map.call(wrap.querySelectorAll('.dsr-thumb'), function (d) {
+      var r = d.getBoundingClientRect();
+      return { x: r.left - rWrap.left, y: r.top - rWrap.top, w: r.width, h: r.height, foto: d.dataset.foto };
+    });
 
-    return { el: wrap, heroBox: heroBox };
+    return { el: wrap, heroBox: heroBox, thumbBoxes: thumbBoxes };
   }
 
-  // Recorta la foto original (misma lógica que object-fit:cover) y la
-  // dibuja en un canvas a resolución mucho más alta que su caja en la
-  // captura de pantalla completa, con el precio ya pintado encima --
-  // así el PDF final trae la foto nítida en vez de la versión achatada.
-  async function fotoNitidaDataUrl(foto, cajaPx) {
+  // Recorta la foto original (misma lógica que object-fit:cover, que
+  // html2canvas no soporta) y la dibuja en un canvas a resolución más alta
+  // que su caja en la captura de pantalla completa -- para pegar encima
+  // en el PDF en vez de dejar la versión achatada/estirada del fondo.
+  async function canvasRecortado(foto, cajaPx, radioPx, escala) {
     var img = new Image();
     img.crossOrigin = 'anonymous';
     var cargo = new Promise(function (res, rej) {
@@ -376,9 +383,8 @@
     img.src = proxear(foto);
     await cargo;
 
-    var ESCALA = 3; // resolución final = caja en pantalla x3 (bastante más nítido que el screenshot general)
-    var cw = Math.round(cajaPx.w * ESCALA);
-    var ch = Math.round(cajaPx.h * ESCALA);
+    var cw = Math.round(cajaPx.w * escala);
+    var ch = Math.round(cajaPx.h * escala);
 
     var escalaCover = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
     var anchoFuente = cw / escalaCover;
@@ -391,7 +397,7 @@
     canvas.height = ch;
     var ctx = canvas.getContext('2d');
 
-    var radio = 14 * ESCALA;
+    var radio = radioPx * escala;
     ctx.beginPath();
     ctx.moveTo(radio, 0);
     ctx.arcTo(cw, 0, cw, ch, radio);
@@ -400,10 +406,18 @@
     ctx.arcTo(0, 0, cw, 0, radio);
     ctx.closePath();
     ctx.clip();
-
     ctx.drawImage(img, sx, sy, anchoFuente, altoFuente, 0, 0, cw, ch);
+    return canvas;
+  }
 
-    // precio, mismo estilo que el chip en HTML (left:16 bottom:16, padding 9x18, radio 10)
+  // Foto principal: recorte nítido + precio repintado encima (mismo estilo
+  // que el chip en HTML: left:16 bottom:16, padding 9x18, radio 10).
+  async function fotoNitidaDataUrl(foto, cajaPx) {
+    var ESCALA = 3; // resolución final = caja en pantalla x3
+    var canvas = await canvasRecortado(foto, cajaPx, 14, ESCALA);
+    var ctx = canvas.getContext('2d');
+    var cw = canvas.width, ch = canvas.height;
+
     var texto = precioTxt(D.precio);
     ctx.font = '700 ' + (19 * ESCALA) + 'px Outfit, system-ui, sans-serif';
     var padV = 9 * ESCALA, padH = 18 * ESCALA, margen = 16 * ESCALA, radioChip = 10 * ESCALA;
@@ -424,6 +438,12 @@
     ctx.fillText(texto, chipX + padH, chipY + chipH / 2 + 1);
 
     return canvas.toDataURL('image/jpeg', 0.95);
+  }
+
+  // Miniaturas: mismo recorte nítido, sin nada pintado encima.
+  async function thumbNitidaDataUrl(foto, cajaPx) {
+    var canvas = await canvasRecortado(foto, cajaPx, 10, 3);
+    return canvas.toDataURL('image/jpeg', 0.9);
   }
 
   async function generarPDF() {
@@ -451,6 +471,16 @@
         }
       } catch (ex) {
         console.error('foto nítida (se usa la del screenshot general):', ex);
+      }
+
+      for (var i = 0; i < plantilla.thumbBoxes.length; i++) {
+        try {
+          var caja = plantilla.thumbBoxes[i];
+          var thumbUrl = await thumbNitidaDataUrl(caja.foto, caja);
+          pdf.addImage(thumbUrl, 'JPEG', caja.x * PT_POR_PX, caja.y * PT_POR_PX, caja.w * PT_POR_PX, caja.h * PT_POR_PX);
+        } catch (ex) {
+          console.error('miniatura nítida (queda la caja vacía):', ex);
+        }
       }
 
       pdf.save('dossier-' + (D.slug || 'propiedad') + '.pdf');
