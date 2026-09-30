@@ -349,11 +349,86 @@
 
     await Promise.all(Array.prototype.map.call(wrap.querySelectorAll('img'), cargarImagen));
     await new Promise(function (r) { setTimeout(r, 120); }); // deja pintar el QR
-    return wrap;
+
+    // Rect de la foto principal relativo al wrap -- se usa después para
+    // pegar encima una versión nítida (ver fotoNitidaDataUrl), porque toda
+    // la plantilla se achata como UNA sola captura de pantalla y ahí la
+    // foto pierde nitidez aunque el original sea de alta resolución.
+    var cajaFoto = wrap.querySelector('#dsr-hero').parentElement;
+    var rWrap = wrap.getBoundingClientRect();
+    var rCaja = cajaFoto.getBoundingClientRect();
+    var heroBox = { x: rCaja.left - rWrap.left, y: rCaja.top - rWrap.top, w: rCaja.width, h: rCaja.height };
+
+    return { el: wrap, heroBox: heroBox };
+  }
+
+  // Recorta la foto original (misma lógica que object-fit:cover) y la
+  // dibuja en un canvas a resolución mucho más alta que su caja en la
+  // captura de pantalla completa, con el precio ya pintado encima --
+  // así el PDF final trae la foto nítida en vez de la versión achatada.
+  async function fotoNitidaDataUrl(foto, cajaPx) {
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    var cargo = new Promise(function (res, rej) {
+      img.onload = function () { res(); };
+      img.onerror = function () { rej(new Error('no cargó')); };
+    });
+    img.src = proxear(foto);
+    await cargo;
+
+    var ESCALA = 3; // resolución final = caja en pantalla x3 (bastante más nítido que el screenshot general)
+    var cw = Math.round(cajaPx.w * ESCALA);
+    var ch = Math.round(cajaPx.h * ESCALA);
+
+    var escalaCover = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
+    var anchoFuente = cw / escalaCover;
+    var altoFuente = ch / escalaCover;
+    var sx = (img.naturalWidth - anchoFuente) / 2;
+    var sy = (img.naturalHeight - altoFuente) / 2;
+
+    var canvas = document.createElement('canvas');
+    canvas.width = cw;
+    canvas.height = ch;
+    var ctx = canvas.getContext('2d');
+
+    var radio = 14 * ESCALA;
+    ctx.beginPath();
+    ctx.moveTo(radio, 0);
+    ctx.arcTo(cw, 0, cw, ch, radio);
+    ctx.arcTo(cw, ch, 0, ch, radio);
+    ctx.arcTo(0, ch, 0, 0, radio);
+    ctx.arcTo(0, 0, cw, 0, radio);
+    ctx.closePath();
+    ctx.clip();
+
+    ctx.drawImage(img, sx, sy, anchoFuente, altoFuente, 0, 0, cw, ch);
+
+    // precio, mismo estilo que el chip en HTML (left:16 bottom:16, padding 9x18, radio 10)
+    var texto = precioTxt(D.precio);
+    ctx.font = '700 ' + (19 * ESCALA) + 'px Outfit, system-ui, sans-serif';
+    var padV = 9 * ESCALA, padH = 18 * ESCALA, margen = 16 * ESCALA, radioChip = 10 * ESCALA;
+    var anchoTexto = ctx.measureText(texto).width;
+    var chipW = anchoTexto + padH * 2, chipH = (19 * ESCALA * 1.28) + padV * 2;
+    var chipX = margen, chipY = ch - margen - chipH;
+    ctx.beginPath();
+    ctx.moveTo(chipX + radioChip, chipY);
+    ctx.arcTo(chipX + chipW, chipY, chipX + chipW, chipY + chipH, radioChip);
+    ctx.arcTo(chipX + chipW, chipY + chipH, chipX, chipY + chipH, radioChip);
+    ctx.arcTo(chipX, chipY + chipH, chipX, chipY, radioChip);
+    ctx.arcTo(chipX, chipY, chipX + chipW, chipY, radioChip);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(15,23,42,.88)';
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(texto, chipX + padH, chipY + chipH / 2 + 1);
+
+    return canvas.toDataURL('image/jpeg', 0.95);
   }
 
   async function generarPDF() {
-    var el = await construirPlantilla();
+    var plantilla = await construirPlantilla();
+    var el = plantilla.el;
     try {
       var canvas = await window.html2canvas(el, {
         scale: 2, useCORS: true, backgroundColor: '#ffffff',
@@ -362,6 +437,22 @@
       var jsPDF = window.jspdf.jsPDF;
       var pdf = new jsPDF({ unit: 'pt', format: 'a4', compress: true });
       pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 595.28, 841.89);
+
+      try {
+        var PT_POR_PX = 595.28 / 794;
+        var foto = (D.fotos && D.fotos[0]) || D.foto;
+        if (foto) {
+          var fotoUrl = await fotoNitidaDataUrl(foto, plantilla.heroBox);
+          pdf.addImage(
+            fotoUrl, 'JPEG',
+            plantilla.heroBox.x * PT_POR_PX, plantilla.heroBox.y * PT_POR_PX,
+            plantilla.heroBox.w * PT_POR_PX, plantilla.heroBox.h * PT_POR_PX
+          );
+        }
+      } catch (ex) {
+        console.error('foto nítida (se usa la del screenshot general):', ex);
+      }
+
       pdf.save('dossier-' + (D.slug || 'propiedad') + '.pdf');
     } finally {
       if (el && el.parentNode) el.parentNode.removeChild(el);
