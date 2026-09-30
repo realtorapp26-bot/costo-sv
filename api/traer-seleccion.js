@@ -128,11 +128,45 @@ const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 // Entre comillas se puede permitir el espacio y luego codificarlo a mano.
 const REGEX_FOTOS = /(?:src|href)="(https?:\/\/[^"]+\.(?:jpg|jpeg|png|webp))"/gi;
 
+// Quita etiquetas HTML de los campos "publicremarks_*" (vienen con <p>/<br>
+// para formatear el texto en la página original) y las convierte en saltos
+// de línea, antes de decodificar entidades.
+function textoDesdeHtml(s) {
+  if (!s) return null;
+  const texto = String(s).replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>/gi, '\n\n').replace(/<[^>]+>/g, '');
+  const limpio = decodificarEntidades(texto);
+  return limpio || null;
+}
+
+// Cada página individual trae, además del bloque JSON-LD, un objeto JS
+// `var information = {...}` con los datos crudos del listado tal cual están
+// en RE/MAX Connect: coordenadas, m² de lote/construcción y la descripción
+// ya en español (publicremarks_es) además de inglés (publicremarks_en). Es
+// JSON válido de verdad (lo arma el propio servidor, no un agente tipeando
+// texto libre), así que acá sí conviene JSON.parse en vez de regex.
+function datosDesdeInformation(html) {
+  const m = html.match(/var information = (\{[\s\S]*?\});/);
+  if (!m) return null;
+  try {
+    return JSON.parse(m[1]);
+  } catch (e) {
+    return null;
+  }
+}
+
+function areaConUnidad(valor, unidadEtiqueta) {
+  const n = parseFloat(valor);
+  if (!n) return null;
+  const unidad = /mt/i.test(unidadEtiqueta || '') ? 'm²' : (unidadEtiqueta || '').replace(/<[^>]+>/g, '');
+  return `${n} ${unidad}`.trim();
+}
+
 // La tarjeta de la selección solo trae título/precio/ubicación/cuartos y
-// UNA foto — la descripción completa y el resto de las fotos viven en la
-// página propia de cada propiedad (mismo link que ya sacamos arriba). Se
-// visita cada una en paralelo; si alguna falla, esa propiedad se queda
-// solo con lo que ya traía la selección (no se cae el resto del lote).
+// UNA foto — la descripción completa, las fotos, la ubicación exacta y el
+// resto de las medidas viven en la página propia de cada propiedad (mismo
+// link que ya sacamos arriba). Se visita cada una en paralelo; si alguna
+// falla, esa propiedad se queda solo con lo que ya traía la selección (no
+// se cae el resto del lote).
 async function enriquecerConPaginaIndividual(propiedad) {
   try {
     const r = await fetch(propiedad.link_referencia, {
@@ -142,12 +176,19 @@ async function enriquecerConPaginaIndividual(propiedad) {
     if (!r.ok) return propiedad;
     const html = await r.text();
 
-    // No se usa JSON.parse acá a propósito: cuando la descripción tiene
-    // saltos de línea reales (alguien los tipeó en RE/MAX Connect), el
-    // bloque deja de ser JSON válido -- JSON.parse tira y se pierde la
-    // descripción entera. Se saca directo con regex, que no le importa.
-    const descM = html.match(/"description":\s*"([\s\S]*?)",\s*\n?\s*"[a-zA-Z_]+"\s*:/);
-    const descripcion = descM ? decodificarEntidades(descM[1]) : null;
+    const info = datosDesdeInformation(html);
+
+    let descripcion = null;
+    if (info) {
+      descripcion = textoDesdeHtml(info.publicremarks_es) || textoDesdeHtml(info.publicremarks_en);
+    }
+    if (!descripcion) {
+      // Respaldo: el bloque JSON-LD, sin JSON.parse porque cuando la
+      // descripción tiene saltos de línea reales (alguien los tipeó en
+      // RE/MAX Connect) deja de ser JSON válido y JSON.parse tira.
+      const descM = html.match(/"description":\s*"([\s\S]*?)",\s*\n?\s*"[a-zA-Z_]+"\s*:/);
+      descripcion = descM ? decodificarEntidades(descM[1]) : null;
+    }
 
     const fotos = [...new Set([...html.matchAll(REGEX_FOTOS)].map((m) => m[1].replace(/ /g, '%20')))]
       .filter((u) => !/logo|favicon|icon|avatar|userfiles|profile/i.test(u));
@@ -156,6 +197,10 @@ async function enriquecerConPaginaIndividual(propiedad) {
       ...propiedad,
       descripcion_original: descripcion,
       fotos: fotos.length ? fotos : (propiedad.foto ? [propiedad.foto] : []),
+      latitud: info && info.latitude ? parseFloat(info.latitude) || null : null,
+      longitud: info && info.longitude ? parseFloat(info.longitude) || null : null,
+      tamano_lote: info ? areaConUnidad(info.lotsizearea, info.lotsizeUnit_es) : null,
+      tamano_construccion: info ? areaConUnidad(info.constructionsize, info.constructionsizeunit) : null,
     };
     enriquecida.copy_venta = await generarCopyVenta(enriquecida);
     return enriquecida;
