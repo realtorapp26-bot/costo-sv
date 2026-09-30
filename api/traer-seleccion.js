@@ -36,11 +36,25 @@ function categoriaDesdeTipo(tipoIngles) {
   return 'Vivienda Residencial';
 }
 
+// Los textos de RE/MAX vienen con entidades duplicadas (ej. "&amp;ntilde;"
+// en vez de "&ntilde;" directo) porque su HTML ya las había escapado una
+// vez antes de meterlas en el bloque JSON-LD. Se decodifica &amp; primero
+// para "pelar" esa capa, y recién ahí las entidades con nombre (tildes,
+// ñ, nbsp) quedan como para decodificar normal.
+const ENTIDADES_CON_NOMBRE = {
+  nbsp: ' ', aacute: 'á', eacute: 'é', iacute: 'í', oacute: 'ó', uacute: 'ú',
+  Aacute: 'Á', Eacute: 'É', Iacute: 'Í', Oacute: 'Ó', Uacute: 'Ú',
+  ntilde: 'ñ', Ntilde: 'Ñ', uuml: 'ü', Uuml: 'Ü', iexcl: '¡', iquest: '¿',
+  ndash: '–', mdash: '—', hellip: '…', rsquo: '’', lsquo: '‘', rdquo: '”', ldquo: '“',
+};
+
 function decodificarEntidades(s) {
   return String(s || '')
     .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
-    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
-    .replace(/\s+/g, ' ').trim();
+    .replace(/&amp;/g, '&')
+    .replace(/&(nbsp|[aeiouAEIOU]acute|[nN]tilde|[uU]uml|iexcl|iquest|ndash|mdash|hellip|[lr]squo|[lr]dquo);/g, (_, nombre) => ENTIDADES_CON_NOMBRE[nombre] || '')
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
 }
 
 function limpiarPrecio(precio) {
@@ -66,15 +80,12 @@ async function enriquecerConPaginaIndividual(propiedad) {
     if (!r.ok) return propiedad;
     const html = await r.text();
 
-    const ldM = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/);
-    let descripcion = null;
-    if (ldM) {
-      try {
-        const datos = JSON.parse(ldM[1]);
-        const nodo = datos['@graph'] ? datos['@graph'].find((n) => n.description) : datos;
-        if (nodo && nodo.description) descripcion = decodificarEntidades(nodo.description);
-      } catch (_) { /* JSON-LD mal formado: se sigue sin descripción */ }
-    }
+    // No se usa JSON.parse acá a propósito: cuando la descripción tiene
+    // saltos de línea reales (alguien los tipeó en RE/MAX Connect), el
+    // bloque deja de ser JSON válido -- JSON.parse tira y se pierde la
+    // descripción entera. Se saca directo con regex, que no le importa.
+    const descM = html.match(/"description":\s*"([\s\S]*?)",\s*\n?\s*"[a-zA-Z_]+"\s*:/);
+    const descripcion = descM ? decodificarEntidades(descM[1]) : null;
 
     const fotos = [...new Set((html.match(REGEX_FOTOS) || []))]
       .filter((u) => !/logo|favicon|icon|avatar|userfiles|profile/i.test(u));
