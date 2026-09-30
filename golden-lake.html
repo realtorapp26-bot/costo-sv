@@ -45,7 +45,7 @@
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"¿Golden Lake está frente al mar?","acceptedAnswer":{"@type":"Answer","text":"No. Golden Lake está tierra adentro, junto al estero de Jaltepeque en Costa del Sol. Como propietario tenés membresía VIP a Tesoro Beach, el club de playa de la zona, así que sí tenés acceso al mar sin que la propiedad esté en la costa."}},{"@type":"Question","name":"¿El título de propiedad está en regla?","acceptedAnswer":{"@type":"Answer","text":"Sí, la documentación de Golden Lake está 100% en regla."}},{"@type":"Question","name":"¿Hay financiamiento?","acceptedAnswer":{"@type":"Answer","text":"Podés aplicar a un préstamo bancario si sos sujeto de crédito, igual que en cualquier otra compra de bienes raíces en El Salvador — el financiamiento se gestiona directamente con el banco de tu preferencia."}},{"@type":"Question","name":"¿Cuánto es el mantenimiento mensual de la comunidad?","acceptedAnswer":{"@type":"Answer","text":"La cuota de mantenimiento de la comunidad cerrada es de $60 al mes."}},{"@type":"Question","name":"¿Quién construye Golden Lake?","acceptedAnswer":{"@type":"Answer","text":"Golden Lake es desarrollado por Multiinversiones Intersol, S.A. de C.V."}},{"@type":"Question","name":"¿Cuánto tarda la construcción de la casa nueva?","acceptedAnswer":{"@type":"Answer","text":"La construcción de una casa nueva toma aproximadamente 8 meses desde que se reserva."}}]}</script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=IBM+Plex+Mono:wght@400;500&display=swap">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -271,6 +271,174 @@
         #gl-sobre-texto ul { margin: 0 0 18px; padding-left: 22px; }
         #gl-sobre-texto li { margin-bottom: 8px; }
         #gl-sobre-texto strong { color: var(--text-main); font-weight: 700; }
+
+        /* Plano de la lotificacion (seccion gl-plano) -- paleta y tipografias ya adaptadas a la identidad del sitio (navy/dorado, Playfair Display/Outfit) a partir de un prototipo armado con Walter. */
+        /* Layout: plan-first. Map leads (left/top), property panel beside it (right/below). Cadastral vernacular: polígonos, lotes, m². */
+        .gl-plano{
+          /* Plano nocturno: tierra verde-noche, agua turquesa, oro Golden Lake */
+          --bg:#0A0F1C; --surface:#131A2C; --surface-2:#1C2438; --ink:#FFFFFF; --muted:rgba(255,255,255,.62); --line:rgba(255,255,255,.12);
+          --lot:#16203A; --lot-hi:#202C4A; --road:#3C4A66; --road-edge:#0A0F1C; --stripe:rgba(212,175,55,.5);
+          --water:#1F6B78; --water-deep:#3FA7B8; --green:#16301F; --tree:#2B5A35; --tree-hi:#3C7645;
+          --gold:#D4AF37; --gold-soft:rgba(212,175,55,.15); --pin-ink:#0A0F1C; --ok:#22C55E; --warn:#EAB676;
+          --display:"Playfair Display", Georgia, serif;
+          --body:"Outfit", system-ui, sans-serif;
+          --mono:"IBM Plex Mono", ui-monospace, Consolas, monospace;
+          color-scheme:dark;
+        }
+        .gl-plano *{box-sizing:border-box}
+        .gl-plano{background:var(--bg) radial-gradient(1200px 500px at 15% -10%, #1C3A2F 0%, transparent 60%);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+        .wrap{max-width:1240px;margin:0 auto;padding-inline:20px;padding-block:28px 40px;display:flex;flex-direction:column;gap:22px}
+        .gl-plano header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+        .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+        .gl-plano h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,5vw,46px);line-height:1.05;margin:4px 0 6px;text-wrap:balance;color:var(--ink)}
+        .gl-plano h1 span{color:var(--gold)}
+        .sub{color:var(--muted);max-width:60ch;margin:0}
+        .facts{display:flex;flex-wrap:wrap;gap:8px 20px;font-family:var(--mono);font-size:13px;color:var(--muted)}
+        .facts b{display:block;font-family:var(--display);font-size:22px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+        
+        .grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:start}
+        @media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+        
+        .mapcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:0}
+        .maptools{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}
+        .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted)}
+        .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+        .zoom{display:flex;gap:6px}
+        .gl-plano button{font:inherit;color:inherit;cursor:pointer}
+        .zoom button{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--bg);font-size:18px;line-height:1}
+        .zoom button:focus-visible,.prop:focus-visible,.chip:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+        .mapscroll{overflow:auto;max-height:78vh;touch-action:pan-x pan-y}
+        #gl-plano-map{display:block;width:100%;height:auto;transition:width .2s}
+        @media (prefers-reduced-motion:reduce){#gl-plano-map{transition:none}}
+        
+        /* SVG */
+        .road{fill:none;stroke:var(--road);stroke-linecap:round;stroke-linejoin:round}
+        .road-edge{fill:none;stroke:var(--road-edge);stroke-linecap:round;stroke-linejoin:round}
+        .hwy{fill:none;stroke:var(--road-edge);stroke-linecap:butt}
+        .site{fill:var(--bg);stroke:var(--muted);stroke-width:2;stroke-dasharray:10 6}
+        .block{fill:var(--lot);stroke:var(--line);stroke-width:2;cursor:pointer;transition:fill .15s}
+        .block:hover,.block.sel{fill:var(--lot-hi)}
+        .block.sel{stroke:var(--gold);stroke-width:3}
+        .lotline{stroke:var(--muted);stroke-width:1.5;opacity:.55}
+        .lot7{fill:var(--lot);stroke:var(--muted);stroke-width:1.5;cursor:pointer;transition:fill .15s}
+        .lot7:hover{fill:var(--lot-hi)}
+        .lot7.house{fill:var(--gold-soft);stroke:var(--gold);stroke-width:2.5}
+        .lot7.sel{stroke:var(--ink);stroke-width:3}
+        .lnum{font-family:var(--display);font-weight:700;font-size:20px;fill:var(--ink);text-anchor:middle;pointer-events:none}
+        .water{fill:url(#gl-plano-wg);stroke:var(--water-deep);stroke-width:2}
+        .greenz{fill:var(--green)}
+        .plab{paint-order:stroke;stroke:var(--bg);stroke-width:7px;stroke-linejoin:round;font-family:var(--display);font-weight:700;font-size:26px;fill:var(--ink);pointer-events:none;text-anchor:middle}
+        .plab small,.psub{font-family:var(--mono);font-size:15px;font-weight:400;fill:var(--muted);text-anchor:middle;pointer-events:none}
+        .slab{font-family:var(--mono);font-size:14px;fill:var(--muted);letter-spacing:.08em;pointer-events:none}
+        .flab{paint-order:stroke;stroke:rgba(10,21,20,.7);stroke-width:4px;stroke-linejoin:round;font-family:var(--body);font-size:16px;font-weight:600;fill:var(--ink);text-anchor:middle;pointer-events:none}
+        .pin{cursor:pointer}
+        .pin circle.dot{fill:var(--gold);stroke:var(--surface);stroke-width:4}
+        .pin text{font-family:var(--display);font-weight:700;font-size:20px;fill:var(--pin-ink);text-anchor:middle;pointer-events:none}
+        .pin .halo{fill:var(--gold);opacity:.25;animation:pulse 2.4s ease-out infinite;transform-box:fill-box;transform-origin:center}
+        .pin.sel circle.dot{stroke:var(--ink)}
+        @keyframes pulse{0%{transform:scale(.6);opacity:.45}100%{transform:scale(1.8);opacity:0}}
+        @media (prefers-reduced-motion:reduce){.pin .halo{animation:none}}
+        
+        /* Panel */
+        .gl-plano aside{display:flex;flex-direction:column;gap:14px;min-width:0}
+        .panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+        .panel h2{font-family:var(--display);font-size:22px;margin:2px 0 6px;line-height:1.15;text-wrap:balance;color:var(--ink)}
+        .price{font-family:var(--display);font-size:28px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
+        .kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:12px 0 0;font-size:14px}
+        .kv dt{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding-top:2px}
+        .kv dd{margin:0;font-variant-numeric:tabular-nums}
+        .status{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--gold-soft);color:var(--ink)}
+        .status::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--warn)}
+        .status.ok::before{background:var(--ok)}
+        .units{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+        .unit{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+        .unit strong{font-family:var(--display);font-size:16px}
+        .cta{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;padding:12px 14px;border-radius:10px;background:var(--gold);color:var(--pin-ink);font-weight:600;text-decoration:none}
+        .cta:hover{filter:brightness(1.06)}
+        .phone{font-family:var(--mono);font-size:12.5px;color:var(--muted);text-align:center;margin-top:6px;user-select:all}
+        .note{font-size:13px;color:var(--muted);margin:10px 0 0}
+        
+        .list{display:flex;flex-direction:column;gap:8px}
+        .list h3{font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 2px}
+        .prop{display:grid;grid-template-columns:34px 1fr auto;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+        .prop:hover{border-color:var(--gold)}
+        .prop.sel{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+        .prop .n{width:30px;height:30px;border-radius:50%;background:var(--gold);color:var(--pin-ink);display:grid;place-items:center;font-family:var(--display);font-weight:700}
+        .prop .n.off{background:transparent;border:2px dashed var(--gold);color:var(--gold)}
+        .prop .t{min-width:0}
+        .prop .t b{display:block;font-weight:600}
+        .prop .t span{font-size:13px;color:var(--muted)}
+        .prop .p{font-family:var(--display);font-weight:700;font-variant-numeric:tabular-nums}
+        
+        .amen{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+        .amen div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+        .amen b{font-family:var(--display);font-size:17px;display:block}
+        .amen span{font-size:13.5px;color:var(--muted)}
+        .gl-plano footer{font-size:12.5px;color:var(--muted);max-width:80ch}
+        
+        .brand{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+        .brand::before{content:"";width:28px;height:1px;background:var(--gold)}
+        .gl-plano h1{font-size:clamp(40px,7vw,76px)!important;letter-spacing:-.02em}
+        .mapcard{box-shadow:0 30px 80px -30px rgba(0,0,0,.7), 0 0 0 1px rgba(217,174,85,.08)}
+        .mapscroll{background:radial-gradient(900px 500px at 50% 40%, #12302A 0%, var(--surface) 70%)}
+        .lothatch{display:none}
+        .centerline{fill:none;stroke:var(--stripe);stroke-width:2;stroke-dasharray:18 16;opacity:.45}
+        .tree{fill:var(--tree)} .tree.hi{fill:var(--tree-hi)}
+        .palm{fill:none;stroke:var(--tree-hi);stroke-width:2.5;stroke-linecap:round}
+        .house rect.fp{fill:var(--surface-2);stroke:var(--gold);stroke-width:2}
+        .house path{fill:var(--gold);opacity:.85}
+        .tag rect{fill:var(--surface);stroke:var(--gold);stroke-width:2}
+        .tag text{font-family:var(--display);font-weight:700;font-size:18px;fill:var(--ink)}
+        .ripple{fill:none;stroke:var(--water-deep);stroke-width:1.5;opacity:.5}
+        .tip{position:fixed;z-index:9;pointer-events:none;background:var(--surface-2);color:var(--ink);border:1px solid var(--gold);border-radius:8px;padding:6px 10px;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.5);white-space:nowrap}
+        .tip b{color:var(--gold);font-family:var(--display)}
+        @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+        @media (prefers-reduced-motion:no-preference){
+          #gl-plano-blocks .block,#gl-plano-p7 .lot7{animation:rise .6s ease-out both}
+          .ripple{animation:rip 5s ease-in-out infinite}
+        }
+        @keyframes rip{0%,100%{opacity:.15}50%{opacity:.6}}
+        
+        .lotline2{stroke:#4C6B64;stroke-width:1.2;fill:none;pointer-events:none}
+        .lotn{font-family:var(--mono);font-size:10px;fill:var(--muted);text-anchor:middle;pointer-events:none;opacity:.8}
+        .lamp{fill:#F2D58B;opacity:.9} .lampglow{fill:#F2D58B;opacity:.12}
+        .court{fill:#1F4A3A;stroke:#9FC7B4;stroke-width:1.2}
+        .courtl{stroke:#9FC7B4;stroke-width:1;fill:none}
+        .trail{fill:none;stroke:#C9B98A;stroke-width:2;stroke-dasharray:3 6;opacity:.55}
+        .aes{fill:#233D34;stroke:var(--gold);stroke-width:1.2;stroke-dasharray:4 3}
+        .tiny{font-family:var(--mono);font-size:10.5px;fill:var(--muted);text-anchor:middle;pointer-events:none}
+        .sea{fill:none;stroke:#2F7F89;stroke-width:2;opacity:.5}
+        .scale line{stroke:var(--ink);stroke-width:2}
+        
+        .cell{fill:transparent;cursor:pointer;transition:fill .12s}
+        .cell:hover{fill:rgba(217,174,85,.14)}
+        .cell.sel{fill:rgba(217,174,85,.22);stroke:var(--gold);stroke-width:2}
+        .cell:focus-visible{outline:none;stroke:var(--gold);stroke-width:2}
+        .layers{display:flex;flex-wrap:wrap;gap:6px}
+        .chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer;user-select:none}
+        .chip input{accent-color:var(--gold);margin:0}
+        .chip:has(input:checked){color:var(--ink);border-color:#5b4a26}
+        #gl-plano-map.no-nums .lotn,#gl-plano-map.no-nums .lnum{display:none}
+        #gl-plano-map.no-lamps #gl-plano-lamps{display:none}
+        #gl-plano-map.no-trees #gl-plano-trees,#gl-plano-map.no-trees #gl-plano-palms{display:none}
+        .gate{stroke:var(--gold);stroke-width:3;stroke-linecap:round}
+        
+        .finder{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted)}
+        .finder select,.finder input{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+        .finder input{width:70px}
+        .finder button{border:1px solid var(--gold);background:transparent;color:var(--gold);border-radius:8px;padding:6px 12px;font-weight:600}
+        .finder .msg{color:var(--warn)}
+        .finder .sp{flex:1}
+        #gl-plano-map.tilt{transform:perspective(1600px) rotateX(42deg) scale(.96);transform-origin:50% 60%}
+        #gl-plano-map{transition:width .2s, transform .5s ease}
+        .sun circle{fill:#E9B949} .sun path{stroke:#E9B949;stroke-width:2;stroke-linecap:round}
+        .sunarc{fill:none;stroke:#E9B949;stroke-width:1.5;stroke-dasharray:4 5;opacity:.6}
+        
+        .lot7.por2{fill:url(#gl-plano-resv);stroke:var(--muted);stroke-width:1.5}
+        .lot7.por2.sel{stroke:var(--ink);stroke-width:3}
+        .house.res rect.fp{stroke:var(--muted)} .house.res path{fill:var(--muted);opacity:.6}
+        .dimt{font-family:var(--mono);font-size:10px;fill:var(--gold);text-anchor:middle;pointer-events:none}
+        .status.res{background:var(--surface-2);color:var(--muted)} .status.res::before{background:var(--muted)}
     </style>
 </head>
 <body>
@@ -369,6 +537,237 @@
             <h3 style="text-align:center; font-family:'Playfair Display', serif; font-size:1.4rem; color:var(--primary); margin-bottom:24px;">Plantas arquitectónicas</h3>
             <div class="gl-plantas-grid" id="gl-plantas"></div>
         </div>
+    </section>
+
+    <!-- Plano de la lotificacion: de donde esta cada lote/poligono, no de como llegar (eso ya lo cubre Ubicacion mas abajo) -->
+    <section class="gl-plano" aria-label="Plano de la lotificacion Golden Lake">
+      <div class="wrap">
+  <header>
+    <div>
+      <div class="brand">Guerrero Properties · RE/MAX Elite</div>
+      <div class="eyebrow" style="margin-top:10px">Lotificación turística · Costa del Sol, La Herradura, La Paz</div>
+      <h1>Golden <span>Lake</span></h1>
+      <p class="sub">Casas y lotes junto a tres lagunas privadas, con acceso controlado sobre el Bulevar Costa del Sol. Toca una propiedad en el plano para ver su ubicación, su precio y agendar tu visita.</p>
+    </div>
+    <div class="facts">
+      <div><b>121</b>lotes</div>
+      <div><b>11</b>polígonos</div>
+      <div><b>3</b>lagunas</div>
+      <div><b>8.9 ha</b>de terreno</div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="mapcard" aria-label="Plano de Golden Lake">
+      <div class="maptools">
+        <div class="legend">
+          <span><i style="background:var(--gold)"></i>Propiedad en venta</span>
+          <span><i style="background:var(--lot)"></i>Polígono de lotes</span>
+          <span><i style="background:var(--water)"></i>Laguna</span>
+          <span><i style="background:var(--green)"></i>Área verde</span>
+        </div>
+        <div class="layers" role="group" aria-label="Capas del plano">
+          <label class="chip"><input type="checkbox" id="gl-plano-l-nums" checked>Números</label>
+          <label class="chip"><input type="checkbox" id="gl-plano-l-lamps" checked>Alumbrado</label>
+          <label class="chip"><input type="checkbox" id="gl-plano-l-trees" checked>Vegetación</label>
+        </div>
+        <div class="zoom">
+          <button id="gl-plano-zout" type="button" aria-label="Alejar">−</button>
+          <button id="gl-plano-zin" type="button" aria-label="Acercar">+</button>
+        </div>
+      </div>
+      <div class="finder">
+        <label for="gl-plano-f-pol">Buscar lote:</label>
+        <select id="gl-plano-f-pol" aria-label="Polígono"></select>
+        <input id="gl-plano-f-lot" type="number" min="1" placeholder="Lote" aria-label="Número de lote">
+        <button id="gl-plano-f-go" type="button">Ver</button>
+        <span class="msg" id="gl-plano-f-msg" aria-live="polite"></span>
+        <span class="sp"></span>
+        <button id="gl-plano-tilt" type="button" aria-pressed="false">Vista 3D</button>
+      </div>
+      <div class="mapscroll" id="gl-plano-mapscroll">
+        <svg id="gl-plano-map" viewBox="200 -12 1160 1042" role="img" aria-label="Plano ilustrativo de la lotificación Golden Lake">
+          <defs>
+            <linearGradient id="gl-plano-wg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2A8C94"/><stop offset=".6" stop-color="#1F6E78"/><stop offset="1" stop-color="#174F58"/></linearGradient>
+            <pattern id="gl-plano-lotpat" width="24" height="24" patternUnits="userSpaceOnUse" patternTransform="rotate(80)"><line x1="0" y1="0" x2="0" y2="24" stroke="#35524C" stroke-width="1.5"/></pattern>
+            <filter id="gl-plano-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000" flood-opacity=".45"/></filter>
+            <pattern id="gl-plano-resv" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#1B2A28"/><line x1="0" y1="0" x2="0" y2="10" stroke="#3A4F4B" stroke-width="4"/></pattern>
+            <radialGradient id="gl-plano-glow"><stop offset="0" stop-color="#D9AE55" stop-opacity=".35"/><stop offset="1" stop-color="#D9AE55" stop-opacity="0"/></radialGradient>
+          </defs>
+          <!-- Calzada Jaltepeque (norte) -->
+          <path class="hwy" d="M200 10 L1360 216" stroke-width="44"/>
+          <path class="road" d="M200 10 L1360 216" stroke-width="36"/>
+          <path class="centerline" d="M200 10 L1360 216"/>
+          <text class="slab" transform="translate(560 79) rotate(10.1)">CALZADA JALTEPEQUE</text>
+          <!-- Bulevar Costa del Sol (sur) -->
+          <path class="hwy" d="M200 792 L1360 1012" stroke-width="58"/>
+          <path class="road" d="M200 792 L1360 1012" stroke-width="48"/>
+          <path class="centerline" d="M200 792 L1360 1012"/>
+          <g id="gl-plano-palms"></g>
+          <text class="slab" transform="translate(420 845) rotate(10.7)" style="font-size:16px">BULEVAR COSTA DEL SOL</text>
+          <text class="slab" transform="translate(1040 950) rotate(10.7)">→ HOTEL TESORO BEACH</text>
+          <text class="slab" transform="translate(215 815) rotate(10.7)">← SAN SALVADOR</text>
+
+          <!-- Perímetro -->
+          <path class="site" d="M432 92 L1296 214 L1238 966 L256 762 Z"/>
+
+          <!-- Áreas verdes -->
+          <path id="gl-plano-greenpath" class="greenz" d="M455 120 L880 128 C918 250 900 380 845 450 C770 530 600 545 470 505 L440 470 Z" opacity=".55"/>
+
+          <!-- Lagunas -->
+          <path id="gl-plano-lag1" class="water" d="M455 132 C530 150 530 330 470 385 C420 350 400 180 455 132 Z"/>
+          <ellipse id="gl-plano-lag2" class="water" cx="682" cy="208" rx="92" ry="46"/>
+          <ellipse id="gl-plano-lag3" class="water" cx="676" cy="322" rx="74" ry="44"/>
+
+          <!-- Detalles: canchas, senderos, equipamiento -->
+          <path class="trail" d="M600 208 C600 150 770 150 772 208 C774 262 752 268 748 322 C746 380 606 382 604 322 C602 268 600 258 600 208 Z"/>
+          <g>
+            <rect class="court" x="548" y="168" width="30" height="52" rx="2" transform="rotate(4 563 194)"/><path class="courtl" d="M549 194 L577 196" transform="rotate(4 563 194)"/>
+            <rect class="court" x="546" y="232" width="30" height="52" rx="2" transform="rotate(4 561 258)"/><path class="courtl" d="M547 258 L575 260" transform="rotate(4 561 258)"/>
+            <rect class="court" x="544" y="296" width="30" height="52" rx="2" transform="rotate(4 559 322)"/><path class="courtl" d="M545 322 L573 324" transform="rotate(4 559 322)"/>
+            <text class="tiny" x="562" y="366">Canchas</text>
+          </g>
+          <path class="aes" d="M438 102 L520 108 L516 150 L436 146 Z"/><text class="tiny" x="478" y="130">Equip. social</text>
+          <path class="aes" d="M362 330 L414 332 L410 372 L360 370 Z"/><text class="tiny" x="387" y="355">Equip.</text>
+          <g id="gl-plano-ripples"></g>
+          <g id="gl-plano-trees"></g>
+          <text class="flab" x="462" y="262">Laguna 1</text>
+          <text class="flab" x="682" y="214">Laguna 2</text>
+          <text class="flab" x="676" y="328">Laguna 3</text>
+          <text class="psub" x="560" y="440">Área verde recreativa</text>
+
+          <!-- Polígonos -->
+          <g id="gl-plano-blocks">
+            <path class="block" data-p="11" d="M590 102 L872 116 C890 180 896 240 890 300 L805 300 L800 150 L590 145 Z"/>
+            <path class="block" filter="url(#gl-plano-sh)" data-p="10" d="M442 470 C560 525 720 520 820 440 C850 400 865 360 868 318 L905 318 C900 390 880 430 858 460 C760 572 560 585 432 560 Z"/>
+            <path class="block" data-p="9"  d="M360 380 L406 380 L386 676 L286 676 Z"/>
+            <path class="block" data-p="8"  d="M412 600 C520 615 620 612 706 600 L784 772 L412 696 Z" transform="translate(0 -4)"/>
+            <path class="block" data-p="7"  d="M282 700 L780 782 L780 866 L288 764 Z"/>
+            <path class="block" data-p="6"  d="M740 596 C800 560 840 520 872 486 L990 486 L992 784 L818 790 L800 748 Z"/>
+            <path class="block" data-p="5"  d="M905 146 L1042 164 L1022 444 L888 444 C918 390 922 260 905 146 Z"/>
+            <path class="block" data-p="4"  d="M1074 172 L1182 196 L1168 462 L1046 456 Z"/>
+            <path class="block" data-p="3"  d="M1024 496 L1162 500 L1142 820 L1020 810 Z"/>
+            <path class="block" data-p="2"  d="M812 818 L1136 858 L1134 936 L820 870 Z"/>
+            <path class="block" data-p="1"  d="M1212 208 L1290 222 L1236 958 L1166 944 Z"/>
+          </g>
+
+          <g id="gl-plano-hatch"></g>
+          <!-- Calles internas -->
+          <g>
+            <path class="road-edge" stroke-width="26" d="M402 582 C560 610 760 598 872 472 C935 395 935 230 882 110"/>
+            <path class="road-edge" stroke-width="26" d="M718 590 L800 800"/>
+            <path class="road-edge" stroke-width="26" d="M395 690 L800 776"/>
+            <path class="road-edge" stroke-width="26" d="M420 385 L395 690"/>
+            <path class="road-edge" stroke-width="26" d="M880 460 L1180 480"/>
+            <path class="road-edge" stroke-width="26" d="M1058 168 L1004 800"/>
+            <path class="road-edge" stroke-width="26" d="M1196 205 L1150 950"/>
+            <path class="road-edge" stroke-width="26" d="M800 800 L1150 842"/>
+            <path class="road" stroke-width="20" d="M402 582 C560 610 760 598 872 472 C935 395 935 230 882 110"/>
+            <path class="road" stroke-width="20" d="M718 590 L800 800"/>
+            <path class="road" stroke-width="20" d="M395 690 L800 776"/>
+            <path class="road" stroke-width="20" d="M420 385 L395 690"/>
+            <path class="road" stroke-width="20" d="M880 460 L1180 480"/>
+            <path class="road" stroke-width="20" d="M1058 168 L1004 800"/>
+            <path class="road" stroke-width="20" d="M1196 205 L1150 950"/>
+            <path class="road" stroke-width="20" d="M800 800 L1150 842"/>
+          </g>
+
+          <g id="gl-plano-cells"></g>
+          <g id="gl-plano-lotlines"></g>
+          <g id="gl-plano-lamps"></g>
+          <!-- Polígono 7: lotes 1 a 7 -->
+          <g id="gl-plano-p7">
+            <path class="lot7" data-lot="1" d="M282.0 700.0 L324.6 707.0 L324.6 771.6 L282.0 762.8 Z"/>
+            <text class="lnum" data-lotn="1" x="303" y="741">1</text>
+            <path class="lot7" data-lot="2" d="M324.6 707.0 L366.5 713.9 L366.5 780.3 L324.6 771.6 Z"/>
+            <text class="lnum" data-lotn="2" x="346" y="749">2</text>
+            <path class="lot7" data-lot="3" d="M366.5 713.9 L432.2 724.7 L432.2 793.9 L366.5 780.3 Z"/>
+            <text class="lnum" data-lotn="3" x="399" y="759">3</text>
+            <path class="lot7" data-lot="4" d="M432.2 724.7 L522.7 739.6 L522.7 812.6 L432.2 793.9 Z"/>
+            <text class="lnum" data-lotn="4" x="477" y="774">4</text>
+            <path class="lot7 por1" data-lot="5" data-por="1" d="M522.7 739.6 L565.7 746.7 L565.7 821.5 L522.7 812.6 Z"/>
+            <path class="lot7 por2" data-lot="5" data-por="2" d="M565.7 746.7 L609.5 753.9 L609.5 830.6 L565.7 821.5 Z"/>
+            <path class="lot7" data-lot="6" d="M609.5 753.9 L694.7 768.0 L694.7 848.3 L609.5 830.6 Z"/>
+            <text class="lnum" data-lotn="6" x="652" y="806">6</text>
+            <path class="lot7" data-lot="7" d="M694.7 768.0 L780.0 782.0 L780.0 866.0 L694.7 848.3 Z"/>
+            <text class="lnum" data-lotn="7" x="737" y="822">7</text>
+          </g>
+
+          <ellipse cx="544" cy="780" rx="70" ry="55" fill="url(#gl-plano-glow)" pointer-events="none"/>
+          <text class="dimt" transform="translate(544 738) rotate(9.4)">≈10 m</text>
+          <text class="dimt" transform="translate(518 790) rotate(-80)">≈31 m</text>
+          <g pointer-events="none" transform="translate(588 812) rotate(10)"><rect x="-30" y="-10" width="60" height="16" rx="8" fill="var(--bg)" stroke="var(--muted)"/><text class="tiny" y="2" style="font-size:9.5px;fill:var(--ink)">RESERVADA</text></g>
+          <g class="house" pointer-events="none" transform="translate(532 768) rotate(10)"><rect class="fp" width="24" height="30" rx="2"/><path d="M-3 0 L12 -11 L27 0 Z"/></g>
+          <g class="house res" pointer-events="none" transform="translate(576 775) rotate(10)"><rect class="fp" width="24" height="30" rx="2"/><path d="M-3 0 L12 -11 L27 0 Z"/></g>
+          <!-- Etiquetas de polígonos -->
+          <g id="gl-plano-plabels">
+            <text class="plab" x="700" y="132">11</text>
+            <text class="plab" x="630" y="548">10</text>
+            <text class="plab" x="340" y="540">9</text>
+            <text class="plab" x="560" y="668">8</text>
+            <text class="slab" x="212" y="722" style="font-size:14px;font-weight:500">POL. 7</text>
+            <text class="plab" x="892" y="660">6</text>
+            <text class="plab" x="968" y="310">5</text>
+            <text class="plab" x="1116" y="330">4</text>
+            <text class="plab" x="1090" y="665">3</text>
+            <text class="plab" x="975" y="878">2</text>
+            <text class="plab" x="1222" y="600">1</text>
+          </g>
+
+          <!-- Calles: nombres -->
+          <text class="slab" transform="translate(600 624) rotate(-2)">C. ANDALUCÍA</text>
+          <text class="slab" transform="translate(500 718) rotate(12)">C. BARCELONA</text>
+          <text class="slab" transform="translate(970 474) rotate(3.5)">C. GRANADA</text>
+          <text class="slab" transform="translate(1045 640) rotate(-86)">C. VALENCIA</text>
+          <text class="slab" transform="translate(1188 440) rotate(-86)">C. MÁLAGA</text>
+          <text class="slab" transform="translate(416 560) rotate(-86)">C. CÁDIZ</text>
+
+          <!-- Entrada y casetas -->
+          <g>
+            <rect x="786" y="806" width="30" height="22" rx="4" fill="var(--ink)"/>
+            <path class="gate" d="M770 796 L792 800"/><circle cx="770" cy="796" r="4" fill="var(--gold)"/>
+            <text class="flab" x="800" y="862" style="font-size:14px">Entrada · Caseta de control</text>
+            <rect x="885" y="100" width="24" height="18" rx="4" fill="var(--ink)"/>
+            <text class="tiny" x="940" y="96" style="text-anchor:start">Caseta 2</text>
+          </g>
+
+          <path class="sea" d="M200 880 Q230 872 260 880 T320 880" transform="translate(0 0)"/>
+          <text class="slab" transform="translate(300 900) rotate(10.7)" style="fill:#5FA9B1">↓ HACIA LA PLAYA</text>
+          <g class="scale" transform="translate(1180 1000)"><line x1="0" y1="0" x2="141" y2="0"/><line x1="0" y1="-6" x2="0" y2="6"/><line x1="141" y1="-6" x2="141" y2="6"/><text class="tiny" x="70" y="-10">≈ 50 m</text></g>
+          <g transform="translate(250 400)">
+            <path class="sunarc" d="M60 -120 Q-10 -60 0 0"/>
+            <g class="sun"><circle r="10"/><path d="M0 -17 V-14 M0 14 V17 M-17 0 H-14 M14 0 H17 M-12 -12 L-10 -10 M10 10 L12 12 M-12 12 L-10 10 M10 -10 L12 -12"/></g>
+            <text class="tiny" x="0" y="34" style="fill:#E9B949">Atardecer</text>
+          </g>
+          <!-- Rosa de los vientos -->
+          <g transform="translate(1290 90)">
+            <circle r="30" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
+            <path d="M0 -24 L8 4 L0 -2 L-8 4 Z" fill="var(--ink)"/>
+            <text class="flab" y="20" style="font-size:13px">N</text>
+          </g>
+
+          <g id="gl-plano-pins"></g>
+        </svg>
+      </div>
+    </section>
+
+    <aside>
+      <div class="tip" id="gl-plano-tip" hidden></div>
+      <div class="panel" id="gl-plano-panel" aria-live="polite"></div>
+      <div class="list" id="gl-plano-list"><h3>Propiedades en Golden Lake</h3></div>
+    </aside>
+  </div>
+
+
+  <section class="amen" aria-label="Amenidades">
+    <div><b>3 lagunas</b><span>Al centro del proyecto, rodeadas de área verde recreativa y un área ecológica de más de 6,600 m².</span></div>
+    <div><b>Acceso controlado</b><span>Caseta de control en la entrada sobre el Bulevar Costa del Sol y una segunda caseta al norte, sobre la Calzada Jaltepeque.</span></div>
+    <div><b>Calles internas</b><span>Andalucía, Barcelona, Cádiz, Granada, Valencia y Málaga, con derecho de vía de 10 m.</span></div>
+    <div><b>Ubicación</b><span>San Luis La Herradura, La Paz. Frente al Bulevar Costa del Sol, en el tramo hacia el Hotel Tesoro Beach.</span></div>
+  </section>
+
+  <footer>Plano ilustrativo elaborado a partir del plano aprobado de la lotificación. Las formas, medidas y la posición de cada lote son aproximadas; las medidas oficiales son las de la escritura y la matrícula de cada inmueble. Precios sujetos a cambio.</footer>
+      </div>
     </section>
 
     <!-- Mapa: dónde queda, ya que decidió que el producto le interesa -->
@@ -1073,5 +1472,6 @@
         })();
     </script>
     <script src="dossier-golden-lake.js"></script>
+    <script src="plano-golden-lake.js"></script>
 </body>
 </html>
