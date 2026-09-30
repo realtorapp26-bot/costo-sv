@@ -357,7 +357,7 @@
                         <div class="gl-modelo-precio-reserva" id="gl-modelo-reserva"></div>
                         <div class="gl-modelo-disclaimer" id="gl-modelo-disclaimer" style="display:none;">Precio especial sujeto a disponibilidad y condiciones de la promoción en planos.</div>
                     </div>
-                    <a data-whatsapp data-wa="Hola Walter, quiero reservar una casa nueva en Golden Lake. ¿Me das más información?" href="#" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> Quiero reservar</a>
+                    <button type="button" class="btn btn-gold" onclick="window.abrirDossierGL && window.abrirDossierGL()"><i class="fas fa-file-arrow-down"></i> Descargar dossier</button>
                 </div>
                 <div class="gl-modelo-incluye" id="gl-modelo-incluye"></div>
                 <div id="gl-modelo-texto" style="color: var(--text-light); font-size: 1.05rem; line-height: 1.8;"></div>
@@ -632,6 +632,22 @@
                 'En el primer nivel empezamos con un parqueo para 3 vehículos, uno de ellos techado. Desde ahí se integra la sala, el comedor y la cocina en un amplio espacio de concepto abierto: la sala con doble altura da una sensación de amplitud, y la cocina cuenta con isla central en cuarzo blanco, sobre piso de porcelanato antideslizante en todo el nivel.\n\nLa zona social se conecta directamente con la piscina y una amplia terraza cubierta que recorre toda la fachada, ideal para relajarse y disfrutar al aire libre. Entre la doble altura de la sala y la cocina está la escalera hacia el segundo nivel, que destaca como un elemento arquitectónico.\n\nEste nivel también suma dos habitaciones, cada una con su propio baño completo: una con camarote —pensada para recibir visitas o alojar personal de servicio— con área de lavado, y otra junto a la escalera. A un costado de las gradas, del lado del garaje techado, hay además un medio baño para quienes visitan la casa.\n\nEl deck de la piscina lleva revestimiento WPC con apariencia de madera, que aporta calidez, resistencia y una estética sofisticada.',
                 'Segundo nivel — el ala privada de la residencia, con espacios pensados para dar comodidad, privacidad y conexión visual con las áreas sociales.\n\nCuenta con tres habitaciones, cada una con clóset y baño completo. La habitación frontal tiene su propia terraza, mientras que la principal, con vista hacia la piscina, incluye dos espacios exteriores privados: una terraza conectada directo con el dormitorio y un balcón independiente que conecta con el pasillo de la sala de estar del segundo nivel. Esto aporta vista e iluminación, y hace que los espacios se sientan ventilados y agradables.\n\nEl nivel se completa con la doble altura de la sala, que mantiene la conexión visual con el primer piso y refuerza la sensación de continuidad y amplitud entre ambos niveles.',
             ];
+
+            // Datos para el dossier de venta en PDF (dossier-golden-lake.js), con el
+            // respaldo desde ya -- ese script corre en su propio <script src>, que
+            // puede ejecutarse antes de que cargarProyecto() (abajo) resuelva el
+            // fetch a Supabase. cargarProyecto() actualiza este mismo objeto en
+            // lugar de reemplazarlo, para que la referencia que ya haya capturado
+            // dossier-golden-lake.js siga viendo los datos finales.
+            window.GL_DOSSIER_DATA = {
+                ubicacionCorta: 'Costa del Sol, La Herradura, La Paz',
+                foto: '',
+                amenidades: RESPALDO.amenidades,
+                modeloNombre: RESPALDO.modeloNombre, modeloStats: RESPALDO.modeloStats,
+                modeloPrecio: RESPALDO.modeloPrecio, modeloPrecioRegular: RESPALDO.modeloPrecioRegular,
+                modeloReserva: RESPALDO.modeloReserva, modeloIncluye: RESPALDO.modeloIncluye,
+                url: window.location.origin + '/golden-lake.html',
+            };
 
             function youtubeId(u) {
                 if (!u) return null;
@@ -978,6 +994,15 @@
                     heroBg.onerror = () => { heroBg.onerror = null; heroBg.src = fallbackHero; };
                     heroBg.src = fotos[0];
                 }
+                // Actualiza (no reemplaza) window.GL_DOSSIER_DATA con los datos
+                // reales ya resueltos -- ver el comentario junto a su asignación
+                // inicial, más arriba, sobre por qué es Object.assign y no "=".
+                Object.assign(window.GL_DOSSIER_DATA, {
+                    foto: fotos[0] || '',
+                    amenidades,
+                    modeloNombre, modeloStats, modeloPrecio, modeloPrecioRegular, modeloReserva, modeloIncluye,
+                });
+
                 renderAmenidades(amenidades);
                 renderFotoLateral(fotos.length > 1 ? fotos.slice(1, 6) : fotos);
                 renderVideoHero(videoHero);
@@ -1047,5 +1072,6 @@
             cargarInventario();
         })();
     </script>
+    <script src="dossier-golden-lake.js"></script>
 </body>
 </html>
