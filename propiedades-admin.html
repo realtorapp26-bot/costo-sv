@@ -196,6 +196,17 @@
                        oninput="filtroPropAdmin = this.value; render();"
                        style="width: 100%; padding: 9px 12px 9px 36px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: 'Outfit', sans-serif; font-size: 0.9rem; outline: none;">
             </div>
+            <div id="prop-barra-seleccion" style="display:none; align-items:center; gap:12px; margin-bottom:14px; padding:10px 14px; background:#fef2f2; border:1px solid #fecaca; border-radius:var(--radius-sm);">
+                <span id="prop-seleccion-contador" style="font-size:0.85rem; color:#7f1d1d; font-weight:600;"></span>
+                <button type="button" class="prop-btn prop-btn-eliminar" onclick="eliminarSeleccionadas()"><i class="fas fa-trash"></i> Eliminar seleccionadas</button>
+                <button type="button" class="prop-btn" style="background:none; border:1px solid var(--border);" onclick="vaciarSeleccionProp()">Cancelar selección</button>
+            </div>
+            <div style="margin-bottom:10px;">
+                <label style="display:inline-flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--text-light); cursor:pointer;">
+                    <input type="checkbox" id="prop-check-todas" onchange="toggleSeleccionarTodas(this.checked)" style="width:auto;">
+                    Seleccionar todas las visibles
+                </label>
+            </div>
             <div class="prop-list" id="tabla-body">
                 <div class="prop-empty">Cargando...</div>
             </div>
@@ -419,6 +430,7 @@
         const SUPA_URL = window.SITE_CONFIG.SUPABASE_URL;
         let propiedades = [];
         let franquicias = [];
+        let propiedadesSeleccionadas = new Set();
         let filtroPropAdmin = '';
         const DIACRITICOS_ADMIN = new RegExp('[' + String.fromCharCode(0x0300) + '-' + String.fromCharCode(0x036f) + ']', 'g');
         const normalizarAdmin = (s) => String(s || '').toLowerCase().normalize('NFD').replace(DIACRITICOS_ADMIN, '');
@@ -536,6 +548,7 @@
                 return `
                     <div class="prop-card${idx === 0 ? ' prop-card-destacada' : ''}" data-id="${p.id}">
                         <div class="prop-card-main">
+                            <input type="checkbox" class="prop-check" title="Seleccionar" onchange="toggleSeleccionProp('${p.id}', this.checked)" ${propiedadesSeleccionadas.has(p.id) ? 'checked' : ''} style="width:auto; margin-right:2px;">
                             <button type="button" class="prop-drag-handle" title="${hayFiltro ? 'Borrá la búsqueda para reordenar' : 'Arrastrar para reordenar'}" aria-label="Arrastrar para reordenar" ${hayFiltro ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : `onpointerdown="iniciarArrastre(event, '${p.id}')"`}><i class="fas fa-grip-lines"></i></button>
                             <div class="prop-card-orden">
                                 <button class="prop-orden-btn" title="${hayFiltro ? 'Borrá la búsqueda para reordenar' : 'Mostrar antes'}" onclick="moverPropiedad('${p.id}','arriba')" ${hayFiltro || idx === 0 ? 'disabled' : ''}><i class="fas fa-chevron-up"></i></button>
@@ -571,6 +584,7 @@
                     </div>
                 `;
             }).join('');
+            actualizarBarraSeleccion();
         }
 
         async function cambiarEstado(id, nuevoValor) {
@@ -732,6 +746,54 @@
                 });
                 if (!res.ok) throw new Error('No se pudo eliminar (' + res.status + ')');
                 propiedades = propiedades.filter(x => x.id !== id);
+                propiedadesSeleccionadas.delete(id);
+                render();
+            } catch (ex) {
+                alert(ex.message);
+            }
+        }
+
+        // ---------- Selección múltiple para borrado en bloque ----------
+        function toggleSeleccionProp(id, marcada) {
+            if (marcada) propiedadesSeleccionadas.add(id);
+            else propiedadesSeleccionadas.delete(id);
+            actualizarBarraSeleccion();
+        }
+
+        function toggleSeleccionarTodas(marcarTodas) {
+            const textoFiltro = normalizarAdmin(filtroPropAdmin.trim());
+            const visibles = propiedades.filter(p => !textoFiltro || [p.titulo, p.ubicacion, p.categoria].some(c => normalizarAdmin(c).includes(textoFiltro)));
+            visibles.forEach(p => { if (marcarTodas) propiedadesSeleccionadas.add(p.id); else propiedadesSeleccionadas.delete(p.id); });
+            render();
+        }
+
+        function vaciarSeleccionProp() {
+            propiedadesSeleccionadas.clear();
+            document.getElementById('prop-check-todas').checked = false;
+            render();
+        }
+
+        function actualizarBarraSeleccion() {
+            const barra = document.getElementById('prop-barra-seleccion');
+            const n = propiedadesSeleccionadas.size;
+            barra.style.display = n ? 'flex' : 'none';
+            document.getElementById('prop-seleccion-contador').textContent = `${n} propiedad${n === 1 ? '' : 'es'} seleccionada${n === 1 ? '' : 's'}`;
+        }
+
+        async function eliminarSeleccionadas() {
+            const ids = [...propiedadesSeleccionadas];
+            if (!ids.length) return;
+            if (!confirm(`¿Eliminar ${ids.length} propiedad${ids.length === 1 ? '' : 'es'} seleccionada${ids.length === 1 ? '' : 's'}? Esto no se puede deshacer.`)) return;
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const filtro = ids.map(id => `"${id}"`).join(',');
+                const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?id=in.(${filtro})`, {
+                    method: 'DELETE', headers: { ...headers, Prefer: 'return=minimal' },
+                });
+                if (!res.ok) throw new Error('No se pudo eliminar (' + res.status + ')');
+                propiedades = propiedades.filter(x => !propiedadesSeleccionadas.has(x.id));
+                propiedadesSeleccionadas.clear();
+                document.getElementById('prop-check-todas').checked = false;
                 render();
             } catch (ex) {
                 alert(ex.message);
