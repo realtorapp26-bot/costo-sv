@@ -6,14 +6,72 @@
 //  con varias propiedades juntas (foto, título, precio, ubicación,
 //  cuartos/baños y su propio link). El servidor visita el link, parsea
 //  cada tarjeta con expresiones regulares (la plantilla del portal es
-//  consistente) y devuelve la lista lista para insertar en bloque —
-//  sin pasar por Claude, porque el HTML ya viene bien estructurado.
+//  consistente) y trae de la página individual de cada una su descripción
+//  y todas sus fotos. La descripción se pasa por Claude para traducirla
+//  (algunos listados vienen en inglés) y pulirla como copy de venta —
+//  mismo patrón que api/extraer-datos.js.
 //  Mismo allowlist de host que api/traer-html.js, por la misma razón
 //  (no quedar como proxy abierto / SSRF).
 // ============================================================
 
 const HOSTS_PERMITIDOS = [/(^|\.)remax-ccamls\.com$/i];
 const MAX_BYTES = 5 * 1024 * 1024;
+
+const PRECIO_INPUT_POR_TOKEN = 1 / 1_000_000;
+const PRECIO_OUTPUT_POR_TOKEN = 5 / 1_000_000;
+const SUPA_URL = 'https://iseoyfiteeobzvtfjhoe.supabase.co';
+const SUPA_KEY = 'sb_publishable_EWNNEWfk4DjuIGwkrbtx4g_PFMtzhSv';
+
+async function registrarUsoIa(inputTokens, outputTokens) {
+  const costo = inputTokens * PRECIO_INPUT_POR_TOKEN + outputTokens * PRECIO_OUTPUT_POR_TOKEN;
+  try {
+    await fetch(`${SUPA_URL}/rest/v1/uso_ia`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, Prefer: 'return=minimal' },
+      body: JSON.stringify({ input_tokens: inputTokens, output_tokens: outputTokens, costo_estimado: costo }),
+    });
+  } catch (e) {
+    console.error('traer-seleccion registrarUsoIa:', e);
+  }
+}
+
+// Traduce (si hace falta) y pule la descripción cruda como copy de venta en
+// español -- mismo criterio que api/extraer-datos.js: no inventar datos,
+// nunca mencionar al agente/oficina original, texto plano sin markdown.
+async function generarCopyVenta(propiedad) {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey || !propiedad.descripcion_original) return null;
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 400,
+        system: 'Recibís la descripción cruda de un listado inmobiliario (puede venir en inglés u otro idioma) ' +
+          'junto a sus datos básicos. Devolvé ÚNICAMENTE el texto de venta final en español: 3-5 oraciones, ' +
+          'persuasivo y profesional, con una llamada a la acción al final. Si la descripción ya viene en español, ' +
+          'igual reformulala para que se lea mejor. Respetá siempre los datos reales (precio, ubicación, ' +
+          'características) sin inventar nada. Nunca incluyas nombre de agente, oficina, email o teléfono aunque ' +
+          'aparezcan en el texto original. Texto plano, sin emojis, sin markdown, sin comillas envolviendo la respuesta.',
+        messages: [{
+          role: 'user',
+          content: `Título: ${propiedad.titulo}\nPrecio: ${propiedad.precio || 'a consultar'}\nUbicación: ${propiedad.ubicacion || ''}\nHabitaciones: ${propiedad.habitaciones || ''}\nBaños: ${propiedad.banos || ''}\n\nDescripción original:\n${propiedad.descripcion_original.slice(0, 4000)}`,
+        }],
+      }),
+    });
+    if (!resp.ok) {
+      console.error('generarCopyVenta:', propiedad.id_externo, resp.status, await resp.text());
+      return null;
+    }
+    const data = await resp.json();
+    if (data.usage) await registrarUsoIa(data.usage.input_tokens || 0, data.usage.output_tokens || 0);
+    return (data.content?.[0]?.text || '').trim() || null;
+  } catch (e) {
+    console.error('generarCopyVenta:', propiedad.id_externo, e.message);
+    return null;
+  }
+}
 
 const MAPA_TIPO_PROPIEDAD = {
   'house/villa': 'Casa/Villa',
@@ -94,11 +152,13 @@ async function enriquecerConPaginaIndividual(propiedad) {
     const fotos = [...new Set([...html.matchAll(REGEX_FOTOS)].map((m) => m[1].replace(/ /g, '%20')))]
       .filter((u) => !/logo|favicon|icon|avatar|userfiles|profile/i.test(u));
 
-    return {
+    const enriquecida = {
       ...propiedad,
       descripcion_original: descripcion,
       fotos: fotos.length ? fotos : (propiedad.foto ? [propiedad.foto] : []),
     };
+    enriquecida.copy_venta = await generarCopyVenta(enriquecida);
+    return enriquecida;
   } catch (e) {
     console.error('enriquecerConPaginaIndividual:', propiedad.id_externo, e.message);
     return propiedad;
