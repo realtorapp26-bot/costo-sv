@@ -1,4 +1,7 @@
 {
+  "crons": [
+    { "path": "/api/resumen-diario", "schedule": "0 14 * * *" }
+  ],
   "rewrites": [
     { "source": "/propiedad/:slug", "destination": "/api/propiedad?slug=:slug" },
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
