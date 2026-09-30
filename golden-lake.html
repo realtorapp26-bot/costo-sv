@@ -196,8 +196,10 @@
         .gl-modelo-incluye-item { display: flex; align-items: center; gap: 10px; font-size: 0.92rem; color: var(--text-main); font-weight: 500; }
         .gl-modelo-incluye-item i { color: #25d366; font-size: 0.95rem; }
         .gl-modelo-precio { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 18px; background: var(--primary); color: #fff; border-radius: var(--radius-md); padding: 22px 26px; margin-bottom: 28px; }
+        .gl-modelo-precio-regular { font-size: 1.05rem; color: rgba(255,255,255,0.55); text-decoration: line-through; text-decoration-color: rgba(255,255,255,0.4); margin-bottom: 2px; }
         .gl-modelo-precio-num { font-family: 'Playfair Display', serif; font-size: 1.9rem; font-weight: 700; color: var(--gold); line-height: 1.2; }
         .gl-modelo-precio-reserva { font-size: 0.85rem; color: rgba(255,255,255,0.8); margin-top: 4px; }
+        .gl-modelo-disclaimer { font-size: 0.78rem; color: rgba(255,255,255,0.55); margin-top: 8px; }
         @media (max-width: 600px) { .gl-modelo-precio { flex-direction: column; align-items: flex-start; } }
         .gl-plantas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr)); gap: 24px; }
         .gl-planta-card { background: white; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; cursor: zoom-in; }
@@ -349,8 +351,10 @@
                 <div class="gl-modelo-stats" id="gl-modelo-stats"></div>
                 <div class="gl-modelo-precio" id="gl-modelo-precio-wrap" style="display:none;">
                     <div>
+                        <div class="gl-modelo-precio-regular" id="gl-modelo-precio-regular" style="display:none;"></div>
                         <div class="gl-modelo-precio-num" id="gl-modelo-precio"></div>
                         <div class="gl-modelo-precio-reserva" id="gl-modelo-reserva"></div>
+                        <div class="gl-modelo-disclaimer" id="gl-modelo-disclaimer" style="display:none;">Precio especial sujeto a disponibilidad y condiciones de la promoción en planos.</div>
                     </div>
                     <a data-whatsapp data-wa="Hola Walter, quiero reservar una casa nueva en Golden Lake. ¿Me das más información?" href="#" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> Quiero reservar</a>
                 </div>
@@ -595,6 +599,7 @@
                 modeloStats: '5 Habitaciones · 6 Baños · 4 Terrazas · 2 Niveles · Parqueo 3 vehículos (1 techado) · 300 m² de terreno (10 x 30 m)',
                 modeloDescripcion: '',
                 modeloPrecio: '$350,000',
+                modeloPrecioRegular: '$400,000',
                 modeloReserva: 'Promoción en planos · Reservá con el 30% de prima',
                 modeloIncluye: [
                     'Amueblada con línea blanca',
@@ -822,7 +827,7 @@
                 return 'fa-circle-check';
             }
 
-            function renderModelo(nombre, stats, descripcion, precio, reserva, fotos, incluye) {
+            function renderModelo(nombre, stats, descripcion, precio, precioRegular, reserva, fotos, incluye) {
                 if (!nombre && !stats && !descripcion) return;
                 document.getElementById('gl-modelo-seccion').style.display = '';
                 document.getElementById('gl-modelo-info').style.display = '';
@@ -836,6 +841,15 @@
                     document.getElementById('gl-modelo-precio-wrap').style.display = '';
                     document.getElementById('gl-modelo-precio').textContent = precio || '';
                     document.getElementById('gl-modelo-reserva').textContent = reserva || '';
+                    // El precio regular tachado (y el aviso de condiciones) solo se
+                    // muestran si de verdad hay una promoción -- es decir, si viene
+                    // un precio regular distinto al precio especial. Así, si algún
+                    // día Golden Lake vende sin promoción activa, no queda un precio
+                    // tachado falso ni un aviso de "promoción" sin promoción real.
+                    const hayPromocion = precioRegular && precio && precioRegular !== precio;
+                    document.getElementById('gl-modelo-precio-regular').style.display = hayPromocion ? '' : 'none';
+                    document.getElementById('gl-modelo-precio-regular').textContent = hayPromocion ? precioRegular : '';
+                    document.getElementById('gl-modelo-disclaimer').style.display = hayPromocion ? '' : 'none';
                 }
                 if (incluye && incluye.length) {
                     document.getElementById('gl-modelo-incluye').innerHTML = incluye.map((texto) => `
@@ -939,6 +953,7 @@
                 const modeloStats = (p && p.modelo_stats) || RESPALDO.modeloStats;
                 const modeloDescripcion = (p && p.modelo_descripcion) || RESPALDO.modeloDescripcion;
                 const modeloPrecio = (p && p.modelo_precio) || RESPALDO.modeloPrecio;
+                const modeloPrecioRegular = (p && p.modelo_precio_regular) || RESPALDO.modeloPrecioRegular;
                 const modeloReserva = (p && p.modelo_reserva) || RESPALDO.modeloReserva;
                 const modeloIncluye = (p && p.modelo_incluye && p.modelo_incluye.length) ? p.modelo_incluye : RESPALDO.modeloIncluye;
                 const fotosModelo = fotos.length > 6 ? fotos.slice().reverse().slice(0, 5) : fotos;
@@ -966,7 +981,7 @@
                 renderFotoLateral(fotos.length > 1 ? fotos.slice(1, 6) : fotos);
                 renderVideoHero(videoHero);
                 renderVideos(videos);
-                renderModelo(modeloNombre, modeloStats, modeloDescripcion, modeloPrecio, modeloReserva, fotosModelo, modeloIncluye);
+                renderModelo(modeloNombre, modeloStats, modeloDescripcion, modeloPrecio, modeloPrecioRegular, modeloReserva, fotosModelo, modeloIncluye);
                 renderPlantas(plantas);
                 renderGaleria(fotos.slice(1));
                 renderMapa(lat, lng);
