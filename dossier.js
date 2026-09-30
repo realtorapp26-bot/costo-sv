@@ -143,38 +143,26 @@
 
   function err(msg) { errBox.textContent = msg; errBox.classList.add('show'); }
 
-  // ---------- lead (mismo patrón que guardarLeadEnCRM de app.js) ----------
-  async function guardarLead(nombre, whatsapp, correo) {
-    var CFG = window.SITE_CONFIG || {};
-    if (!CFG.SUPABASE_URL || !CFG.SUPABASE_ANON_KEY) return;
-    var headers = {
-      'Content-Type': 'application/json',
-      apikey: CFG.SUPABASE_ANON_KEY,
-      Authorization: 'Bearer ' + CFG.SUPABASE_ANON_KEY,
-      Prefer: 'return=minimal',
-    };
-    var contactoId = (window.crypto && crypto.randomUUID)
-      ? crypto.randomUUID()
-      : (Date.now() + '-' + Math.random().toString(16).slice(2));
-    try {
-      var c = await fetch(CFG.SUPABASE_URL + '/rest/v1/contactos', {
-        method: 'POST', headers: headers,
-        body: JSON.stringify({ id: contactoId, nombre: nombre, telefono: whatsapp, correo: correo }),
-      });
-      if (!c.ok) return;
-      await fetch(CFG.SUPABASE_URL + '/rest/v1/leads', {
-        method: 'POST', headers: headers,
-        body: JSON.stringify({
-          contacto_id: contactoId,
-          origen: 'formulario_web',
-          interes: 'comprar',
-          propiedad_referencia: D.titulo,
-          notas: 'Solicitó dossier — ' + D.url,
-        }),
-      });
-    } catch (ex) {
-      console.error('lead dossier:', ex);
-    }
+  // ---------- lead ----------
+  // Pasa por /api/lead (server-side, clave service_role) en vez de escribir
+  // directo a Supabase con la clave anon: mismo patrón que el resto del
+  // sitio (app.js, agendar-visita.js) — inmune a RLS roto, y de paso hace
+  // que este lead también dispare el aviso de Telegram, que solo está
+  // enganchado ahí (antes se perdía justo para los dossiers).
+  function guardarLead(nombre, whatsapp, correo) {
+    fetch('/api/lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nombre: nombre,
+        telefono: whatsapp,
+        correo: correo,
+        origen: 'formulario_web',
+        interes: 'comprar',
+        propiedad_referencia: D.titulo,
+        notas: 'Solicitó dossier — ' + D.url,
+      }),
+    }).catch(function (ex) { console.error('lead dossier:', ex); });
   }
 
   function abrirWhatsApp(nombre) {
