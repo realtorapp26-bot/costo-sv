@@ -278,9 +278,14 @@
     var descripcion = recortar(D.descripcion, 620);
     var wrap = document.createElement('div');
     wrap.id = 'dsr-doc';
-    wrap.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;height:1123px;background:#fff;overflow:hidden;' +
-      'font-family:"Outfit",system-ui,sans-serif;color:#1a1a2e;padding:42px 42px 118px;box-sizing:border-box';
+    wrap.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;height:1123px;background:#fff;' +
+      'font-family:"Outfit",system-ui,sans-serif;color:#1a1a2e;padding:42px;box-sizing:border-box;' +
+      'display:flex;flex-direction:column';
     wrap.innerHTML =
+      // contenido principal: crece hasta el espacio disponible y se recorta
+      // ahí (overflow:hidden) -- nunca empuja ni se monta sobre el CTA de
+      // abajo, que siempre ocupa su propio alto real (flex, no absolute).
+      '<div style="flex:1 1 auto;min-height:0;overflow:hidden">' +
       // barra superior
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">' +
         '<img src="/assets/logo-remax.png" style="height:32px;display:block" alt="RE/MAX">' +
@@ -318,8 +323,10 @@
           '</div>' +
         '</div>' +
       '</div>' +
-      // CTA + pie anclados abajo (position:fixed del wrap actúa de contenedor)
-      '<div style="position:absolute;left:42px;right:42px;bottom:34px">' +
+      '</div>' + // cierra el contenedor de contenido principal (flex:1 1 auto)
+      // CTA + pie: hijo flex fijo, siempre con su alto real reservado --
+      // nunca se solapa con el contenido de arriba aunque sea muy largo.
+      '<div style="flex:0 0 auto;margin-top:16px">' +
         '<div style="background:' + AZUL + ';color:#fff;border-radius:12px;padding:15px 22px;display:flex;align-items:center;justify-content:space-between">' +
           '<span style="font-size:13.5px;font-weight:600">¿Querés visitarla? Escribime por WhatsApp</span>' +
           '<span style="font-size:15px;font-weight:800">' + esc(D.agente.telefono) + '</span>' +
