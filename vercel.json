@@ -1,6 +1,7 @@
 {
   "crons": [
-    { "path": "/api/resumen-diario", "schedule": "0 14 * * *" }
+    { "path": "/api/resumen-diario", "schedule": "0 14 * * *" },
+    { "path": "/api/chequear-disponibilidad", "schedule": "0 15 * * *" }
   ],
   "rewrites": [
     { "source": "/propiedad/:slug", "destination": "/api/propiedad?slug=:slug" },
