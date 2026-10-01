@@ -48,15 +48,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Tarjetas de Golden Lake en el home: la casa nueva usa una foto real
-           del proyecto (es el modelo que efectivamente se vende en $350,000).
-           Mansión y terreno NO tienen foto propia todavía -- en vez de usar
-           una foto de la casa nueva (que mostraría la unidad equivocada), usan
-           un panel con ícono, mismo lenguaje visual que los íconos de
-           amenidades de golden-lake.html. */
+           del modelo que efectivamente se vende en $350,000. Mansión y terreno
+           todavía no tienen foto propia, así que usan fotos generales del
+           proyecto (Walter confirmó que está bien) -- no son fotos de esa
+           unidad puntual. */
         .gl-home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 10px; }
         .gl-home-card { background: white; border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); }
         .gl-home-card-foto { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
-        .gl-home-card-icono { width: 100%; aspect-ratio: 4/3; background: linear-gradient(135deg, var(--gold), #b8912c); display: flex; align-items: center; justify-content: center; font-size: 2.6rem; color: var(--primary); }
         .gl-home-card-body { padding: 24px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
         .gl-home-card-badge { display: inline-flex; align-self: flex-start; background: var(--gold); color: var(--primary); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 4px 12px; border-radius: 999px; }
         .gl-home-card-titulo { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--primary); margin: 2px 0 0; }
@@ -182,7 +180,7 @@
                 </div>
 
                 <div class="gl-home-card">
-                    <div class="gl-home-card-icono"><i class="fas fa-gem"></i></div>
+                    <img class="gl-home-card-foto" src="https://iseoyfiteeobzvtfjhoe.supabase.co/storage/v1/object/public/fichas-fotos/1790308409601-wgstpt-interior-01.jpg" alt="Interior de Golden Lake" loading="lazy">
                     <div class="gl-home-card-body">
                         <span class="gl-home-card-badge">Lujo</span>
                         <h3 class="gl-home-card-titulo">Residencia de lujo</h3>
@@ -201,7 +199,7 @@
                 </div>
 
                 <div class="gl-home-card">
-                    <div class="gl-home-card-icono"><i class="fas fa-vector-square"></i></div>
+                    <img class="gl-home-card-foto" src="https://iseoyfiteeobzvtfjhoe.supabase.co/storage/v1/object/public/fichas-fotos/1790308376127-9fvld7-exterior-07.jpg" alt="Golden Lake, Costa del Sol" loading="lazy">
                     <div class="gl-home-card-body">
                         <span class="gl-home-card-badge">Listo para construir</span>
                         <h3 class="gl-home-card-titulo">Terreno en Golden Lake</h3>
