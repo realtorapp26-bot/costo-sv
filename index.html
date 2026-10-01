@@ -46,6 +46,29 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Tarjetas de Golden Lake en el home: la casa nueva usa una foto real
+           del proyecto (es el modelo que efectivamente se vende en $350,000).
+           Mansión y terreno NO tienen foto propia todavía -- en vez de usar
+           una foto de la casa nueva (que mostraría la unidad equivocada), usan
+           un panel con ícono, mismo lenguaje visual que los íconos de
+           amenidades de golden-lake.html. */
+        .gl-home-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 10px; }
+        .gl-home-card { background: white; border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); }
+        .gl-home-card-foto { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
+        .gl-home-card-icono { width: 100%; aspect-ratio: 4/3; background: linear-gradient(135deg, var(--gold), #b8912c); display: flex; align-items: center; justify-content: center; font-size: 2.6rem; color: var(--primary); }
+        .gl-home-card-body { padding: 24px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+        .gl-home-card-badge { display: inline-flex; align-self: flex-start; background: var(--gold); color: var(--primary); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; padding: 4px 12px; border-radius: 999px; }
+        .gl-home-card-titulo { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--primary); margin: 2px 0 0; }
+        .gl-home-card-precio-regular { font-size: 0.88rem; color: var(--text-light); text-decoration: line-through; margin-top: 4px; }
+        .gl-home-card-precio { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; color: var(--primary); }
+        .gl-home-card-nota { font-size: 0.82rem; color: var(--text-light); margin: 0; }
+        .gl-home-card-bullets { list-style: none; padding: 0; margin: 6px 0 0; display: flex; flex-direction: column; gap: 6px; }
+        .gl-home-card-bullets li { font-size: 0.88rem; color: var(--text-main); display: flex; align-items: baseline; gap: 8px; }
+        .gl-home-card-bullets li i { color: var(--gold); font-size: 0.75rem; }
+        .gl-home-card-ctas { margin-top: auto; display: flex; gap: 10px; padding-top: 16px; }
+        .gl-home-card-ctas .btn { flex: 1; text-align: center; white-space: nowrap; }
+    </style>
 </head>
 <body>
     <!-- Navbar -->
@@ -126,6 +149,74 @@
                     <h3>Relocación y Menajes</h3>
                     <p>Atención especial a salvadoreños en el exterior y extranjeros. Te guiamos en tu regreso con seguridad logística y legal.</p>
                     <a href="menajes.html" class="btn btn-outline" style="width: 100%;">Descubre cómo</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Golden Lake: proyecto insignia, 3 formas de ser parte -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Golden Lake, Costa del Sol</h2>
+            <p class="section-subtitle">Comunidad cerrada con 3 lagunas, muelle privado y membresía VIP a Tesoro Beach — tres formas de ser parte del proyecto.</p>
+
+            <div class="gl-home-grid">
+                <div class="gl-home-card">
+                    <img class="gl-home-card-foto" src="https://iseoyfiteeobzvtfjhoe.supabase.co/storage/v1/object/public/fichas-fotos/1790308323915-utdlub-exterior-05.jpg" alt="Casa nueva en Golden Lake" loading="lazy">
+                    <div class="gl-home-card-body">
+                        <span class="gl-home-card-badge">Promoción en planos</span>
+                        <h3 class="gl-home-card-titulo">Casa nueva de dos niveles</h3>
+                        <div class="gl-home-card-precio-regular">$400,000</div>
+                        <div class="gl-home-card-precio">$350,000</div>
+                        <p class="gl-home-card-nota">Promoción en planos · Reservá con el 30% de prima</p>
+                        <ul class="gl-home-card-bullets">
+                            <li><i class="fas fa-circle-check"></i> Diseño contemporáneo, doble altura</li>
+                            <li><i class="fas fa-circle-check"></i> Amueblada con línea blanca</li>
+                            <li><i class="fas fa-circle-check"></i> Entrega estimada diciembre 2026</li>
+                        </ul>
+                        <div class="gl-home-card-ctas">
+                            <a href="golden-lake.html#gl-modelo-seccion" class="btn btn-outline">Ver detalles</a>
+                            <a data-whatsapp data-wa="Hola Walter, me interesa la casa nueva en Golden Lake desde $350,000. ¿Me enviás más información?" href="#" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gl-home-card">
+                    <div class="gl-home-card-icono"><i class="fas fa-gem"></i></div>
+                    <div class="gl-home-card-body">
+                        <span class="gl-home-card-badge">Lujo</span>
+                        <h3 class="gl-home-card-titulo">Residencia de lujo</h3>
+                        <div class="gl-home-card-precio">$2,700,000</div>
+                        <p class="gl-home-card-nota">Dentro de Golden Lake</p>
+                        <ul class="gl-home-card-bullets">
+                            <li><i class="fas fa-circle-check"></i> Privacidad y seguridad 24/7</li>
+                            <li><i class="fas fa-circle-check"></i> Acceso a las 3 lagunas y muelle privado</li>
+                            <li><i class="fas fa-circle-check"></i> Membresía VIP a Tesoro Beach</li>
+                        </ul>
+                        <div class="gl-home-card-ctas">
+                            <a href="golden-lake.html" class="btn btn-outline">Ver Golden Lake</a>
+                            <a data-whatsapp data-wa="Hola Walter, me interesa la residencia de lujo en Golden Lake de $2,700,000. ¿Me enviás más información?" href="#" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gl-home-card">
+                    <div class="gl-home-card-icono"><i class="fas fa-vector-square"></i></div>
+                    <div class="gl-home-card-body">
+                        <span class="gl-home-card-badge">Listo para construir</span>
+                        <h3 class="gl-home-card-titulo">Terreno en Golden Lake</h3>
+                        <div class="gl-home-card-precio">$129,900</div>
+                        <p class="gl-home-card-nota">Negociable · 659 v² (460.63 m²)</p>
+                        <ul class="gl-home-card-bullets">
+                            <li><i class="fas fa-circle-check"></i> Título propio, libre de gravámenes</li>
+                            <li><i class="fas fa-circle-check"></i> Acceso a lagunas, muelle y club social</li>
+                            <li><i class="fas fa-circle-check"></i> Opción de membresía a Tesoro Beach</li>
+                        </ul>
+                        <div class="gl-home-card-ctas">
+                            <a href="golden-lake.html#golden-lake-plano" class="btn btn-outline">Ver en el plano</a>
+                            <a data-whatsapp data-wa="Hola Walter, me interesa el terreno en Golden Lake de $129,900 (659 v²). ¿Sigue disponible?" href="#" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
