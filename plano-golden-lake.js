@@ -37,8 +37,8 @@ const PROPS = [
   },
   {
     id:"terreno", n:3, name:"Terreno", sub:"Ubicación dentro del proyecto por confirmar",
-    price:"$129,900", priceNote:"", poly:null, lote:null, xy:null,
-    kv:[["Tipo","Lote para construir"]]
+    price:"$129,900", priceNote:"negociable", poly:null, lote:null, xy:null,
+    kv:[["Tipo","Lote para construir"],["Terreno","659 v² (460.63 m²)"]]
   }
 ];
 
