@@ -1176,12 +1176,6 @@
                 const wrap = document.getElementById('gl-hero-video-bg');
                 if (!ytId) { wrap.innerHTML = ''; return; }
 
-                // En datos limitados (ahorro de datos activado, o conexión 2G/3G)
-                // no vale la pena bajar el video de fondo -- se queda la foto del
-                // hero (ya liviana via el optimizador de imágenes de Vercel).
-                const conn = navigator.connection || navigator.webkitConnection || navigator.mozConnection;
-                if (conn && (conn.saveData || /^(slow-2g|2g|3g)$/.test(conn.effectiveType || ''))) return;
-
                 // Se inyecta de inmediato (no se espera a "load" de la página):
                 // esta sección tiene muchas fotos/galerías más abajo, así que
                 // "load" podía tardar varios segundos en celular -- mientras
