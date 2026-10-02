@@ -1189,9 +1189,31 @@
                 // video estaba "pausado" en vez de todavía no haber cargado.
                 const src = `https://www.youtube-nocookie.com/embed/${ytId}`
                     + `?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0&showinfo=0`
-                    + `&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&playsinline=1`;
+                    + `&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&playsinline=1`
+                    + `&enablejsapi=1&origin=${encodeURIComponent(location.origin)}`;
                 wrap.innerHTML = `<iframe src="${src}" title="Video de Golden Lake" allow="autoplay; encrypted-media" aria-hidden="true"></iframe>`;
                 ajustarVideoHero();
+
+                // Algunos navegadores (sobre todo en celular) bloquean el
+                // autoplay programático aunque esté silenciado -- como el
+                // video de fondo es decorativo (pointer-events: none, no hay
+                // botón de play visible), si eso pasa quedaba trabado sin
+                // forma de arrancarlo. Este mensaje "playVideo" sí cuenta
+                // como gesto del usuario al mandarse dentro de un click real,
+                // así que el primer toque en cualquier parte del hero lo
+                // destraba.
+                const intentarReproducir = () => {
+                    const f = wrap.querySelector('iframe');
+                    if (f && f.contentWindow) {
+                        f.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
+                    }
+                };
+                const hero = document.querySelector('.hero');
+                if (hero) hero.addEventListener('click', intentarReproducir);
+                document.addEventListener('touchstart', intentarReproducir, { once: true, passive: true });
+                // Reintento automático por si el autoplay inicial no arrancó
+                // (sin depender de que alguien toque la pantalla).
+                setTimeout(intentarReproducir, 1200);
             }
 
             function ajustarVideoHero() {
