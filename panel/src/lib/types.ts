@@ -49,3 +49,48 @@ export interface Actividad {
   detalle: string | null;
   created_at: string;
 }
+
+export type Categoria =
+  | 'Vivienda Residencial'
+  | 'RE/MAX Exclusive (Lujo)'
+  | 'Comercial / Industrial'
+  | 'Proyectos y Desarrollos';
+export type TipoContrato = 'venta' | 'alquiler';
+
+// Refleja la tabla propiedades tal cual (confirmado contra una fila real).
+// habitaciones/banos/m2/tamano_lote/tamano_construccion son texto libre,
+// no numéricos -- así los trata el panel clásico y así vienen de RE/MAX.
+export interface Propiedad {
+  id: string;
+  slug: string | null;
+  created_at: string;
+  updated_at: string;
+  orden: number | null;
+  publicada: boolean;
+  titulo: string;
+  precio: string;
+  ubicacion: string | null;
+  categoria: Categoria;
+  tipo_contrato: TipoContrato;
+  tipo_propiedad_detalle: string | null;
+  habitaciones: string | null;
+  banos: string | null;
+  m2: string | null;
+  tamano_lote: string | null;
+  tamano_construccion: string | null;
+  latitud: number | null;
+  longitud: number | null;
+  garage: boolean | null;
+  hoa: boolean | null;
+  comunidad_cerrada: boolean | null;
+  propiedad_nueva: boolean | null;
+  fotos: string[] | null;
+  tour_virtual_url: string | null;
+  video_url: string | null;
+  descripcion_original: string | null;
+  copy_venta: string | null;
+  // Procedencia (importación RE/MAX) -- solo lectura en el panel nuevo por ahora.
+  link_referencia: string | null;
+  id_externo: string | null;
+  fecha_publicacion: string | null;
+}

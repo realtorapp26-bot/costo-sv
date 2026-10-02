@@ -6,6 +6,7 @@ import { LoginPage } from './auth/LoginPage';
 import { Shell } from './components/Shell';
 import { DashboardPage } from './pages/DashboardPage';
 import { LeadsPage } from './pages/LeadsPage';
+import { PropiedadesPage } from './pages/PropiedadesPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 
 const queryClient = new QueryClient({
@@ -28,6 +29,7 @@ export default function App() {
             >
               <Route path="/" element={<DashboardPage />} />
               <Route path="/leads" element={<LeadsPage />} />
+              <Route path="/propiedades" element={<PropiedadesPage />} />
               <Route path="/busquedas" element={<PlaceholderPage titulo="Búsquedas activas" />} />
               <Route path="/publicidad" element={<PlaceholderPage titulo="Publicidad inteligente" />} />
               <Route path="/captacion" element={<PlaceholderPage titulo="Captación" />} />

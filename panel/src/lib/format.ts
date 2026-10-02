@@ -24,3 +24,15 @@ export function waHref(telefono: string | null | undefined): string | null {
   const conCodigo = digitos.length === 8 ? '503' + digitos : digitos;
   return `https://wa.me/${conCodigo}`;
 }
+
+// Texto sin acentos/mayúsculas, para que el buscador encuentre "ataco" al
+// escribir "Atacó" o viceversa -- mismo criterio que el panel clásico.
+// (Rango de marcas diacríticas combinantes U+0300-U+036F, por código en vez
+// de literal para evitar cualquier problema de codificación del archivo.)
+const DIACRITICOS = new RegExp('[' + String.fromCharCode(0x0300) + '-' + String.fromCharCode(0x036f) + ']', 'g');
+export function normalizar(s: string | null | undefined): string {
+  return String(s || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(DIACRITICOS, '');
+}

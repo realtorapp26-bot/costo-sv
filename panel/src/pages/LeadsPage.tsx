@@ -20,7 +20,7 @@ import {
   useLeads,
   useUpdateLeadEstado,
 } from '../lib/queries';
-import { Badge, Button, Card, EmptyState, Field, Modal, StatCard, cx, inputClass } from '../components/ui';
+import { Badge, Button, Card, ChipRow, EmptyState, Field, Modal, StatCard, cx, inputClass } from '../components/ui';
 import { LeadsPipeline } from './LeadsPipeline';
 
 type Vista = 'tabla' | 'pipeline';
@@ -287,56 +287,6 @@ export function LeadsPage() {
       />
       <NuevoLeadModal open={nuevoOpen} onClose={cerrarNuevo} />
     </div>
-  );
-}
-
-function ChipRow<T extends string>({
-  label,
-  valores,
-  labelFn,
-  activo,
-  onChange,
-}: {
-  label: string;
-  valores: T[];
-  labelFn: (v: T) => string;
-  activo: T | null;
-  onChange: (v: T | null) => void;
-}) {
-  return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      <span className="mr-1 text-xs font-semibold text-slate-400">{label}</span>
-      <Chip active={activo === null} onClick={() => onChange(null)}>
-        Todos
-      </Chip>
-      {valores.map((v) => (
-        <Chip key={v} active={activo === v} onClick={() => onChange(v)}>
-          {labelFn(v)}
-        </Chip>
-      ))}
-    </div>
-  );
-}
-
-function Chip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={cx(
-        'rounded-full px-3 py-1 text-xs font-medium transition',
-        active ? 'bg-navy text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
-      )}
-    >
-      {children}
-    </button>
   );
 }
 

@@ -20,6 +20,7 @@ const GROUPS: Group[] = [
   {
     title: 'Trabajo diario',
     items: [
+      { label: 'Propiedades', icon: 'fas fa-house', to: '/propiedades' },
       { label: 'Leads web', icon: 'fas fa-user-group', to: '/leads' },
       { label: 'Búsquedas activas', icon: 'fas fa-magnifying-glass', soon: true },
       { label: 'Publicidad inteligente', icon: 'fas fa-bullhorn', soon: true },

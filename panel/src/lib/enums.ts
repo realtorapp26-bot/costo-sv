@@ -1,4 +1,4 @@
-import type { Estado, Interes, Origen } from './types';
+import type { Categoria, Estado, Interes, Origen, TipoContrato } from './types';
 
 export const ESTADOS: Estado[] = ['nuevo', 'contactado', 'calificado', 'perdido', 'cerrado'];
 export const ORIGENES: Origen[] = ['whatsapp', 'formulario_web', 'facebook_ads', 'marketplace', 'referido', 'otro'];
@@ -45,4 +45,28 @@ export const ESTADO_CLASE: Record<Estado, string> = {
   calificado: 'bg-emerald-100 text-emerald-800',
   perdido: 'bg-slate-200 text-slate-600',
   cerrado: 'bg-violet-100 text-violet-800',
+};
+
+export const CATEGORIAS: Categoria[] = [
+  'Vivienda Residencial',
+  'RE/MAX Exclusive (Lujo)',
+  'Comercial / Industrial',
+  'Proyectos y Desarrollos',
+];
+
+export const CATEGORIA_ICONO: Record<Categoria, string> = {
+  'Vivienda Residencial': 'fas fa-house',
+  'RE/MAX Exclusive (Lujo)': 'fas fa-gem',
+  'Comercial / Industrial': 'fas fa-building',
+  'Proyectos y Desarrollos': 'fas fa-city',
+};
+
+export const TIPO_CONTRATO_LABEL: Record<TipoContrato, string> = {
+  venta: 'Venta',
+  alquiler: 'Alquiler',
+};
+
+export const PUBLICADA_CLASE: Record<'si' | 'no', string> = {
+  si: 'bg-emerald-100 text-emerald-700',
+  no: 'bg-slate-200 text-slate-600',
 };

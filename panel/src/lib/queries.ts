@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from './supabase';
-import type { Estado, Interes, LeadConContacto, Origen } from './types';
+import type { Estado, Interes, LeadConContacto, Origen, Propiedad } from './types';
 
 const LEAD_COLS_BASE =
   'id,origen,interes,propiedad_referencia,estado,notas,created_at,contactos(nombre,telefono,correo)';
@@ -99,4 +99,75 @@ export async function ofertaSignedUrl(path: string): Promise<string> {
     .createSignedUrl(path, 120, { download: 'carta.pdf' });
   if (error || !data) throw error ?? new Error('No se pudo generar el enlace');
   return data.signedUrl;
+}
+
+// ---------- Propiedades ----------
+// slug lo genera un trigger en la base a partir del título -- nunca se
+// manda a mano. id/created_at/updated_at los pone Supabase.
+export type PropiedadCampos = Omit<Propiedad, 'id' | 'slug' | 'created_at' | 'updated_at'>;
+
+export function usePropiedades() {
+  return useQuery({
+    queryKey: ['propiedades'],
+    queryFn: async (): Promise<Propiedad[]> => {
+      const { data, error } = await supabase
+        .from('propiedades')
+        .select('*')
+        .order('orden', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 15_000,
+  });
+}
+
+export function useCreatePropiedad() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: PropiedadCampos) => {
+      const { error } = await supabase.from('propiedades').insert(v);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['propiedades'] }),
+  });
+}
+
+export function useUpdatePropiedad() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, campos }: { id: string; campos: PropiedadCampos }) => {
+      const { error } = await supabase
+        .from('propiedades')
+        .update({ ...campos, updated_at: new Date().toISOString() })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['propiedades'] }),
+  });
+}
+
+export function useTogglePublicada() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, publicada }: { id: string; publicada: boolean }) => {
+      const { error } = await supabase
+        .from('propiedades')
+        .update({ publicada, updated_at: new Date().toISOString() })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['propiedades'] }),
+  });
+}
+
+export function useDeletePropiedad() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('propiedades').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['propiedades'] }),
+  });
 }

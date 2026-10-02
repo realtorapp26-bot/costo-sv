@@ -93,16 +93,23 @@ export function EmptyState({ children }: { children: ReactNode }) {
   return <div className="py-12 text-center text-sm text-slate-400">{children}</div>;
 }
 
+const MODAL_ANCHO: Record<'md' | 'xl', string> = {
+  md: 'max-w-md',
+  xl: 'max-w-3xl',
+};
+
 export function Modal({
   open,
   onClose,
   title,
   children,
+  size = 'md',
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
+  size?: 'md' | 'xl';
 }) {
   useEffect(() => {
     if (!open) return;
@@ -114,10 +121,15 @@ export function Modal({
   if (!open) return null;
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 p-0 sm:p-4 sm:pt-20"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 p-0 sm:p-4 sm:pt-12"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="min-h-full w-full max-w-md rounded-none bg-white p-5 shadow-2xl sm:min-h-0 sm:rounded-xl sm:p-6">
+      <div
+        className={cx(
+          'min-h-full w-full rounded-none bg-white p-5 shadow-2xl sm:min-h-0 sm:rounded-xl sm:p-6',
+          MODAL_ANCHO[size],
+        )}
+      >
         <div className="mb-4 flex items-center justify-between gap-3">
           <h3 className="font-semibold text-slate-900">{title}</h3>
           <button
@@ -145,3 +157,54 @@ export function Field({ label, children }: { label: string; children: ReactNode 
 
 export const inputClass =
   'w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-navy focus:bg-white focus:ring-2 focus:ring-navy/15';
+
+export function Chip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cx(
+        'rounded-full px-3 py-1 text-xs font-medium transition',
+        active ? 'bg-navy text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function ChipRow<T extends string>({
+  label,
+  valores,
+  labelFn,
+  activo,
+  onChange,
+}: {
+  label: string;
+  valores: T[];
+  labelFn: (v: T) => string;
+  activo: T | null;
+  onChange: (v: T | null) => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className="mr-1 text-xs font-semibold text-slate-400">{label}</span>
+      <Chip active={activo === null} onClick={() => onChange(null)}>
+        Todos
+      </Chip>
+      {valores.map((v) => (
+        <Chip key={v} active={activo === v} onClick={() => onChange(v)}>
+          {labelFn(v)}
+        </Chip>
+      ))}
+    </div>
+  );
+}
