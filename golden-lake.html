@@ -1182,19 +1182,16 @@
                 const conn = navigator.connection || navigator.webkitConnection || navigator.mozConnection;
                 if (conn && (conn.saveData || /^(slow-2g|2g|3g)$/.test(conn.effectiveType || ''))) return;
 
-                // El iframe de YouTube es lo más pesado del hero -- se difiere
-                // hasta que la página ya terminó de cargar (evento "load"), para
-                // que no compita por ancho de banda/CPU con las fotos y el resto
-                // del contenido crítico que el visitante ve primero.
-                const inyectar = () => {
-                    const src = `https://www.youtube-nocookie.com/embed/${ytId}`
-                        + `?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0&showinfo=0`
-                        + `&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&playsinline=1`;
-                    wrap.innerHTML = `<iframe src="${src}" title="Video de Golden Lake" allow="autoplay; encrypted-media" aria-hidden="true"></iframe>`;
-                    ajustarVideoHero();
-                };
-                if (document.readyState === 'complete') inyectar();
-                else window.addEventListener('load', inyectar, { once: true });
+                // Se inyecta de inmediato (no se espera a "load" de la página):
+                // esta sección tiene muchas fotos/galerías más abajo, así que
+                // "load" podía tardar varios segundos en celular -- mientras
+                // tanto se veía solo la foto fija del hero, y parecía que el
+                // video estaba "pausado" en vez de todavía no haber cargado.
+                const src = `https://www.youtube-nocookie.com/embed/${ytId}`
+                    + `?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0&showinfo=0`
+                    + `&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&playsinline=1`;
+                wrap.innerHTML = `<iframe src="${src}" title="Video de Golden Lake" allow="autoplay; encrypted-media" aria-hidden="true"></iframe>`;
+                ajustarVideoHero();
             }
 
             function ajustarVideoHero() {
