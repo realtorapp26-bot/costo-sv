@@ -51,6 +51,14 @@
       "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
     },
     {
+      "source": "/dossier-golden-lake.js",
+      "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
+    },
+    {
+      "source": "/plano-golden-lake.js",
+      "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
+    },
+    {
       "source": "/carta-oferta.js",
       "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
     },
