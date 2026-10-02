@@ -161,7 +161,7 @@
 
             <div class="gl-home-grid">
                 <div class="gl-home-card">
-                    <img class="gl-home-card-foto" src="https://iseoyfiteeobzvtfjhoe.supabase.co/storage/v1/object/public/fichas-fotos/1790308323915-utdlub-exterior-05.jpg" alt="Casa nueva en Golden Lake" loading="lazy">
+                    <img class="gl-home-card-foto" src="/_vercel/image?url=https%3A%2F%2Fiseoyfiteeobzvtfjhoe.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Ffichas-fotos%2F1790308323915-utdlub-exterior-05.jpg&w=800&q=70" alt="Casa nueva en Golden Lake" loading="lazy">
                     <div class="gl-home-card-body">
                         <span class="gl-home-card-badge">Promoción en planos</span>
                         <h3 class="gl-home-card-titulo">Casa nueva de dos niveles</h3>
@@ -181,7 +181,7 @@
                 </div>
 
                 <div class="gl-home-card">
-                    <img class="gl-home-card-foto" src="https://remaxcaribbeanandcentralamerica.azureedge.net/images/002523093006/v3/HDPhotos/IMG_9854_fa9cb0149407425396f8def1b8989e8f.jpg" alt="Residencia de lujo en Golden Lake" loading="lazy">
+                    <img class="gl-home-card-foto" src="/_vercel/image?url=https%3A%2F%2Fremaxcaribbeanandcentralamerica.azureedge.net%2Fimages%2F002523093006%2Fv3%2FHDPhotos%2FIMG_9854_fa9cb0149407425396f8def1b8989e8f.jpg&w=800&q=70" alt="Residencia de lujo en Golden Lake" loading="lazy">
                     <div class="gl-home-card-body">
                         <span class="gl-home-card-badge">Lujo</span>
                         <h3 class="gl-home-card-titulo">Residencia de lujo</h3>
@@ -200,7 +200,7 @@
                 </div>
 
                 <div class="gl-home-card">
-                    <img class="gl-home-card-foto" src="https://iseoyfiteeobzvtfjhoe.supabase.co/storage/v1/object/public/fichas-fotos/1790308376127-9fvld7-exterior-07.jpg" alt="Golden Lake, Costa del Sol" loading="lazy">
+                    <img class="gl-home-card-foto" src="/_vercel/image?url=https%3A%2F%2Fiseoyfiteeobzvtfjhoe.supabase.co%2Fstorage%2Fv1%2Fobject%2Fpublic%2Ffichas-fotos%2F1790308376127-9fvld7-exterior-07.jpg&w=800&q=70" alt="Golden Lake, Costa del Sol" loading="lazy">
                     <div class="gl-home-card-body">
                         <span class="gl-home-card-badge">Listo para construir</span>
                         <h3 class="gl-home-card-titulo">Terreno en Golden Lake</h3>
@@ -336,7 +336,7 @@
                             <span class="prop-badge">${p.categoria}</span>
                             ${p.tipo_contrato ? `<span class="prop-badge-estado">${p.tipo_contrato}</span>` : ''}
                             ${p.video_url ? `<span class="prop-badge-video"><i class="fas fa-play"></i> Video</span>` : ''}
-                            <img loading="lazy" decoding="async" src="${fotos[0]}" alt="${p.titulo}" onerror="this.src='${FOTO_RESPALDO}'"
+                            <img loading="lazy" decoding="async" src="${window.imgOpt ? window.imgOpt(fotos[0], 600, 70) : fotos[0]}" alt="${p.titulo}" onerror="this.src='${FOTO_RESPALDO}'"
                                  data-share-titulo="${p.titulo.replace(/"/g, '&quot;')}" data-share-id="${p.id}"
                                  data-share-slug="${slug}"
                                  data-share-precio="${String(p.precio || '').replace(/"/g, '&quot;')}"

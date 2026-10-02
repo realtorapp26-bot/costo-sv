@@ -1,4 +1,13 @@
 {
+  "images": {
+    "domains": [
+      "remaxcaribbeanandcentralamerica.azureedge.net",
+      "iseoyfiteeobzvtfjhoe.supabase.co"
+    ],
+    "sizes": [160, 280, 400, 600, 800, 1080, 1600, 1920],
+    "minimumCacheTTL": 604800,
+    "formats": ["image/webp"]
+  },
   "crons": [
     { "path": "/api/resumen-diario", "schedule": "0 14 * * *" },
     { "path": "/api/chequear-disponibilidad", "schedule": "0 15 * * *" }

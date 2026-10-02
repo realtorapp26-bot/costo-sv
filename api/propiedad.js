@@ -30,6 +30,16 @@ const esc = (s) => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
+// Las fotos vienen del CDN de RE/MAX o de Supabase Storage a su tamaño
+// original (algunas pesan varios MB) -- se reescriben para pasar por el
+// optimizador de imágenes de Vercel (ver "images" en vercel.json).
+const HOSTS_OPTIMIZABLES = /remaxcaribbeanandcentralamerica\.azureedge\.net|iseoyfiteeobzvtfjhoe\.supabase\.co/i;
+const imgOpt = (url, w, q) => {
+  if (!url || typeof url !== 'string' || !/^https?:\/\//i.test(url)) return url;
+  if (!HOSTS_OPTIMIZABLES.test(url)) return url;
+  return `/_vercel/image?url=${encodeURIComponent(url)}&w=${w || 800}&q=${q || 75}`;
+};
+
 const precioNumero = (p) => {
   const n = Number(String(p == null ? '' : p).replace(/[^0-9.]/g, ''));
   return Number.isFinite(n) && n > 0 ? n : null;
@@ -164,7 +174,7 @@ function render(p) {
   const waHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waMsg)}`;
 
   const galeriaThumbs = fotos.length > 1
-    ? `<div class="ficha-thumbs">${fotos.map((f, i) => `<button type="button" class="ficha-thumb${i === 0 ? ' activo' : ''}" onclick="verFoto(${i})"><img src="${esc(f)}" alt="${esc(p.titulo)} — foto ${i + 1}" loading="lazy" decoding="async"></button>`).join('')}</div>`
+    ? `<div class="ficha-thumbs">${fotos.map((f, i) => `<button type="button" class="ficha-thumb${i === 0 ? ' activo' : ''}" onclick="verFoto(${i})"><img src="${esc(imgOpt(f, 300, 65))}" alt="${esc(p.titulo)} — foto ${i + 1}" loading="lazy" decoding="async"></button>`).join('')}</div>`
     : '';
 
   const jsonld = {
@@ -317,7 +327,7 @@ function render(p) {
     <div class="ficha-wrap">
         <a href="/propiedades.html#${esc(slug)}" class="ficha-volver"><i class="fas fa-arrow-left"></i> Volver al inventario</a>
 
-        <img id="ficha-hero" class="ficha-hero-img" src="${esc(foto0)}" alt="${esc(p.titulo)}" onerror="this.src='${FOTO_RESPALDO}'" onclick="abrirGaleria()">
+        <img id="ficha-hero" class="ficha-hero-img" src="${esc(imgOpt(foto0, 1080, 75))}" alt="${esc(p.titulo)}" onerror="this.src='${FOTO_RESPALDO}'" onclick="abrirGaleria()">
         ${galeriaThumbs}
 
         <div class="ficha-layout">
@@ -425,7 +435,8 @@ function render(p) {
         function verFoto(i) {
             FICHA_IDX = i;
             var hero = document.getElementById('ficha-hero');
-            if (hero) hero.src = FICHA_FOTOS[i] || FICHA_FOTOS[0];
+            var f = FICHA_FOTOS[i] || FICHA_FOTOS[0];
+            if (hero) hero.src = (window.imgOpt ? window.imgOpt(f, 1080, 75) : f);
             document.querySelectorAll('.ficha-thumb').forEach(function (t, idx) { t.classList.toggle('activo', idx === i); });
         }
         function abrirGaleria() {

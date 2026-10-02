@@ -4,6 +4,20 @@
 //  PRIVACIDAD: no se persisten datos personales en el navegador
 //  (sin localStorage). Los datos viven solo en memoria durante el envío.
 // ============================================================
+
+// Las fotos vienen directo del CDN de RE/MAX o de Supabase Storage a su
+// tamaño y peso original (algunas pesan varios MB) aunque en el sitio se
+// muestren en una tarjeta de 300-400px. Esta función las reescribe para
+// que pasen por el optimizador de imágenes de Vercel (recorta al ancho
+// pedido y comprime) -- ver "images" en vercel.json para los dominios
+// permitidos. Si la URL no es de uno de esos dominios, se devuelve igual.
+window.imgOpt = function (url, w, q) {
+  if (!url || typeof url !== 'string') return url;
+  if (!/^https?:\/\//i.test(url)) return url;
+  if (!/remaxcaribbeanandcentralamerica\.azureedge\.net|iseoyfiteeobzvtfjhoe\.supabase\.co/i.test(url)) return url;
+  return '/_vercel/image?url=' + encodeURIComponent(url) + '&w=' + (w || 800) + '&q=' + (q || 75);
+};
+
 (function () {
   const CFG = window.SITE_CONFIG || {};
   const WA_NUMBER = String(CFG.WHATSAPP_NUMBER || '').replace(/\D/g, '');

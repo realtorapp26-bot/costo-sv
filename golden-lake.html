@@ -466,7 +466,7 @@
 
     <!-- Hero -->
     <section class="hero gl-hero">
-        <img id="gl-hero-bg" src="https://remaxcaribbeanandcentralamerica.azureedge.net/images/002523093003/v3/HDPhotos/IMG_6090.png" alt="" role="presentation" class="hero-bg" fetchpriority="high" decoding="async">
+        <img id="gl-hero-bg" src="/_vercel/image?url=https%3A%2F%2Fremaxcaribbeanandcentralamerica.azureedge.net%2Fimages%2F002523093003%2Fv3%2FHDPhotos%2FIMG_6090.png&w=1920&q=75" alt="" role="presentation" class="hero-bg" fetchpriority="high" decoding="async">
         <div class="hero-video-bg" id="gl-hero-video-bg"></div>
         <div class="container">
             <div class="hero-content">
@@ -1085,7 +1085,7 @@
                 cont.innerHTML = normalizada.map((a) => `
                     <li class="${a.destacada ? 'gl-amenidad-destacada' : ''}">
                         ${a.foto
-                            ? `<img class="gl-amenidad-foto" src="${a.foto}" alt="${a.titulo}" loading="lazy" decoding="async">`
+                            ? `<img class="gl-amenidad-foto" src="${window.imgOpt(a.foto, 600, 70)}" alt="${a.titulo}" loading="lazy" decoding="async">`
                             : `<span class="gl-amenidad-icono"><i class="fas ${a.icono}"></i></span>`}
                         <div>
                             ${a.etiqueta ? `<div class="gl-amenidad-etiqueta">${a.etiqueta}</div>` : ''}
@@ -1107,7 +1107,7 @@
                 const fotoEl = document.getElementById('gl-amenidad-modal-foto');
                 const iconoEl = document.getElementById('gl-amenidad-modal-icono');
                 if (item.foto) {
-                    fotoEl.src = item.foto;
+                    fotoEl.src = window.imgOpt(item.foto, 1080, 75);
                     fotoEl.alt = item.titulo || '';
                     fotoEl.style.display = '';
                     iconoEl.style.display = 'none';
@@ -1156,7 +1156,7 @@
                 if (!cont) return;
                 const lista = (fotos || []).filter(Boolean);
                 if (!lista.length) { cont.style.display = 'none'; return; }
-                cont.innerHTML = `<img id="${imgId}" src="${lista[0]}" alt="Golden Lake, Costa del Sol" loading="lazy" decoding="async"
+                cont.innerHTML = `<img id="${imgId}" src="${window.imgOpt(lista[0], 700, 70)}" alt="Golden Lake, Costa del Sol" loading="lazy" decoding="async"
                     style="width:100%; border-radius:var(--radius-md); box-shadow:var(--shadow-lg); object-fit:cover; transition:opacity 0.5s ease;"
                     onerror="this.parentElement.style.display='none'">`;
                 if (lista.length > 1) {
@@ -1166,7 +1166,7 @@
                         if (!img) return;
                         idx = (idx + 1) % lista.length;
                         img.style.opacity = '0';
-                        setTimeout(() => { img.src = lista[idx]; img.style.opacity = '1'; }, 500);
+                        setTimeout(() => { img.src = window.imgOpt(lista[idx], 700, 70); img.style.opacity = '1'; }, 500);
                     }, 4000);
                 }
             }
@@ -1175,11 +1175,26 @@
                 const ytId = youtubeId(videoUrl);
                 const wrap = document.getElementById('gl-hero-video-bg');
                 if (!ytId) { wrap.innerHTML = ''; return; }
-                const src = `https://www.youtube-nocookie.com/embed/${ytId}`
-                    + `?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0&showinfo=0`
-                    + `&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&playsinline=1`;
-                wrap.innerHTML = `<iframe src="${src}" title="Video de Golden Lake" allow="autoplay; encrypted-media" aria-hidden="true"></iframe>`;
-                ajustarVideoHero();
+
+                // En datos limitados (ahorro de datos activado, o conexión 2G/3G)
+                // no vale la pena bajar el video de fondo -- se queda la foto del
+                // hero (ya liviana via el optimizador de imágenes de Vercel).
+                const conn = navigator.connection || navigator.webkitConnection || navigator.mozConnection;
+                if (conn && (conn.saveData || /^(slow-2g|2g|3g)$/.test(conn.effectiveType || ''))) return;
+
+                // El iframe de YouTube es lo más pesado del hero -- se difiere
+                // hasta que la página ya terminó de cargar (evento "load"), para
+                // que no compita por ancho de banda/CPU con las fotos y el resto
+                // del contenido crítico que el visitante ve primero.
+                const inyectar = () => {
+                    const src = `https://www.youtube-nocookie.com/embed/${ytId}`
+                        + `?autoplay=1&mute=1&loop=1&playlist=${ytId}&controls=0&showinfo=0`
+                        + `&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&playsinline=1`;
+                    wrap.innerHTML = `<iframe src="${src}" title="Video de Golden Lake" allow="autoplay; encrypted-media" aria-hidden="true"></iframe>`;
+                    ajustarVideoHero();
+                };
+                if (document.readyState === 'complete') inyectar();
+                else window.addEventListener('load', inyectar, { once: true });
             }
 
             function ajustarVideoHero() {
@@ -1296,7 +1311,7 @@
                         : '';
                     return `
                     <div class="gl-planta-card">
-                        <img src="${p}" alt="Planta arquitectónica nivel ${i + 1}" loading="lazy" decoding="async">
+                        <img src="${window.imgOpt(p, 700, 75)}" alt="Planta arquitectónica nivel ${i + 1}" loading="lazy" decoding="async">
                         <div class="lbl">Nivel ${i + 1}</div>
                         ${descripcionHtml ? `<div class="gl-planta-descripcion">${descripcionHtml}</div>` : ''}
                     </div>
@@ -1315,7 +1330,7 @@
                 document.getElementById('gl-galeria-seccion').style.display = '';
                 const cont = document.getElementById('gl-galeria');
                 cont.innerHTML = fotos.map((f) => `
-                    <a href="${f}" target="_blank" rel="noopener"><img src="${f}" alt="Golden Lake, Costa del Sol" loading="lazy" decoding="async" onerror="this.closest('a').remove()"></a>
+                    <a href="${f}" target="_blank" rel="noopener"><img src="${window.imgOpt(f, 400, 65)}" alt="Golden Lake, Costa del Sol" loading="lazy" decoding="async" onerror="this.closest('a').remove()"></a>
                 `).join('');
                 // Al hacer clic se abre el visor de pantalla completa (con
                 // flechas para recorrer todas) en vez de una pestaña nueva.
@@ -1391,7 +1406,7 @@
                     const heroBg = document.getElementById('gl-hero-bg');
                     const fallbackHero = heroBg.src;
                     heroBg.onerror = () => { heroBg.onerror = null; heroBg.src = fallbackHero; };
-                    heroBg.src = fotos[0];
+                    heroBg.src = window.imgOpt(fotos[0], 1920, 75);
                 }
                 // Actualiza (no reemplaza) window.GL_DOSSIER_DATA con los datos
                 // reales ya resueltos -- ver el comentario junto a su asignación
@@ -1429,7 +1444,7 @@
                         <div class="prop-img">
                             <span class="prop-badge">${p.categoria || 'Golden Lake'}</span>
                             ${p.tipo_contrato ? `<span class="prop-badge-estado">${p.tipo_contrato}</span>` : ''}
-                            <img loading="lazy" decoding="async" src="${fotos[0]}" alt="${p.titulo}" onerror="this.src='${FOTO_RESPALDO}'">
+                            <img loading="lazy" decoding="async" src="${window.imgOpt(fotos[0], 600, 70)}" alt="${p.titulo}" onerror="this.src='${FOTO_RESPALDO}'">
                         </div>
                         <div class="prop-content">
                             <h3 class="prop-title"><a href="${fichaUrl}" style="color: inherit; text-decoration: none;">${p.titulo}</a></h3>
