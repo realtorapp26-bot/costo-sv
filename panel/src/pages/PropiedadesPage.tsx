@@ -4,8 +4,10 @@ import type { Categoria, Propiedad, TipoContrato } from '../lib/types';
 import { CATEGORIAS, PUBLICADA_CLASE, TIPO_CONTRATO_LABEL } from '../lib/enums';
 import { normalizar } from '../lib/format';
 import { useDeletePropiedad, usePropiedades, useTogglePublicada } from '../lib/queries';
+import type { PropiedadCampos } from '../lib/queries';
 import { Badge, Button, Card, ChipRow, EmptyState, StatCard, cx, inputClass } from '../components/ui';
 import { PropiedadFormModal } from './PropiedadFormModal';
+import { ImportarPropiedad } from './ImportarPropiedad';
 
 type FiltroPublicada = 'si' | 'no';
 
@@ -21,6 +23,8 @@ export function PropiedadesPage() {
   const [fPublicada, setFPublicada] = useState<FiltroPublicada | null>(null);
   const [formAbierto, setFormAbierto] = useState(false);
   const [editando, setEditando] = useState<Propiedad | null>(null);
+  const [borrador, setBorrador] = useState<Partial<PropiedadCampos> | null>(null);
+  const [importarAbierto, setImportarAbierto] = useState(false);
 
   // Deep link ?editar=<id> -- abre directo en edición (mismo uso que el
   // enlace "Editar" de las mini-tarjetas del panel clásico).
@@ -64,6 +68,7 @@ export function PropiedadesPage() {
 
   function nueva() {
     setEditando(null);
+    setBorrador(null);
     setFormAbierto(true);
   }
 
@@ -81,11 +86,28 @@ export function PropiedadesPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-serif text-xl font-bold text-navy">Propiedades</h1>
-        <Button variant="gold" onClick={nueva}>
-          <i className="fas fa-plus" />
-          <span className="hidden sm:inline">Nueva propiedad</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setImportarAbierto((v) => !v)}>
+            <i className="fas fa-cloud-arrow-down" />
+            <span className="hidden sm:inline">Importar de RE/MAX</span>
+          </Button>
+          <Button variant="gold" onClick={nueva}>
+            <i className="fas fa-plus" />
+            <span className="hidden sm:inline">Nueva propiedad</span>
+          </Button>
+        </div>
       </div>
+
+      {importarAbierto && (
+        <ImportarPropiedad
+          propiedadesExistentes={propiedades}
+          onBorrador={(campos) => {
+            setEditando(null);
+            setBorrador(campos);
+            setFormAbierto(true);
+          }}
+        />
+      )}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard label="Publicadas" value={kpis.publicadas} icon="fas fa-eye" tono="emerald" />
@@ -198,7 +220,12 @@ export function PropiedadesPage() {
         </>
       )}
 
-      <PropiedadFormModal propiedad={editando} open={formAbierto} onClose={() => setFormAbierto(false)} />
+      <PropiedadFormModal
+        propiedad={editando}
+        borrador={borrador}
+        open={formAbierto}
+        onClose={() => setFormAbierto(false)}
+      />
     </div>
   );
 }

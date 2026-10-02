@@ -37,31 +37,39 @@ const VACIO: PropiedadCampos = {
   fecha_publicacion: null,
 };
 
-function camposDesde(p: Propiedad | null): PropiedadCampos {
-  if (!p) return { ...VACIO };
-  const { id: _id, slug: _slug, created_at: _creado, updated_at: _actualizado, ...resto } = p;
-  return resto;
+// borrador: valores precargados para una propiedad NUEVA (ej. lo que trajo
+// la importación desde un link de RE/MAX) -- no aplica cuando se edita una
+// propiedad existente.
+function camposDesde(p: Propiedad | null, borrador?: Partial<PropiedadCampos> | null): PropiedadCampos {
+  if (p) {
+    const { id: _id, slug: _slug, created_at: _creado, updated_at: _actualizado, ...resto } = p;
+    return resto;
+  }
+  return { ...VACIO, ...(borrador || {}) };
 }
 
 const checkboxClass = 'h-4 w-4 rounded border-slate-300 text-navy focus:ring-navy/30';
 
 export function PropiedadFormModal({
   propiedad,
+  borrador,
   open,
   onClose,
 }: {
   propiedad: Propiedad | null;
+  borrador?: Partial<PropiedadCampos> | null;
   open: boolean;
   onClose: () => void;
 }) {
-  const [form, setForm] = useState<PropiedadCampos>(() => camposDesde(propiedad));
+  const [form, setForm] = useState<PropiedadCampos>(() => camposDesde(propiedad, borrador));
   const crear = useCreatePropiedad();
   const actualizar = useUpdatePropiedad();
   const guardando = crear.isPending || actualizar.isPending;
   const esEdicion = !!propiedad;
 
   useEffect(() => {
-    if (open) setForm(camposDesde(propiedad));
+    if (open) setForm(camposDesde(propiedad, borrador));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, propiedad]);
 
   function set<K extends keyof PropiedadCampos>(campo: K, valor: PropiedadCampos[K]) {
