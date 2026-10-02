@@ -5,6 +5,7 @@ const SITE = 'https://guerrero-properties.com';
 
 interface Item {
   label: string;
+  icon: string;
   to?: string;
   href?: string;
   soon?: boolean;
@@ -15,30 +16,30 @@ interface Group {
 }
 
 const GROUPS: Group[] = [
-  { title: 'Principal', items: [{ label: 'Dashboard', to: '/' }] },
+  { title: 'Principal', items: [{ label: 'Dashboard', icon: 'fas fa-gauge-high', to: '/' }] },
   {
     title: 'Trabajo diario',
     items: [
-      { label: 'Leads web', to: '/leads' },
-      { label: 'Búsquedas activas', soon: true },
-      { label: 'Publicidad inteligente', soon: true },
-      { label: 'Captación', soon: true },
-      { label: 'KYC / Cumplimiento', soon: true },
-      { label: 'Comisiones', soon: true },
+      { label: 'Leads web', icon: 'fas fa-user-group', to: '/leads' },
+      { label: 'Búsquedas activas', icon: 'fas fa-magnifying-glass', soon: true },
+      { label: 'Publicidad inteligente', icon: 'fas fa-bullhorn', soon: true },
+      { label: 'Captación', icon: 'fas fa-handshake', soon: true },
+      { label: 'KYC / Cumplimiento', icon: 'fas fa-shield-halved', soon: true },
+      { label: 'Comisiones', icon: 'fas fa-sack-dollar', soon: true },
     ],
   },
   {
     title: 'Herramientas',
     items: [
-      { label: 'Carta de oferta', href: `${SITE}/carta-oferta.html` },
-      { label: 'Carta de respuesta', href: `${SITE}/carta-respuesta.html` },
-      { label: 'Calculadoras', soon: true },
+      { label: 'Carta de oferta', icon: 'fas fa-file-signature', href: `${SITE}/carta-oferta.html` },
+      { label: 'Carta de respuesta', icon: 'fas fa-reply', href: `${SITE}/carta-respuesta.html` },
+      { label: 'Calculadoras', icon: 'fas fa-calculator', soon: true },
     ],
   },
 ];
 
 const linkBase =
-  'block rounded-lg px-3 py-2 text-sm font-medium transition';
+  'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition';
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
@@ -46,6 +47,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       <div className="px-2">
         <div className="text-xs font-bold uppercase tracking-widest text-navy/60">Guerrero</div>
         <div className="font-serif text-lg font-bold text-navy">Properties</div>
+        <div className="mt-1.5 h-0.5 w-8 rounded-full bg-gold" />
       </div>
 
       <div className="flex-1 space-y-6 overflow-y-auto">
@@ -71,6 +73,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                       )
                     }
                   >
+                    <i className={cx(it.icon, 'w-4 text-center text-[0.8rem]')} />
                     {it.label}
                   </NavLink>
                 );
@@ -84,7 +87,8 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                     rel="noopener"
                     className={cx(linkBase, 'text-slate-600 hover:bg-slate-100')}
                   >
-                    {it.label} <span className="text-slate-400">↗</span>
+                    <i className={cx(it.icon, 'w-4 text-center text-[0.8rem] text-slate-400')} />
+                    {it.label} <span className="ml-auto text-slate-400">↗</span>
                   </a>
                 );
               }
@@ -94,7 +98,8 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                   className={cx(linkBase, 'cursor-default text-slate-400')}
                   title="Próximamente"
                 >
-                  {it.label} <span className="text-[0.65rem]">· pronto</span>
+                  <i className={cx(it.icon, 'w-4 text-center text-[0.8rem]')} />
+                  {it.label} <span className="ml-auto text-[0.65rem]">pronto</span>
                 </div>
               );
             })}

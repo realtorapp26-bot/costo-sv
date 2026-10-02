@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Estado, LeadConContacto } from '../lib/types';
-import { ESTADOS, ESTADO_LABEL, INTERES_LABEL } from '../lib/enums';
-import { formatearFecha } from '../lib/format';
+import { ESTADOS, ESTADO_LABEL, INTERES_LABEL, ORIGEN_ICONO } from '../lib/enums';
+import { formatearFecha, waHref } from '../lib/format';
 import { Badge, cx } from '../components/ui';
 
 interface Props {
@@ -14,11 +14,11 @@ interface Props {
 
 export function LeadsPipeline({ leads, onMover, onNota, onEliminar, onDescargarOferta }: Props) {
   return (
-    <div className="flex gap-3 overflow-x-auto pb-2">
+    <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 sm:snap-none">
       {ESTADOS.map((estado) => {
         const items = leads.filter((l) => l.estado === estado);
         return (
-          <div key={estado} className="w-64 shrink-0">
+          <div key={estado} className="w-[85vw] max-w-xs shrink-0 snap-center sm:w-64 sm:snap-align-none">
             <div className="mb-2 flex items-center justify-between px-1">
               <span className="text-sm font-semibold text-slate-700">{ESTADO_LABEL[estado]}</span>
               <Badge>{items.length}</Badge>
@@ -63,16 +63,30 @@ function PipelineCard({
 
   return (
     <div className="relative rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-      <div className="text-sm font-semibold text-slate-800">{c?.nombre ?? 'Sin nombre'}</div>
-      {c?.telefono && <div className="text-xs text-slate-500">{c.telefono}</div>}
+      <div className="flex items-start justify-between gap-2">
+        <div className="text-sm font-semibold text-slate-800">{c?.nombre ?? 'Sin nombre'}</div>
+        <i className={cx(ORIGEN_ICONO[lead.origen], 'mt-0.5 shrink-0 text-xs text-slate-400')} />
+      </div>
+      {c?.telefono && (
+        <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
+          <a href={`tel:${c.telefono}`} className="hover:underline">
+            {c.telefono}
+          </a>
+          {waHref(c.telefono) && (
+            <a href={waHref(c.telefono)!} target="_blank" rel="noopener noreferrer" className="text-[#25d366]">
+              <i className="fab fa-whatsapp" />
+            </a>
+          )}
+        </div>
+      )}
       <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
         <Badge>{INTERES_LABEL[lead.interes]}</Badge>
         {lead.oferta_pdf_path && (
           <button
             onClick={() => onDescargarOferta(lead.oferta_pdf_path!)}
-            className="text-xs font-medium text-navy underline"
+            className="flex items-center gap-1 text-xs font-medium text-navy underline"
           >
-            Oferta PDF
+            <i className="fas fa-file-arrow-down" /> Oferta
           </button>
         )}
       </div>
@@ -84,8 +98,9 @@ function PipelineCard({
         <button
           onClick={() => setMenu((v) => !v)}
           className="rounded px-2 py-0.5 text-xs text-slate-500 hover:bg-slate-100"
+          aria-label="Más acciones"
         >
-          ⋯
+          <i className="fas fa-ellipsis-vertical" />
         </button>
       </div>
 
@@ -113,18 +128,18 @@ function PipelineCard({
               onNota(lead);
               setMenu(false);
             }}
-            className={cx('block w-full rounded px-2 py-1 text-left text-xs hover:bg-slate-100')}
+            className={cx('flex w-full items-center gap-1.5 rounded px-2 py-1 text-left text-xs hover:bg-slate-100')}
           >
-            Agregar nota
+            <i className="fas fa-pen text-slate-400" /> Agregar nota
           </button>
           <button
             onClick={() => {
               onEliminar(lead);
               setMenu(false);
             }}
-            className="block w-full rounded px-2 py-1 text-left text-xs text-red-600 hover:bg-red-50"
+            className="flex w-full items-center gap-1.5 rounded px-2 py-1 text-left text-xs text-red-600 hover:bg-red-50"
           >
-            Eliminar
+            <i className="fas fa-trash" /> Eliminar
           </button>
         </div>
       )}

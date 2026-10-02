@@ -29,15 +29,19 @@ export function DashboardPage() {
       <div className="flex flex-wrap gap-2">
         <Link
           to="/leads?nuevo=1"
-          className="inline-flex items-center rounded-lg bg-navy px-3.5 py-2 text-sm font-semibold text-white hover:bg-navy-900"
+          className="inline-flex items-center gap-2 rounded-lg bg-gold px-3.5 py-2 text-sm font-semibold text-navy shadow-sm hover:bg-gold-light"
         >
-          + Nuevo lead
+          <i className="fas fa-plus" /> Nuevo lead
         </Link>
         <a href={`${SITE}/carta-oferta.html`} target="_blank" rel="noopener">
-          <Button variant="outline">Carta de oferta</Button>
+          <Button variant="outline">
+            <i className="fas fa-file-signature" /> Carta de oferta
+          </Button>
         </a>
         <a href={`${SITE}/carta-respuesta.html`} target="_blank" rel="noopener">
-          <Button variant="outline">Carta de respuesta</Button>
+          <Button variant="outline">
+            <i className="fas fa-reply" /> Carta de respuesta
+          </Button>
         </a>
       </div>
 
@@ -46,13 +50,15 @@ export function DashboardPage() {
           Pendientes importantes
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatCard label="Leads nuevos hoy" value={isLoading ? '…' : nuevosHoy} />
-          <StatCard label="En seguimiento" value={isLoading ? '…' : seguimiento} />
-          <StatCard label="Calificados" value={isLoading ? '…' : calificados} />
+          <StatCard label="Leads nuevos hoy" value={isLoading ? '…' : nuevosHoy} icon="fas fa-bolt" tono="blue" />
+          <StatCard label="En seguimiento" value={isLoading ? '…' : seguimiento} icon="fas fa-clock" tono="amber" />
+          <StatCard label="Calificados" value={isLoading ? '…' : calificados} icon="fas fa-circle-check" tono="emerald" />
           <StatCard
             label="Sin avanzar +7 días"
             value={isLoading ? '…' : sinMover7d}
             hint={sinMover7d > 0 ? 'Revisá estos' : undefined}
+            icon="fas fa-triangle-exclamation"
+            tono={sinMover7d > 0 ? 'red' : 'navy'}
           />
         </div>
       </section>

@@ -5,7 +5,7 @@ export function cx(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(' ');
 }
 
-type BtnVariant = 'primary' | 'outline' | 'ghost' | 'danger';
+type BtnVariant = 'primary' | 'gold' | 'outline' | 'ghost' | 'danger';
 export function Button({
   variant = 'primary',
   className,
@@ -15,6 +15,7 @@ export function Button({
     'inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed';
   const variants: Record<BtnVariant, string> = {
     primary: 'bg-navy text-white hover:bg-navy-900',
+    gold: 'bg-gold text-navy hover:bg-gold-light shadow-sm',
     outline: 'border border-slate-300 text-slate-700 hover:bg-slate-50',
     ghost: 'text-slate-600 hover:bg-slate-100',
     danger: 'border border-red-200 bg-red-50 text-red-700 hover:bg-red-100',
@@ -30,20 +31,47 @@ export function Card({ children, className }: { children: ReactNode; className?:
   );
 }
 
+type Tono = 'navy' | 'blue' | 'amber' | 'emerald' | 'red';
+const TONO_CLASE: Record<Tono, string> = {
+  navy: 'bg-navy/10 text-navy',
+  blue: 'bg-blue-100 text-blue-700',
+  amber: 'bg-amber-100 text-amber-700',
+  emerald: 'bg-emerald-100 text-emerald-700',
+  red: 'bg-red-100 text-red-700',
+};
+
 export function StatCard({
   label,
   value,
   hint,
+  icon,
+  tono = 'navy',
 }: {
   label: string;
   value: ReactNode;
   hint?: string;
+  icon?: string;
+  tono?: Tono;
 }) {
   return (
     <Card className="p-4">
-      <div className="text-2xl font-bold text-navy">{value}</div>
-      <div className="mt-0.5 text-sm text-slate-500">{label}</div>
-      {hint && <div className="mt-1 text-xs text-slate-400">{hint}</div>}
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <div className="text-2xl font-bold text-navy">{value}</div>
+          <div className="mt-0.5 text-sm text-slate-500">{label}</div>
+        </div>
+        {icon && (
+          <span
+            className={cx(
+              'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm',
+              TONO_CLASE[tono],
+            )}
+          >
+            <i className={icon} />
+          </span>
+        )}
+      </div>
+      {hint && <div className="mt-1.5 text-xs font-medium text-accent">{hint}</div>}
     </Card>
   );
 }
@@ -86,11 +114,20 @@ export function Modal({
   if (!open) return null;
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 p-4 pt-20"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 p-0 sm:p-4 sm:pt-20"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
-        <h3 className="mb-4 font-semibold text-slate-900">{title}</h3>
+      <div className="min-h-full w-full max-w-md rounded-none bg-white p-5 shadow-2xl sm:min-h-0 sm:rounded-xl sm:p-6">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h3 className="font-semibold text-slate-900">{title}</h3>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 sm:hidden"
+            aria-label="Cerrar"
+          >
+            <i className="fas fa-xmark" />
+          </button>
+        </div>
         {children}
       </div>
     </div>

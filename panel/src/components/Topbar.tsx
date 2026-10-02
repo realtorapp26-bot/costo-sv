@@ -14,16 +14,19 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
         className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 lg:hidden"
         aria-label="Menú"
       >
-        ☰
+        <i className="fas fa-bars" />
       </button>
 
-      <input
-        type="search"
-        placeholder="Buscar cliente, propiedad…"
-        className="hidden max-w-sm flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm outline-none focus:border-navy focus:bg-white sm:block"
-        disabled
-        title="El buscador global llega en la próxima versión"
-      />
+      <div className="relative hidden max-w-sm flex-1 sm:block">
+        <i className="fas fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400" />
+        <input
+          type="search"
+          placeholder="Buscar cliente, propiedad…"
+          className="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pl-8 pr-3 text-sm outline-none focus:border-navy focus:bg-white"
+          disabled
+          title="El buscador global llega en la próxima versión"
+        />
+      </div>
 
       <div className="relative ml-auto">
         <button
@@ -43,7 +46,7 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
               className="mt-1 w-full justify-start"
               onClick={() => void signOut()}
             >
-              Cerrar sesión
+              <i className="fas fa-arrow-right-from-bracket" /> Cerrar sesión
             </Button>
           </div>
         )}

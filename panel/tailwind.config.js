@@ -4,12 +4,22 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Mismo navy/gold/rojo RE/MAX que el sitio público (ver --primary,
+        // --gold, --accent en styles.css) -- antes el panel tenía su propio
+        // azul genérico que no coincidía con la marca real.
         navy: {
-          DEFAULT: '#0b2d5c',
-          700: '#0f3a75',
-          900: '#082245',
+          DEFAULT: '#0a0f1c',
+          700: '#162032',
+          900: '#060910',
         },
-        accent: '#e53935',
+        gold: {
+          DEFAULT: '#d4af37',
+          light: '#f3e5ab',
+        },
+        accent: {
+          DEFAULT: '#dc2626',
+          hover: '#b91c1c',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

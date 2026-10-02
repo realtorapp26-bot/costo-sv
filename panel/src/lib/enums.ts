@@ -13,6 +13,16 @@ export const ORIGEN_LABEL: Record<Origen, string> = {
   otro: 'Otro',
 };
 
+// Para identificar el origen de un vistazo (lista y tarjetas de leads).
+export const ORIGEN_ICONO: Record<Origen, string> = {
+  whatsapp: 'fab fa-whatsapp',
+  formulario_web: 'fas fa-globe',
+  facebook_ads: 'fab fa-facebook',
+  marketplace: 'fas fa-store',
+  referido: 'fas fa-people-arrows',
+  otro: 'fas fa-circle-question',
+};
+
 export const ESTADO_LABEL: Record<Estado, string> = {
   nuevo: 'Nuevo',
   contactado: 'Contactado',

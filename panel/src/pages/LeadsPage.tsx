@@ -8,6 +8,7 @@ import {
   INTERESES,
   INTERES_LABEL,
   ORIGENES,
+  ORIGEN_ICONO,
   ORIGEN_LABEL,
 } from '../lib/enums';
 import { esHoy, formatearFecha, waHref } from '../lib/format';
@@ -86,31 +87,40 @@ export function LeadsPage() {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-bold text-slate-900">Leads web</h1>
+        <h1 className="font-serif text-xl font-bold text-navy">Leads web</h1>
         <div className="flex items-center gap-2">
           <div className="flex rounded-lg border border-slate-300 p-0.5">
-            {(['tabla', 'pipeline'] as Vista[]).map((v) => (
+            {(
+              [
+                { v: 'tabla', icon: 'fas fa-list', label: 'Lista' },
+                { v: 'pipeline', icon: 'fas fa-table-columns', label: 'Pipeline' },
+              ] as const
+            ).map(({ v, icon, label }) => (
               <button
                 key={v}
                 onClick={() => setVista(v)}
                 className={cx(
-                  'rounded-md px-3 py-1 text-sm font-medium capitalize',
-                  vista === v ? 'bg-navy text-white' : 'text-slate-600',
+                  'flex items-center gap-1.5 rounded-md px-3 py-1 text-sm font-medium',
+                  vista === v ? 'bg-navy text-white' : 'text-slate-600 hover:bg-slate-100',
                 )}
               >
-                {v}
+                <i className={icon} />
+                <span className="hidden sm:inline">{label}</span>
               </button>
             ))}
           </div>
-          <Button onClick={() => setNuevoOpen(true)}>+ Nuevo lead</Button>
+          <Button variant="gold" onClick={() => setNuevoOpen(true)}>
+            <i className="fas fa-plus" />
+            <span className="hidden sm:inline">Nuevo lead</span>
+          </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard label="Nuevos hoy" value={kpis.nuevos} />
-        <StatCard label="En seguimiento" value={kpis.seguimiento} />
-        <StatCard label="Calificados" value={kpis.calificados} />
-        <StatCard label="Mostrados" value={kpis.total} />
+        <StatCard label="Nuevos hoy" value={kpis.nuevos} icon="fas fa-bolt" tono="blue" />
+        <StatCard label="En seguimiento" value={kpis.seguimiento} icon="fas fa-clock" tono="amber" />
+        <StatCard label="Calificados" value={kpis.calificados} icon="fas fa-circle-check" tono="emerald" />
+        <StatCard label="Mostrados" value={kpis.total} icon="fas fa-filter" tono="navy" />
       </div>
 
       <Card className="space-y-2 p-3">
@@ -135,31 +145,46 @@ export function LeadsPage() {
           onEliminar={eliminar}
           onDescargarOferta={descargarOferta}
         />
+      ) : filtrados.length === 0 ? (
+        <Card>
+          <EmptyState>No hay leads con estos filtros.</EmptyState>
+        </Card>
       ) : (
-        <Card className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-500">
-                <th className="px-4 py-3">Contacto</th>
-                <th className="px-4 py-3">Origen</th>
-                <th className="px-4 py-3">Interés</th>
-                <th className="px-4 py-3">Propiedad / Nota</th>
-                <th className="px-4 py-3">Estado</th>
-                <th className="px-4 py-3">Fecha</th>
-                <th className="px-4 py-3">Oferta</th>
-                <th className="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtrados.length === 0 ? (
-                <tr>
-                  <td colSpan={8}>
-                    <EmptyState>No hay leads con estos filtros.</EmptyState>
-                  </td>
+        <>
+          {/* Mobile: tarjetas (una tabla de 8 columnas no se puede leer en un
+              celular -- esta es la vista por defecto bajo el breakpoint md). */}
+          <div className="space-y-2.5 md:hidden">
+            {filtrados.map((l) => (
+              <LeadCard
+                key={l.id}
+                lead={l}
+                onEstado={(estado) => updateEstado.mutate({ id: l.id, estado })}
+                onVer={() => setDetalleLead(l)}
+                onNota={() => setNotaLead(l)}
+                onEliminar={() => eliminar(l)}
+                onDescargarOferta={descargarOferta}
+              />
+            ))}
+          </div>
+
+          {/* Desktop/tablet: tabla completa */}
+          <Card className="hidden overflow-x-auto md:block">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-500">
+                  <th className="px-4 py-3">Contacto</th>
+                  <th className="px-4 py-3">Origen</th>
+                  <th className="px-4 py-3">Interés</th>
+                  <th className="px-4 py-3">Propiedad / Nota</th>
+                  <th className="px-4 py-3">Estado</th>
+                  <th className="px-4 py-3">Fecha</th>
+                  <th className="px-4 py-3">Oferta</th>
+                  <th className="px-4 py-3"></th>
                 </tr>
-              ) : (
-                filtrados.map((l) => (
-                  <tr key={l.id} className="border-b border-slate-100 last:border-0">
+              </thead>
+              <tbody>
+                {filtrados.map((l) => (
+                  <tr key={l.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/60">
                     <td className="px-4 py-3">
                       <div className="font-medium text-slate-800">{l.contactos?.nombre ?? 'Sin nombre'}</div>
                       {l.contactos?.telefono && (
@@ -175,7 +200,7 @@ export function LeadsPage() {
                               title="Abrir WhatsApp"
                               className="text-[#25d366]"
                             >
-                              💬
+                              <i className="fab fa-whatsapp" />
                             </a>
                           )}
                         </div>
@@ -191,29 +216,17 @@ export function LeadsPage() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <Badge>{ORIGEN_LABEL[l.origen] ?? l.origen}</Badge>
+                      <Badge>
+                        <i className={cx(ORIGEN_ICONO[l.origen], 'mr-1')} />
+                        {ORIGEN_LABEL[l.origen] ?? l.origen}
+                      </Badge>
                     </td>
                     <td className="px-4 py-3">{INTERES_LABEL[l.interes]}</td>
                     <td className="max-w-[16rem] px-4 py-3 text-slate-600">
                       {l.propiedad_referencia || '—'}
                     </td>
                     <td className="px-4 py-3">
-                      <select
-                        value={l.estado}
-                        onChange={(e) =>
-                          updateEstado.mutate({ id: l.id, estado: e.target.value as Estado })
-                        }
-                        className={cx(
-                          'rounded-md border-0 px-2 py-1 text-xs font-semibold',
-                          ESTADO_CLASE[l.estado],
-                        )}
-                      >
-                        {ESTADOS.map((e) => (
-                          <option key={e} value={e}>
-                            {ESTADO_LABEL[e]}
-                          </option>
-                        ))}
-                      </select>
+                      <EstadoSelect value={l.estado} onChange={(estado) => updateEstado.mutate({ id: l.id, estado })} />
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-slate-500">
                       {formatearFecha(l.created_at)}
@@ -225,7 +238,7 @@ export function LeadsPage() {
                           title="Descargar carta firmada"
                           className="rounded p-1.5 text-navy hover:bg-slate-100"
                         >
-                          ⬇︎
+                          <i className="fas fa-file-arrow-down" />
                         </button>
                       ) : (
                         <span className="text-slate-300">—</span>
@@ -237,29 +250,29 @@ export function LeadsPage() {
                         title="Ver detalle"
                         className="rounded p-1.5 text-slate-500 hover:bg-slate-100"
                       >
-                        👁
+                        <i className="fas fa-eye" />
                       </button>
                       <button
                         onClick={() => setNotaLead(l)}
                         title="Agregar nota"
                         className="rounded p-1.5 text-slate-500 hover:bg-slate-100"
                       >
-                        ✎
+                        <i className="fas fa-pen" />
                       </button>
                       <button
                         onClick={() => eliminar(l)}
                         title="Eliminar"
                         className="rounded p-1.5 text-red-500 hover:bg-red-50"
                       >
-                        🗑
+                        <i className="fas fa-trash" />
                       </button>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </Card>
+                ))}
+              </tbody>
+            </table>
+          </Card>
+        </>
       )}
 
       <DetalleModal lead={detalleLead} onClose={() => setDetalleLead(null)} />
@@ -324,6 +337,119 @@ function Chip({
     >
       {children}
     </button>
+  );
+}
+
+function EstadoSelect({ value, onChange }: { value: Estado; onChange: (estado: Estado) => void }) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value as Estado)}
+      className={cx('rounded-md border-0 px-2 py-1 text-xs font-semibold', ESTADO_CLASE[value])}
+    >
+      {ESTADOS.map((e) => (
+        <option key={e} value={e}>
+          {ESTADO_LABEL[e]}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+// Tarjeta de lead para mobile -- reemplaza a la fila de tabla, que con 8
+// columnas no entra en una pantalla de celular ni siendo scrolleable.
+function LeadCard({
+  lead: l,
+  onEstado,
+  onVer,
+  onNota,
+  onEliminar,
+  onDescargarOferta,
+}: {
+  lead: LeadConContacto;
+  onEstado: (estado: Estado) => void;
+  onVer: () => void;
+  onNota: () => void;
+  onEliminar: () => void;
+  onDescargarOferta: (path: string) => void;
+}) {
+  const c = l.contactos;
+  return (
+    <Card className="p-3.5">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="truncate font-semibold text-slate-800">{c?.nombre ?? 'Sin nombre'}</div>
+          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+            {c?.telefono && (
+              <a href={`tel:${c.telefono}`} className="flex items-center gap-1 hover:underline">
+                <i className="fas fa-phone" /> {c.telefono}
+              </a>
+            )}
+            {c?.telefono && waHref(c.telefono) && (
+              <a
+                href={waHref(c.telefono)!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-[#25d366]"
+              >
+                <i className="fab fa-whatsapp" /> WhatsApp
+              </a>
+            )}
+          </div>
+          {c?.correo && (
+            <a href={`mailto:${c.correo}`} className="mt-0.5 block truncate text-xs text-slate-500 hover:underline">
+              {c.correo}
+            </a>
+          )}
+        </div>
+        <EstadoSelect value={l.estado} onChange={onEstado} />
+      </div>
+
+      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+        <Badge>
+          <i className={cx(ORIGEN_ICONO[l.origen], 'mr-1')} />
+          {ORIGEN_LABEL[l.origen] ?? l.origen}
+        </Badge>
+        <Badge className="bg-slate-100 text-slate-600">{INTERES_LABEL[l.interes]}</Badge>
+        <span className="ml-auto text-[0.7rem] text-slate-400">{formatearFecha(l.created_at)}</span>
+      </div>
+
+      {l.propiedad_referencia && (
+        <div className="mt-2 line-clamp-2 rounded-md bg-slate-50 px-2.5 py-1.5 text-xs text-slate-600">
+          {l.propiedad_referencia}
+        </div>
+      )}
+
+      <div className="mt-3 flex items-center gap-1 border-t border-slate-100 pt-2.5">
+        <button
+          onClick={onVer}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100"
+        >
+          <i className="fas fa-eye" /> Ver
+        </button>
+        <button
+          onClick={onNota}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100"
+        >
+          <i className="fas fa-pen" /> Nota
+        </button>
+        {l.oferta_pdf_path && (
+          <button
+            onClick={() => onDescargarOferta(l.oferta_pdf_path!)}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium text-navy hover:bg-slate-100"
+          >
+            <i className="fas fa-file-arrow-down" /> Oferta
+          </button>
+        )}
+        <button
+          onClick={onEliminar}
+          className="flex items-center justify-center rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50"
+          aria-label="Eliminar"
+        >
+          <i className="fas fa-trash" />
+        </button>
+      </div>
+    </Card>
   );
 }
 
