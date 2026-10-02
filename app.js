@@ -11,11 +11,24 @@
 // que pasen por el optimizador de imágenes de Vercel (recorta al ancho
 // pedido y comprime) -- ver "images" en vercel.json para los dominios
 // permitidos. Si la URL no es de uno de esos dominios, se devuelve igual.
+//
+// Vercel solo acepta anchos "w" que estén en la lista "sizes" de
+// vercel.json -- cualquier otro valor responde 400 y la imagen no carga.
+// Por eso acá se redondea siempre hacia arriba al tamaño permitido más
+// cercano, en vez de pasar el ancho pedido tal cual.
+var IMG_OPT_TAMANOS = [160, 280, 400, 600, 800, 1080, 1600, 1920];
+function imgOptTamano(w) {
+  var deseado = w || 800;
+  for (var i = 0; i < IMG_OPT_TAMANOS.length; i++) {
+    if (IMG_OPT_TAMANOS[i] >= deseado) return IMG_OPT_TAMANOS[i];
+  }
+  return IMG_OPT_TAMANOS[IMG_OPT_TAMANOS.length - 1];
+}
 window.imgOpt = function (url, w, q) {
   if (!url || typeof url !== 'string') return url;
   if (!/^https?:\/\//i.test(url)) return url;
   if (!/remaxcaribbeanandcentralamerica\.azureedge\.net|iseoyfiteeobzvtfjhoe\.supabase\.co/i.test(url)) return url;
-  return '/_vercel/image?url=' + encodeURIComponent(url) + '&w=' + (w || 800) + '&q=' + (q || 75);
+  return '/_vercel/image?url=' + encodeURIComponent(url) + '&w=' + imgOptTamano(w) + '&q=' + (q || 75);
 };
 
 (function () {

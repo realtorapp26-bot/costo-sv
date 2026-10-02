@@ -33,11 +33,18 @@ const esc = (s) => String(s == null ? '' : s)
 // Las fotos vienen del CDN de RE/MAX o de Supabase Storage a su tamaño
 // original (algunas pesan varios MB) -- se reescriben para pasar por el
 // optimizador de imágenes de Vercel (ver "images" en vercel.json).
+//
+// Vercel solo acepta anchos "w" que estén en la lista "sizes" de
+// vercel.json -- cualquier otro valor responde 400 y la imagen no carga.
+// Por eso se redondea siempre hacia arriba al tamaño permitido más
+// cercano, en vez de pasar el ancho pedido tal cual.
 const HOSTS_OPTIMIZABLES = /remaxcaribbeanandcentralamerica\.azureedge\.net|iseoyfiteeobzvtfjhoe\.supabase\.co/i;
+const IMG_OPT_TAMANOS = [160, 280, 400, 600, 800, 1080, 1600, 1920];
+const imgOptTamano = (w) => IMG_OPT_TAMANOS.find((t) => t >= (w || 800)) || IMG_OPT_TAMANOS[IMG_OPT_TAMANOS.length - 1];
 const imgOpt = (url, w, q) => {
   if (!url || typeof url !== 'string' || !/^https?:\/\//i.test(url)) return url;
   if (!HOSTS_OPTIMIZABLES.test(url)) return url;
-  return `/_vercel/image?url=${encodeURIComponent(url)}&w=${w || 800}&q=${q || 75}`;
+  return `/_vercel/image?url=${encodeURIComponent(url)}&w=${imgOptTamano(w)}&q=${q || 75}`;
 };
 
 const precioNumero = (p) => {
