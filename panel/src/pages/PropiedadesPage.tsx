@@ -25,6 +25,8 @@ export function PropiedadesPage() {
   const [editando, setEditando] = useState<Propiedad | null>(null);
   const [borrador, setBorrador] = useState<Partial<PropiedadCampos> | null>(null);
   const [importarAbierto, setImportarAbierto] = useState(false);
+  const [seleccionadas, setSeleccionadas] = useState<Set<string>>(new Set());
+  const [procesandoLote, setProcesandoLote] = useState(false);
 
   // Deep link ?editar=<id> -- abre directo en edición (mismo uso que el
   // enlace "Editar" de las mini-tarjetas del panel clásico).
@@ -80,6 +82,51 @@ export function PropiedadesPage() {
   function eliminar(p: Propiedad) {
     if (!confirm(`¿Eliminar "${p.titulo}"? No se puede deshacer.`)) return;
     eliminarMutacion.mutate(p.id);
+  }
+
+  function toggleSeleccion(id: string, marcada: boolean) {
+    setSeleccionadas((prev) => {
+      const copia = new Set(prev);
+      if (marcada) copia.add(id);
+      else copia.delete(id);
+      return copia;
+    });
+  }
+
+  function toggleSeleccionarTodasVisibles(marcarTodas: boolean) {
+    setSeleccionadas((prev) => {
+      const copia = new Set(prev);
+      filtradas.forEach((p) => (marcarTodas ? copia.add(p.id) : copia.delete(p.id)));
+      return copia;
+    });
+  }
+
+  const todasVisiblesSeleccionadas = filtradas.length > 0 && filtradas.every((p) => seleccionadas.has(p.id));
+
+  async function publicarOcultarSeleccionadas(publicada: boolean) {
+    setProcesandoLote(true);
+    try {
+      for (const id of seleccionadas) {
+        await togglePublicada.mutateAsync({ id, publicada });
+      }
+      setSeleccionadas(new Set());
+    } finally {
+      setProcesandoLote(false);
+    }
+  }
+
+  async function eliminarSeleccionadas() {
+    const n = seleccionadas.size;
+    if (!confirm(`¿Eliminar ${n} propiedad${n === 1 ? '' : 'es'} seleccionada${n === 1 ? '' : 's'}? No se puede deshacer.`)) return;
+    setProcesandoLote(true);
+    try {
+      for (const id of seleccionadas) {
+        await eliminarMutacion.mutateAsync(id);
+      }
+      setSeleccionadas(new Set());
+    } finally {
+      setProcesandoLote(false);
+    }
   }
 
   return (
@@ -140,6 +187,28 @@ export function PropiedadesPage() {
         />
       </Card>
 
+      {seleccionadas.size > 0 && (
+        <Card className="flex flex-wrap items-center gap-2 border-navy/20 bg-navy/5 p-3">
+          <span className="text-sm font-semibold text-navy">
+            {seleccionadas.size} seleccionada{seleccionadas.size === 1 ? '' : 's'}
+          </span>
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <Button variant="outline" disabled={procesandoLote} onClick={() => publicarOcultarSeleccionadas(true)}>
+              <i className="fas fa-eye" /> Publicar
+            </Button>
+            <Button variant="outline" disabled={procesandoLote} onClick={() => publicarOcultarSeleccionadas(false)}>
+              <i className="fas fa-eye-slash" /> Ocultar
+            </Button>
+            <Button variant="danger" disabled={procesandoLote} onClick={eliminarSeleccionadas}>
+              <i className="fas fa-trash" /> Eliminar
+            </Button>
+            <Button variant="ghost" disabled={procesandoLote} onClick={() => setSeleccionadas(new Set())}>
+              Cancelar
+            </Button>
+          </div>
+        </Card>
+      )}
+
       {error && (
         <Card className="p-4 text-sm text-red-700">
           No se pudieron cargar las propiedades: {(error as Error).message}
@@ -160,6 +229,8 @@ export function PropiedadesPage() {
               <PropiedadCard
                 key={p.id}
                 p={p}
+                seleccionada={seleccionadas.has(p.id)}
+                onSeleccionar={(marcada) => toggleSeleccion(p.id, marcada)}
                 onTogglePublicada={() => togglePublicada.mutate({ id: p.id, publicada: !p.publicada })}
                 onEditar={() => editar(p)}
                 onEliminar={() => eliminar(p)}
@@ -172,6 +243,15 @@ export function PropiedadesPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-500">
+                  <th className="w-10 px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={todasVisiblesSeleccionadas}
+                      onChange={(e) => toggleSeleccionarTodasVisibles(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-300 text-navy focus:ring-navy/30"
+                      aria-label="Seleccionar todas las visibles"
+                    />
+                  </th>
                   <th className="px-4 py-3">Foto</th>
                   <th className="px-4 py-3">Título / Ubicación</th>
                   <th className="px-4 py-3">Categoría</th>
@@ -184,6 +264,15 @@ export function PropiedadesPage() {
               <tbody>
                 {filtradas.map((p) => (
                   <tr key={p.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/60">
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={seleccionadas.has(p.id)}
+                        onChange={(e) => toggleSeleccion(p.id, e.target.checked)}
+                        className="h-4 w-4 rounded border-slate-300 text-navy focus:ring-navy/30"
+                        aria-label={`Seleccionar ${p.titulo}`}
+                      />
+                    </td>
                     <td className="px-4 py-3">
                       <div className="h-12 w-16 overflow-hidden rounded-md bg-slate-100">
                         {p.fotos?.[0] && <img src={p.fotos[0]} alt="" className="h-full w-full object-cover" />}
@@ -232,17 +321,28 @@ export function PropiedadesPage() {
 
 function PropiedadCard({
   p,
+  seleccionada,
+  onSeleccionar,
   onTogglePublicada,
   onEditar,
   onEliminar,
 }: {
   p: Propiedad;
+  seleccionada: boolean;
+  onSeleccionar: (marcada: boolean) => void;
   onTogglePublicada: () => void;
   onEditar: () => void;
   onEliminar: () => void;
 }) {
   return (
     <Card className="flex gap-3 p-3">
+      <input
+        type="checkbox"
+        checked={seleccionada}
+        onChange={(e) => onSeleccionar(e.target.checked)}
+        className="mt-1 h-4 w-4 shrink-0 rounded border-slate-300 text-navy focus:ring-navy/30"
+        aria-label={`Seleccionar ${p.titulo}`}
+      />
       <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-100">
         {p.fotos?.[0] && <img src={p.fotos[0]} alt="" className="h-full w-full object-cover" />}
       </div>
