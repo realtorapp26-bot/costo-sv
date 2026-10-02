@@ -67,7 +67,10 @@ function renderPins(){
 
 function renderList(){
   const list=$("#gl-plano-list");
-  PROPS.forEach(p=>{
+  // Solo se listan las que tienen ubicación real en el plano (xy) -- Mansión
+  // y Terreno todavía no tienen lote asignado, así que no aparecen acá hasta
+  // que Walter confirme dónde van (siguen en PROPS, listas para reactivarse).
+  PROPS.filter(p=>p.xy).forEach(p=>{
     const b=document.createElement("button");
     b.type="button"; b.className="prop"; b.dataset.id=p.id;
     b.innerHTML=`<span class="n ${p.xy?"":"off"}">${p.n}</span><span class="t"><b>${p.name}</b><span>${p.sub}</span></span><span class="p">${p.price}</span>`;
