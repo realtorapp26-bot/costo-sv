@@ -274,7 +274,7 @@ export function PropiedadesPage() {
                       />
                     </td>
                     <td className="px-4 py-3">
-                      <div className="h-12 w-16 overflow-hidden rounded-md bg-slate-100">
+                      <div className="h-16 w-24 overflow-hidden rounded-md bg-slate-100">
                         {p.fotos?.[0] && <img src={p.fotos[0]} alt="" className="h-full w-full object-cover" />}
                       </div>
                     </td>
