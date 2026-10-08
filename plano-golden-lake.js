@@ -22,12 +22,12 @@ const POLY = {
 /* Para ubicar una propiedad: pon su polígono y lote y las coordenadas del pin (x,y) en el plano. */
 const PROPS = [
   {
-    id:"clovis", n:1, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 5 · Porción 1 disponible",
-    tag:"Disponible · $350K", price:"$350,000", priceRegular:"$400,000", priceNote:"Promoción en planos · amueblada · entrega diciembre 2026", poly:7, lote:"5", xy:[544,735],
+    id:"clovis", n:1, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 5 · Porción 1 vendida · Porción 2 disponible",
+    tag:"Vendida", price:"$350,000", priceRegular:"$400,000", priceNote:"Promoción en planos · amueblada · entrega diciembre 2026", poly:7, lote:"5", xy:[544,735],
     kv:[["Terreno","308.33 m² (441 v²), con título propio"],["Medidas","≈ 10 m de frente × 31 m de fondo"],["Frente a","Calle Barcelona"],["Acceso","A pocos metros de la entrada principal"]],
     units:[
-      {t:"Porción 1 · 308.33 m²", s:"Disponible", ok:true},
-      {t:"Porción 2 · 314.57 m²", s:"Reservada", res:true}
+      {t:"Porción 1 · 308.33 m²", s:"Vendida", res:true},
+      {t:"Porción 2 · 314.57 m²", s:"Disponible", ok:true}
     ]
   },
   {
@@ -277,7 +277,7 @@ document.querySelectorAll("#gl-plano-blocks .block").forEach(b=>{const d=POLY[b.
   b.addEventListener("mousemove",e=>tipOn(e,`<b>Polígono ${b.dataset.p}</b> · ${d.lotes} lotes · ${fmt(d.m2)} m²`));
   b.addEventListener("mouseleave",tipOff);});
 document.querySelectorAll(".lot7").forEach(l=>{
-  l.addEventListener("mousemove",e=>tipOn(e,l.dataset.lot==="5"?(l.dataset.por==="2"?`<b>Lote 5 · Porción 2</b> · 314.57 m² · Reservada`:`<b>Lote 5 · Porción 1</b> · 308.33 m² · Disponible · $350,000`):`<b>Polígono 7 · Lote ${l.dataset.lot}</b> · ${fmt(LOT_AREA[7][l.dataset.lot])} m²`));
+  l.addEventListener("mousemove",e=>tipOn(e,l.dataset.lot==="5"?(l.dataset.por==="2"?`<b>Lote 5 · Porción 2</b> · 314.57 m² · Disponible`:`<b>Lote 5 · Porción 1</b> · 308.33 m² · Vendida`):`<b>Polígono 7 · Lote ${l.dataset.lot}</b> · ${fmt(LOT_AREA[7][l.dataset.lot])} m²`));
   l.addEventListener("mouseleave",tipOff);});
 
 [["gl-plano-l-nums","no-nums"],["gl-plano-l-lamps","no-lamps"],["gl-plano-l-trees","no-trees"]].forEach(([id,cls])=>{
