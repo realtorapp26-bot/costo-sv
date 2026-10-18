@@ -205,6 +205,8 @@
         .estado-perdido { color: #9ca3af; font-weight: 600; }
         .estado-cerrado { color: #7c3aed; font-weight: 600; }
         .btn-nota { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 5px 10px; font-size: 0.8rem; cursor: pointer; }
+        .btn-copiar-link-kyc { background: var(--primary); color: #fff; border: none; border-radius: var(--radius-sm); padding: 6px 12px; font-size: 0.8rem; font-weight: 600; cursor: pointer; margin-right: 4px; }
+        .btn-copiar-link-kyc:hover { opacity: 0.9; }
         .btn-eliminar-lead { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: var(--radius-sm); padding: 5px 10px; font-size: 0.8rem; cursor: pointer; margin-left: 6px; }
         .contacto-nombre { font-weight: 600; color: var(--primary); }
         .contacto-tel { font-size: 0.8rem; color: var(--text-light); display: flex; align-items: center; gap: 6px; }
@@ -2046,7 +2048,7 @@
                     <td>${k.vence_at ? new Date(k.vence_at + 'T00:00:00').toLocaleDateString('es-SV') : '—'}</td>
                     <td>${formatearFecha(k.created_at)}</td>
                     <td>
-                        ${!k.completado_at ? `<button class="btn-nota" title="Copiar link para el cliente" onclick="copiarLinkKyc('${k.id}')"><i class="fas fa-link"></i></button>` : `<span class="btn-nota" title="El cliente ya completó su parte" style="color:#16a34a; cursor:default;"><i class="fas fa-circle-check"></i></span>`}
+                        ${!k.completado_at ? `<button class="btn-copiar-link-kyc" onclick="copiarLinkKyc('${k.id}')"><i class="fas fa-link"></i> Copiar link</button>` : `<span class="btn-nota" title="El cliente ya completó su parte" style="color:#16a34a; cursor:default;"><i class="fas fa-circle-check"></i></span>`}
                         ${k.doc_frontal_path ? `<button class="btn-nota" title="Ver documento frontal" onclick="verDocumentoKyc('${k.doc_frontal_path}', this)"><i class="fas fa-id-card"></i></button>` : ''}
                         ${k.doc_reverso_path ? `<button class="btn-nota" title="Ver documento reverso" onclick="verDocumentoKyc('${k.doc_reverso_path}', this)"><i class="fas fa-id-card"></i></button>` : ''}
                         ${k.pdf_path ? `<button class="btn-nota" title="Descargar PDF firmado" onclick="verDocumentoKyc('${k.pdf_path}', this)"><i class="fas fa-file-pdf"></i></button>` : ''}

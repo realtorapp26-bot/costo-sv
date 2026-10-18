@@ -149,9 +149,9 @@ export function KycPage() {
                         <button
                           onClick={() => copiarLinkKyc(k)}
                           title="Copiar link para el cliente"
-                          className="rounded p-1.5 text-navy hover:bg-slate-100"
+                          className="rounded-md bg-navy px-2.5 py-1.5 text-xs font-semibold text-white hover:opacity-90"
                         >
-                          <i className="fas fa-link" />
+                          <i className="fas fa-link" /> Copiar link
                         </button>
                       )}
                       {k.doc_frontal_path && (
