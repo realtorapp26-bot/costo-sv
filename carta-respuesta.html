@@ -21,6 +21,8 @@
         .co-wrap { max-width: 760px; margin: 28px auto 80px; padding: 0 18px; }
         .co-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 26px 24px; margin-bottom: 18px; box-shadow: 0 8px 24px rgba(15,23,42,.05); }
         .co-card h2 { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--azul); margin: 0 0 4px; }
+        .co-card h2 .en { font-family: 'Outfit', system-ui, sans-serif; font-size: .78rem; font-weight: 500; color: #94a3b8; }
+        .co-header p .en, .co-errors h3 .en, .co-btn-clear .en { color: inherit; opacity: .72; font-weight: 500; }
         .co-card .hint { font-size: .82rem; color: #64748b; margin: 0 0 18px; }
         .co-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
         .co-grid .full { grid-column: 1 / -1; }
@@ -45,6 +47,8 @@
         .co-check { display: flex; gap: 10px; align-items: flex-start; font-size: .86rem; color: #334155; margin-top: 4px; }
         .co-check input { width: auto; margin-top: 3px; }
         .co-nota .en { display: block; color: #94a3b8; margin-top: 6px; }
+        .hint .en { color: #94a3b8; }
+        .co-sub-title .en { color: #94a3b8; font-weight: 500; }
         .co-errors { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; }
         .co-errors h3 { color: #b91c1c; font-size: .95rem; margin: 0 0 8px; }
         .co-errors ul { margin: 0; padding-left: 18px; color: #7f1d1d; font-size: .85rem; }
@@ -65,7 +69,7 @@
             <div>
                 <div class="co-brand">Guerrero Properties</div>
                 <h1>Carta de Respuesta</h1>
-                <p>Aceptación condicionada de oferta o contraoferta del propietario</p>
+                <p>Aceptación condicionada de oferta o contraoferta del propietario <span class="en">/ Conditional acceptance of an offer, or counteroffer, from the owner</span></p>
             </div>
         </div>
     </header>
@@ -83,13 +87,13 @@
         </div>
 
         <div class="co-errors d-none" id="errorBox">
-            <h3>Revisá la información</h3>
+            <h3>Revisá la información <span class="en">/ Please check the information</span></h3>
             <ul id="errorList"></ul>
         </div>
 
         <form id="responseForm" novalidate>
             <div class="co-card">
-                <h2>Tipo de respuesta</h2>
+                <h2>Tipo de respuesta <span class="en">/ Response type</span></h2>
                 <div class="co-grid">
                     <div class="co-field">
                         <label for="document_language">Idioma del documento <span class="en">/ Document language</span></label>
@@ -120,7 +124,7 @@
             </div>
 
             <div class="co-card">
-                <h2>Propietario / vendedor</h2>
+                <h2>Propietario / vendedor <span class="en">/ Owner / seller</span></h2>
                 <div class="co-grid">
                     <div class="co-field full">
                         <label for="owner_name">Nombre completo del propietario <span class="en">/ Owner's full name</span></label>
@@ -128,7 +132,7 @@
                     </div>
                 </div>
                 <div id="ownerExtra" class="co-sub d-none">
-                    <div class="co-sub-title">Datos del propietario (contraoferta)</div>
+                    <div class="co-sub-title">Datos del propietario (contraoferta) <span class="en">/ Owner details (counteroffer)</span></div>
                     <div class="co-grid">
                         <div class="co-field">
                             <label for="owner_age">Edad <span class="en">/ Age</span></label>
@@ -162,7 +166,7 @@
                     </div>
                 </div>
                 <div class="co-sub">
-                    <div class="co-sub-title">Contacto del propietario (opcional, para el seguimiento — no sale en el PDF)</div>
+                    <div class="co-sub-title">Contacto del propietario (opcional, para el seguimiento — no sale en el PDF) <span class="en">/ Owner contact (optional, for follow-up — not shown in the PDF)</span></div>
                     <div class="co-grid">
                         <div class="co-field">
                             <label for="owner_phone">Teléfono / WhatsApp <span class="en">/ Phone</span></label>
@@ -177,7 +181,7 @@
             </div>
 
             <div class="co-card">
-                <h2>Interesado</h2>
+                <h2>Interesado <span class="en">/ Interested party</span></h2>
                 <div class="co-grid">
                     <div class="co-field full">
                         <label for="interested_name">Nombre completo del interesado <span class="en">/ Interested party's full name</span></label>
@@ -200,7 +204,7 @@
             </div>
 
             <div class="co-card">
-                <h2>Datos del inmueble</h2>
+                <h2>Datos del inmueble <span class="en">/ Property details</span></h2>
                 <div class="co-grid">
                     <div class="co-field co-field-district d-none" id="propertyDistrictCol">
                         <label for="property_district">Distrito <span class="en">/ District</span></label>
@@ -226,7 +230,7 @@
             </div>
 
             <div class="co-card" id="acceptanceBlock">
-                <h2>Términos de la aceptación</h2>
+                <h2>Términos de la aceptación <span class="en">/ Terms of acceptance</span></h2>
                 <div class="co-grid">
                     <div class="co-field">
                         <label for="accepted_amount_number">Monto aceptado (US$) <span class="en">/ Accepted amount</span></label>
@@ -246,7 +250,7 @@
                     </div>
                 </div>
                 <div id="saleAcceptance" class="co-sub">
-                    <div class="co-sub-title">Venta</div>
+                    <div class="co-sub-title">Venta <span class="en">/ Sale</span></div>
                     <div class="co-grid">
                         <div class="co-field">
                             <label for="payment_method">Forma de pago <span class="en">/ Payment method</span></label>
@@ -264,7 +268,7 @@
                     </div>
                 </div>
                 <div id="rentalAcceptance" class="co-sub d-none">
-                    <div class="co-sub-title">Alquiler</div>
+                    <div class="co-sub-title">Alquiler <span class="en">/ Rental</span></div>
                     <div class="co-grid">
                         <div class="co-field full">
                             <label for="rental_term">Plazo de alquiler <span class="en">/ Rental term</span></label>
@@ -279,7 +283,7 @@
             </div>
 
             <div class="co-card d-none" id="counterofferBlock">
-                <h2>Datos de la contraoferta</h2>
+                <h2>Datos de la contraoferta <span class="en">/ Counteroffer details</span></h2>
                 <div class="co-grid">
                     <div class="co-field">
                         <label for="original_amount_number">Monto de la oferta recibida (US$) <span class="en">/ Amount of the offer received</span></label>
@@ -301,16 +305,17 @@
             </div>
 
             <div class="co-card">
-                <h2>Firma del propietario</h2>
-                <p class="hint">Firmá en el recuadro. La fecha y hora se agregan solas.</p>
+                <h2>Firma del propietario <span class="en">/ Owner's signature</span></h2>
+                <p class="hint">Firmá en el recuadro. La fecha y hora se agregan solas. <span class="en">/ Sign in the box below. The date and time are added automatically.</span></p>
                 <div class="co-sign-wrap">
                     <canvas id="signaturePad"></canvas>
                 </div>
-                <button type="button" class="co-btn-clear" id="clearSignature">Limpiar firma</button>
+                <button type="button" class="co-btn-clear" id="clearSignature">Limpiar firma <span class="en">/ Clear signature</span></button>
                 <div class="co-check d-none" id="englishConsentWrap" style="margin-top:16px;">
                     <input type="checkbox" id="english_consent">
                     <label for="english_consent" style="margin:0;font-weight:500;">
                         Entiendo y acepto que el documento en inglés y su versión en español anexa se incluirán juntas en el mismo PDF.
+                        <span class="en" style="display:block;color:#94a3b8;font-weight:500;margin-top:4px;">I understand and agree that the English document and its attached Spanish version will be included together in the same PDF.</span>
                     </label>
                 </div>
             </div>

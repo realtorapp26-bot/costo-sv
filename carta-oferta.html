@@ -21,6 +21,9 @@
         .co-wrap { max-width: 760px; margin: 28px auto 80px; padding: 0 18px; }
         .co-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 26px 24px; margin-bottom: 18px; box-shadow: 0 8px 24px rgba(15,23,42,.05); }
         .co-card h2 { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--azul); margin: 0 0 4px; }
+        .co-card h2 .en { font-family: 'Outfit', system-ui, sans-serif; font-size: .78rem; font-weight: 500; color: #94a3b8; }
+        .co-header p .en, .co-errors h3 .en, .co-btn-clear .en, .hint .en { color: inherit; opacity: .72; font-weight: 500; }
+        .co-note .en { display: block; color: #94a3b8; margin-top: 6px; }
         .co-card .hint { font-size: .82rem; color: #64748b; margin: 0 0 18px; }
         .co-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
         .co-grid .full { grid-column: 1 / -1; }
@@ -63,7 +66,7 @@
             <div>
                 <div class="co-brand">Guerrero Properties</div>
                 <h1>Carta de Oferta</h1>
-                <p>Oferta de compra o alquiler de inmueble</p>
+                <p>Oferta de compra o alquiler de inmueble <span class="en">/ Offer to purchase or rent a property</span></p>
             </div>
         </div>
     </header>
@@ -72,16 +75,17 @@
         <div class="co-note" id="langNote">
             El PDF se genera con la oferta en el idioma elegido. Si elegís <strong>Inglés</strong>, se adjunta
             además una página en español con la misma información y la misma firma, en el mismo PDF.
+            <span class="en">The PDF is generated with the offer in the language you choose. If you select <strong>English</strong>, a Spanish page with the same information and the same signature is also attached, in the same PDF.</span>
         </div>
 
         <div class="co-errors d-none" id="errorBox">
-            <h3>Revisá la información</h3>
+            <h3>Revisá la información <span class="en">/ Please check the information</span></h3>
             <ul id="errorList"></ul>
         </div>
 
         <form id="offerForm" novalidate>
             <div class="co-card">
-                <h2>Revisá la información</h2>
+                <h2>Revisá la información <span class="en">/ Review the information</span></h2>
                 <div class="co-grid">
                     <div class="co-field">
                         <label for="document_language">Idioma del documento <span class="en">/ Document language</span></label>
@@ -106,7 +110,7 @@
             </div>
 
             <div class="co-card">
-                <h2>Datos del cliente</h2>
+                <h2>Datos del cliente <span class="en">/ Client details</span></h2>
                 <div class="co-grid">
                     <div class="co-field full">
                         <label for="full_name">Nombre completo <span class="en">/ Full name</span></label>
@@ -151,7 +155,7 @@
             </div>
 
             <div class="co-card">
-                <h2>Datos del inmueble</h2>
+                <h2>Datos del inmueble <span class="en">/ Property details</span></h2>
                 <div class="co-grid">
                     <div class="co-field">
                         <label for="property_municipality">Municipio <span class="en">/ Municipality</span></label>
@@ -169,18 +173,18 @@
             </div>
 
             <div class="co-card">
-                <h2>Condiciones de la oferta</h2>
+                <h2>Condiciones de la oferta <span class="en">/ Offer terms</span></h2>
                 <div class="co-grid">
                     <div class="co-field">
                         <label for="amount_number">Monto en dólares (US$) <span class="en">/ Amount</span></label>
                         <input type="number" id="amount_number" name="amount_number" min="1" step="0.01" required>
                     </div>
                     <div class="co-field">
-                        <label for="offer_date_view">Fecha automática de la oferta</label>
+                        <label for="offer_date_view">Fecha automática de la oferta <span class="en">/ Automatic date</span></label>
                         <input type="text" id="offer_date_view" name="offer_date_view" readonly>
                     </div>
                     <div class="co-field full">
-                        <label for="amount_words">Monto en letras (español)</label>
+                        <label for="amount_words">Monto en letras (español) <span class="en">/ Amount in words (Spanish)</span></label>
                         <input type="text" id="amount_words" name="amount_words" readonly>
                         <div class="co-help">Se completa automáticamente.</div>
                     </div>
@@ -192,7 +196,7 @@
             </div>
 
             <div class="co-card d-none" id="rentalFields">
-                <h2>Campos adicionales para alquiler</h2>
+                <h2>Campos adicionales para alquiler <span class="en">/ Additional rental fields</span></h2>
                 <div class="co-grid">
                     <div class="co-field full">
                         <label for="rental_term">Plazo de alquiler <span class="en">/ Rental term</span></label>
@@ -206,7 +210,7 @@
             </div>
 
             <div class="co-card d-none" id="saleFields">
-                <h2>Campos adicionales para venta</h2>
+                <h2>Campos adicionales para venta <span class="en">/ Additional purchase fields</span></h2>
                 <div class="co-grid">
                     <div class="co-field">
                         <label for="payment_method">Forma de pago <span class="en">/ Payment method</span></label>
@@ -225,18 +229,19 @@
             </div>
 
             <div class="co-card">
-                <h2>Firma</h2>
-                <p class="hint">Firma del cliente. La fecha y hora se agregan automáticamente.</p>
+                <h2>Firma <span class="en">/ Signature</span></h2>
+                <p class="hint">Firma del cliente. La fecha y hora se agregan automáticamente. <span class="en">/ Client's signature. The date and time are added automatically.</span></p>
                 <div class="co-sign-wrap">
                     <canvas id="signaturePad"></canvas>
                 </div>
                 <div class="co-sign-actions">
-                    <button type="button" class="co-btn-clear" id="clearSignature">Limpiar firma</button>
+                    <button type="button" class="co-btn-clear" id="clearSignature">Limpiar firma <span class="en">/ Clear signature</span></button>
                 </div>
                 <div class="co-check d-none" id="englishConsentWrap" style="margin-top:16px;">
                     <input type="checkbox" id="english_consent">
                     <label for="english_consent" style="margin:0;font-weight:500;">
                         Entiendo y acepto que la oferta en inglés y su versión en español anexa se incluirán juntas en el mismo PDF.
+                        <span class="en" style="display:block;color:#94a3b8;font-weight:500;margin-top:4px;">I understand and agree that the English offer and its attached Spanish version will be included together in the same PDF.</span>
                     </label>
                 </div>
             </div>
