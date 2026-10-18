@@ -91,6 +91,14 @@
       "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
     },
     {
+      "source": "/kyc-cliente.js",
+      "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
+    },
+    {
+      "source": "/kyc-cliente.html",
+      "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
+    },
+    {
       "source": "/propiedades.html",
       "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
     },

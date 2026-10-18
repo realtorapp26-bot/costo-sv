@@ -32,7 +32,10 @@ export interface Lead {
 export type KycClienteTipo = 'persona_natural' | 'persona_juridica';
 export type KycEstado = 'pendiente' | 'cerrado' | 'cancelado';
 
-// Refleja supabase/migrations/20261018000000_kyc_schema.sql.
+// Refleja supabase/migrations/20261018000000_kyc_schema.sql +
+// 20261018020000_kyc_cliente_fase2.sql. Los campos cliente_* y pdf_path
+// los llena el cliente desde kyc-cliente.html (server-side, vía
+// /api/kyc-completar) -- quedan en null hasta que completa su parte.
 export interface KycSolicitud {
   id: string;
   numero: string;
@@ -46,6 +49,16 @@ export interface KycSolicitud {
   doc_frontal_path: string | null;
   doc_reverso_path: string | null;
   vence_at: string | null;
+  cliente_fecha_nacimiento: string | null;
+  cliente_nacionalidad: string | null;
+  cliente_pais_residencia: string | null;
+  cliente_direccion: string | null;
+  cliente_documento_tipo: 'DUI' | 'NIT' | 'PASAPORTE' | null;
+  cliente_documento_numero: string | null;
+  cliente_telefono: string | null;
+  cliente_ocupacion: string | null;
+  pdf_path: string | null;
+  completado_at: string | null;
   created_at: string;
   updated_at: string;
 }

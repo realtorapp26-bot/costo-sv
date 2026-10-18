@@ -201,9 +201,10 @@ export function useKyc() {
 export function useCreateKyc() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (v: NuevoKyc) => {
-      const { error } = await supabase.from('kyc_solicitudes').insert(v);
+    mutationFn: async (v: NuevoKyc): Promise<KycSolicitud> => {
+      const { data, error } = await supabase.from('kyc_solicitudes').insert(v).select().single();
       if (error) throw error;
+      return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['kyc'] }),
   });

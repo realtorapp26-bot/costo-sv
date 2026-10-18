@@ -37,6 +37,22 @@ export function KycPage() {
     }
   }
 
+  function copiarLinkKyc(caso: KycSolicitud) {
+    const base = 'https://guerrero-properties.com';
+    const params = new URLSearchParams({
+      caso: caso.id,
+      numero: caso.numero,
+      nombre: caso.cliente_nombre,
+      correo: caso.cliente_correo ?? '',
+      tipo: caso.cliente_tipo,
+    });
+    const url = `${base}/kyc-cliente.html?${params.toString()}`;
+    navigator.clipboard.writeText(url).then(
+      () => alert(`Link para ${caso.cliente_nombre} copiado:\n\n${url}\n\nMandáselo para que complete sus datos y firme.`),
+      () => prompt('Copiá el link:', url),
+    );
+  }
+
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -82,6 +98,7 @@ export function KycPage() {
                 caso={k}
                 onEstado={(estado) => updateEstado.mutate({ id: k.id, estado })}
                 onVerDocumento={verDocumento}
+                onCopiarLink={() => copiarLinkKyc(k)}
                 onEliminar={() => eliminar(k)}
               />
             ))}
@@ -124,6 +141,19 @@ export function KycPage() {
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-slate-500">{formatearFecha(k.created_at)}</td>
                     <td className="whitespace-nowrap px-4 py-3">
+                      {k.completado_at ? (
+                        <span title="El cliente ya completó su parte" className="rounded p-1.5 text-emerald-600">
+                          <i className="fas fa-circle-check" />
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => copiarLinkKyc(k)}
+                          title="Copiar link para el cliente"
+                          className="rounded p-1.5 text-navy hover:bg-slate-100"
+                        >
+                          <i className="fas fa-link" />
+                        </button>
+                      )}
                       {k.doc_frontal_path && (
                         <button
                           onClick={() => verDocumento(k.doc_frontal_path!)}
@@ -142,6 +172,15 @@ export function KycPage() {
                           <i className="fas fa-id-card-clip" />
                         </button>
                       )}
+                      {k.pdf_path && (
+                        <button
+                          onClick={() => verDocumento(k.pdf_path!)}
+                          title="Descargar PDF firmado"
+                          className="rounded p-1.5 text-navy hover:bg-slate-100"
+                        >
+                          <i className="fas fa-file-pdf" />
+                        </button>
+                      )}
                       <button
                         onClick={() => eliminar(k)}
                         title="Eliminar"
@@ -158,7 +197,11 @@ export function KycPage() {
         </>
       )}
 
-      <NuevoKycModal open={nuevoOpen} onClose={() => setNuevoOpen(false)} />
+      <NuevoKycModal
+        open={nuevoOpen}
+        onClose={() => setNuevoOpen(false)}
+        onCreated={copiarLinkKyc}
+      />
     </div>
   );
 }
@@ -183,11 +226,13 @@ function KycCard({
   caso: k,
   onEstado,
   onVerDocumento,
+  onCopiarLink,
   onEliminar,
 }: {
   caso: KycSolicitud;
   onEstado: (estado: KycEstado) => void;
   onVerDocumento: (path: string) => void;
+  onCopiarLink: () => void;
   onEliminar: () => void;
 }) {
   return (
@@ -211,6 +256,18 @@ function KycCard({
       </div>
 
       <div className="mt-3 flex items-center gap-1 border-t border-slate-100 pt-2.5">
+        {k.completado_at ? (
+          <span className="flex flex-1 items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-emerald-600">
+            <i className="fas fa-circle-check" /> Completado
+          </span>
+        ) : (
+          <button
+            onClick={onCopiarLink}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium text-navy hover:bg-slate-100"
+          >
+            <i className="fas fa-link" /> Link
+          </button>
+        )}
         {k.doc_frontal_path && (
           <button
             onClick={() => onVerDocumento(k.doc_frontal_path!)}
@@ -227,6 +284,14 @@ function KycCard({
             <i className="fas fa-id-card-clip" /> Reverso
           </button>
         )}
+        {k.pdf_path && (
+          <button
+            onClick={() => onVerDocumento(k.pdf_path!)}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium text-navy hover:bg-slate-100"
+          >
+            <i className="fas fa-file-pdf" /> PDF
+          </button>
+        )}
         <button
           onClick={onEliminar}
           className="flex items-center justify-center rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50"
@@ -239,7 +304,15 @@ function KycCard({
   );
 }
 
-function NuevoKycModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+function NuevoKycModal({
+  open,
+  onClose,
+  onCreated,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onCreated: (caso: KycSolicitud) => void;
+}) {
   const createKyc = useCreateKyc();
   const [tipo, setTipo] = useState<KycClienteTipo>('persona_natural');
   const [nombre, setNombre] = useState('');
@@ -275,9 +348,10 @@ function NuevoKycModal({ open, onClose }: { open: boolean; onClose: () => void }
         doc_frontal_path: frontal ? await subirDocumentoKyc(frontal, casoId, 'frontal') : null,
         doc_reverso_path: reverso ? await subirDocumentoKyc(reverso, casoId, 'reverso') : null,
       };
-      await createKyc.mutateAsync(campos);
+      const creado = await createKyc.mutateAsync(campos);
       reset();
       onClose();
+      onCreated(creado);
     } catch (ex) {
       setErrorMsg((ex as Error).message || 'No se pudo crear el KYC.');
     } finally {

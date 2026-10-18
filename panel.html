@@ -2046,13 +2046,27 @@
                     <td>${k.vence_at ? new Date(k.vence_at + 'T00:00:00').toLocaleDateString('es-SV') : '—'}</td>
                     <td>${formatearFecha(k.created_at)}</td>
                     <td>
+                        ${!k.completado_at ? `<button class="btn-nota" title="Copiar link para el cliente" onclick="copiarLinkKyc('${k.id}')"><i class="fas fa-link"></i></button>` : `<span class="btn-nota" title="El cliente ya completó su parte" style="color:#16a34a; cursor:default;"><i class="fas fa-circle-check"></i></span>`}
                         ${k.doc_frontal_path ? `<button class="btn-nota" title="Ver documento frontal" onclick="verDocumentoKyc('${k.doc_frontal_path}', this)"><i class="fas fa-id-card"></i></button>` : ''}
                         ${k.doc_reverso_path ? `<button class="btn-nota" title="Ver documento reverso" onclick="verDocumentoKyc('${k.doc_reverso_path}', this)"><i class="fas fa-id-card"></i></button>` : ''}
+                        ${k.pdf_path ? `<button class="btn-nota" title="Descargar PDF firmado" onclick="verDocumentoKyc('${k.pdf_path}', this)"><i class="fas fa-file-pdf"></i></button>` : ''}
                         <button class="btn-eliminar-lead" onclick="eliminarKyc('${k.id}', '${(k.cliente_nombre || 'este caso').replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
                     </td>
                 `;
                 body.appendChild(tr);
             });
+        }
+
+        function copiarLinkKyc(id) {
+            const k = kycData.find(x => x.id === id);
+            if (!k) return;
+            const base = ((window.SITE_CONFIG && window.SITE_CONFIG.SITE_URL) || location.origin).replace(/\/$/, '');
+            const params = new URLSearchParams({ caso: k.id, numero: k.numero, nombre: k.cliente_nombre, correo: k.cliente_correo || '', tipo: k.cliente_tipo });
+            const url = `${base}/kyc-cliente.html?${params.toString()}`;
+            navigator.clipboard.writeText(url).then(
+                () => alert('Link para ' + k.cliente_nombre + ' copiado:\n\n' + url + '\n\nMandáselo para que complete sus datos y firme.'),
+                () => prompt('Copiá el link:', url)
+            );
         }
 
         function insertarMotivoPlantilla(tipo) {
@@ -2096,15 +2110,17 @@
 
                 const headers = await CostoSVAuth.authHeaders();
                 const res = await fetch(`${SUPA_URL}/rest/v1/kyc_solicitudes`, {
-                    method: 'POST', headers: { ...headers, Prefer: 'return=minimal' },
+                    method: 'POST', headers: { ...headers, Prefer: 'return=representation' },
                     body: JSON.stringify({
                         id: casoId, cliente_tipo: tipo, cliente_nombre: nombre, cliente_correo: correo || null,
                         motivo_diligencia: motivo, doc_frontal_path: docFrontalPath, doc_reverso_path: docReversoPath,
                     }),
                 });
                 if (!res.ok) throw new Error('No se pudo crear el KYC (' + res.status + ')');
+                const creado = (await res.json())[0];
                 cerrarModalNuevoKyc();
                 await cargarKyc();
+                if (creado) copiarLinkKyc(creado.id);
             } catch (ex) {
                 alert(ex.message);
             } finally {
