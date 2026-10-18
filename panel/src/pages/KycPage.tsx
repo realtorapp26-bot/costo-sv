@@ -294,7 +294,7 @@ function NuevoKycModal({ open, onClose }: { open: boolean; onClose: () => void }
           <h4 className="text-xs font-bold uppercase tracking-wide text-navy">Datos del cliente</h4>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Field label="Oficina de trabajo">
-              <input value="RE/MAX Elite El Salvador" disabled className={cx(inputClass, 'text-slate-400')} />
+              <input value="Guerrero Properties" disabled className={cx(inputClass, 'text-slate-400')} />
             </Field>
             <Field label="Solicitado por">
               <input value="Walter Guerrero" disabled className={cx(inputClass, 'text-slate-400')} />
