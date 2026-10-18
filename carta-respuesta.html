@@ -99,21 +99,21 @@
                         </select>
                     </div>
                     <div class="co-field">
-                        <label for="letter_mode">¿Qué respondés?</label>
+                        <label for="letter_mode">¿Qué respondés? <span class="en">/ What are you responding to?</span></label>
                         <select id="letter_mode" name="letter_mode" required>
                             <option value="ACEPTACION">Aceptación de oferta</option>
                             <option value="CONTRAOFERTA">Contraoferta</option>
                         </select>
                     </div>
                     <div class="co-field">
-                        <label for="transaction_type">Operación</label>
+                        <label for="transaction_type">Operación <span class="en">/ Transaction type</span></label>
                         <select id="transaction_type" name="transaction_type" required>
                             <option value="VENTA">Venta</option>
                             <option value="ALQUILER">Alquiler</option>
                         </select>
                     </div>
                     <div class="co-field full">
-                        <label for="issue_city">Ciudad de emisión</label>
+                        <label for="issue_city">Ciudad de emisión <span class="en">/ Place of issue</span></label>
                         <input type="text" id="issue_city" name="issue_city" placeholder="San Salvador">
                     </div>
                 </div>
@@ -123,7 +123,7 @@
                 <h2>Propietario / vendedor</h2>
                 <div class="co-grid">
                     <div class="co-field full">
-                        <label for="owner_name">Nombre completo del propietario</label>
+                        <label for="owner_name">Nombre completo del propietario <span class="en">/ Owner's full name</span></label>
                         <input type="text" id="owner_name" name="owner_name" autocomplete="name" required>
                     </div>
                 </div>
@@ -131,23 +131,23 @@
                     <div class="co-sub-title">Datos del propietario (contraoferta)</div>
                     <div class="co-grid">
                         <div class="co-field">
-                            <label for="owner_age">Edad</label>
+                            <label for="owner_age">Edad <span class="en">/ Age</span></label>
                             <input type="number" id="owner_age" name="owner_age" min="18" max="120">
                         </div>
                         <div class="co-field">
-                            <label for="owner_district">Distrito de domicilio</label>
+                            <label for="owner_district">Distrito de domicilio <span class="en">/ District of residence</span></label>
                             <input type="text" id="owner_district" name="owner_district">
                         </div>
                         <div class="co-field">
-                            <label for="owner_municipality">Municipio de domicilio</label>
+                            <label for="owner_municipality">Municipio de domicilio <span class="en">/ Municipality of residence</span></label>
                             <input type="text" id="owner_municipality" name="owner_municipality">
                         </div>
                         <div class="co-field">
-                            <label for="owner_department">Departamento de domicilio</label>
+                            <label for="owner_department">Departamento de domicilio <span class="en">/ State/department of residence</span></label>
                             <input type="text" id="owner_department" name="owner_department">
                         </div>
                         <div class="co-field">
-                            <label for="owner_document_type">Tipo de documento</label>
+                            <label for="owner_document_type">Tipo de documento <span class="en">/ ID type</span></label>
                             <select id="owner_document_type" name="owner_document_type">
                                 <option value="">Seleccioná</option>
                                 <option value="DUI">DUI</option>
@@ -156,7 +156,7 @@
                             </select>
                         </div>
                         <div class="co-field">
-                            <label for="owner_document_number">Número de documento</label>
+                            <label for="owner_document_number">Número de documento <span class="en">/ ID number</span></label>
                             <input type="text" id="owner_document_number" name="owner_document_number">
                         </div>
                     </div>
@@ -165,11 +165,11 @@
                     <div class="co-sub-title">Contacto del propietario (opcional, para el seguimiento — no sale en el PDF)</div>
                     <div class="co-grid">
                         <div class="co-field">
-                            <label for="owner_phone">Teléfono / WhatsApp</label>
+                            <label for="owner_phone">Teléfono / WhatsApp <span class="en">/ Phone</span></label>
                             <input type="tel" id="owner_phone" name="owner_phone" inputmode="tel" autocomplete="tel">
                         </div>
                         <div class="co-field">
-                            <label for="owner_email">Correo</label>
+                            <label for="owner_email">Correo <span class="en">/ Email</span></label>
                             <input type="email" id="owner_email" name="owner_email" autocomplete="email">
                         </div>
                     </div>
@@ -180,11 +180,11 @@
                 <h2>Interesado</h2>
                 <div class="co-grid">
                     <div class="co-field full">
-                        <label for="interested_name">Nombre completo del interesado</label>
+                        <label for="interested_name">Nombre completo del interesado <span class="en">/ Interested party's full name</span></label>
                         <input type="text" id="interested_name" name="interested_name" required>
                     </div>
                     <div class="co-field">
-                        <label for="interested_document_type">Tipo de documento</label>
+                        <label for="interested_document_type">Tipo de documento <span class="en">/ ID type</span></label>
                         <select id="interested_document_type" name="interested_document_type" required>
                             <option value="">Seleccioná</option>
                             <option value="DUI">DUI</option>
@@ -193,7 +193,7 @@
                         </select>
                     </div>
                     <div class="co-field">
-                        <label for="interested_document_number">Número de documento</label>
+                        <label for="interested_document_number">Número de documento <span class="en">/ ID number</span></label>
                         <input type="text" id="interested_document_number" name="interested_document_number" required>
                     </div>
                 </div>
@@ -203,23 +203,23 @@
                 <h2>Datos del inmueble</h2>
                 <div class="co-grid">
                     <div class="co-field co-field-district d-none" id="propertyDistrictCol">
-                        <label for="property_district">Distrito</label>
+                        <label for="property_district">Distrito <span class="en">/ District</span></label>
                         <input type="text" id="property_district" name="property_district">
                     </div>
                     <div class="co-field">
-                        <label for="property_municipality">Municipio</label>
+                        <label for="property_municipality">Municipio <span class="en">/ Municipality</span></label>
                         <input type="text" id="property_municipality" name="property_municipality" required>
                     </div>
                     <div class="co-field">
-                        <label for="property_department">Departamento</label>
+                        <label for="property_department">Departamento <span class="en">/ State/department</span></label>
                         <input type="text" id="property_department" name="property_department" required>
                     </div>
                     <div class="co-field full">
-                        <label for="property_address">Dirección del inmueble</label>
+                        <label for="property_address">Dirección del inmueble <span class="en">/ Property address</span></label>
                         <input type="text" id="property_address" name="property_address" required>
                     </div>
                     <div class="co-field full d-none" id="registryCol">
-                        <label for="property_registry">Matrícula / número de registro (opcional)</label>
+                        <label for="property_registry">Matrícula / número de registro (opcional) <span class="en">/ Registry number (optional)</span></label>
                         <input type="text" id="property_registry" name="property_registry">
                     </div>
                 </div>
@@ -229,15 +229,15 @@
                 <h2>Términos de la aceptación</h2>
                 <div class="co-grid">
                     <div class="co-field">
-                        <label for="accepted_amount_number">Monto aceptado (US$)</label>
+                        <label for="accepted_amount_number">Monto aceptado (US$) <span class="en">/ Accepted amount</span></label>
                         <input type="number" id="accepted_amount_number" name="accepted_amount_number" min="1" step="0.01">
                     </div>
                     <div class="co-field">
-                        <label for="offer_date_view">Fecha automática</label>
+                        <label for="offer_date_view">Fecha automática <span class="en">/ Automatic date</span></label>
                         <input type="text" id="offer_date_view" name="offer_date_view" readonly>
                     </div>
                     <div class="co-field full">
-                        <label for="accepted_amount_words">Monto aceptado en letras (español)</label>
+                        <label for="accepted_amount_words">Monto aceptado en letras (español) <span class="en">/ Amount in words (Spanish)</span></label>
                         <input type="text" id="accepted_amount_words" name="accepted_amount_words" readonly>
                     </div>
                     <div class="co-field full d-none" id="acceptedAmountWordsEnglishWrap">
@@ -249,7 +249,7 @@
                     <div class="co-sub-title">Venta</div>
                     <div class="co-grid">
                         <div class="co-field">
-                            <label for="payment_method">Forma de pago</label>
+                            <label for="payment_method">Forma de pago <span class="en">/ Payment method</span></label>
                             <select id="payment_method" name="payment_method">
                                 <option value="">Seleccioná</option>
                                 <option value="Contado">Contado</option>
@@ -258,7 +258,7 @@
                             </select>
                         </div>
                         <div class="co-field full">
-                            <label for="payment_details">Detalle de cómo recibirá el pago</label>
+                            <label for="payment_details">Detalle de cómo recibirá el pago <span class="en">/ Payment details</span></label>
                             <textarea id="payment_details" name="payment_details" placeholder="Institución financiera, plazos, condiciones."></textarea>
                         </div>
                     </div>
@@ -267,11 +267,11 @@
                     <div class="co-sub-title">Alquiler</div>
                     <div class="co-grid">
                         <div class="co-field full">
-                            <label for="rental_term">Plazo de alquiler</label>
+                            <label for="rental_term">Plazo de alquiler <span class="en">/ Rental term</span></label>
                             <input type="text" id="rental_term" name="rental_term" placeholder="Ejemplo: 12 meses">
                         </div>
                         <div class="co-field full">
-                            <label for="additional_terms">Condiciones adicionales / observaciones</label>
+                            <label for="additional_terms">Condiciones adicionales / observaciones <span class="en">/ Additional conditions</span></label>
                             <textarea id="additional_terms" name="additional_terms"></textarea>
                         </div>
                     </div>
@@ -282,11 +282,11 @@
                 <h2>Datos de la contraoferta</h2>
                 <div class="co-grid">
                     <div class="co-field">
-                        <label for="original_amount_number">Monto de la oferta recibida (US$)</label>
+                        <label for="original_amount_number">Monto de la oferta recibida (US$) <span class="en">/ Amount of the offer received</span></label>
                         <input type="number" id="original_amount_number" name="original_amount_number" min="1" step="0.01">
                     </div>
                     <div class="co-field full">
-                        <label for="original_amount_words">Monto recibido en letras (español)</label>
+                        <label for="original_amount_words">Monto recibido en letras (español) <span class="en">/ Amount in words (Spanish)</span></label>
                         <input type="text" id="original_amount_words" name="original_amount_words" readonly>
                     </div>
                     <div class="co-field full d-none" id="originalAmountWordsEnglishWrap">
@@ -294,7 +294,7 @@
                         <input type="text" id="original_amount_words_english" name="original_amount_words_english" readonly>
                     </div>
                     <div class="co-field full">
-                        <label for="counteroffer_text">Texto de la contraoferta</label>
+                        <label for="counteroffer_text">Texto de la contraoferta <span class="en">/ Counteroffer text</span></label>
                         <textarea id="counteroffer_text" name="counteroffer_text" placeholder="Ej: Contraoferto en US$ 105,000 al contado, cierre en 45 días, el inmueble se entrega desocupado."></textarea>
                     </div>
                 </div>
