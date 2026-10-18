@@ -500,7 +500,7 @@
       var pdfBase64 = pdf.output('datauristring').split(',')[1];
 
       var body = {
-        caso_id: casoId,
+        kyc_caso_id: casoId,
         cliente_fecha_nacimiento: values.fechaNacimiento,
         cliente_nacionalidad: values.nacionalidad,
         cliente_pais_residencia: values.paisResidencia,
@@ -523,7 +523,7 @@
         body.doc_reverso_mime = reversoPrep.type || 'application/octet-stream';
       }
 
-      var res = await fetch('/api/kyc-completar', {
+      var res = await fetch('/api/lead', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
