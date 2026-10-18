@@ -44,6 +44,7 @@
   var canvas = el('signaturePad');
   var generateBtn = el('generateBtn');
   var btnTxt = generateBtn.querySelector('.co-generate-txt');
+  var btnTxtEn = generateBtn.querySelector('.co-generate-txt-en');
 
   // ---------- fecha ----------
   function nowParts() {
@@ -858,6 +859,7 @@
     generateBtn.disabled = true;
     generateBtn.classList.add('loading');
     btnTxt.textContent = 'Generando…';
+    btnTxtEn.textContent = '/ Generating…';
     try {
       var pdf = buildPdf(values);
       var etiqueta = values.letterMode === 'ACEPTACION' ? 'aceptacion' : 'contraoferta';
@@ -872,6 +874,7 @@
       generateBtn.disabled = false;
       generateBtn.classList.remove('loading');
       btnTxt.textContent = 'Generar carta de respuesta (PDF)';
+      btnTxtEn.textContent = '/ Generate letter';
     }
   }
 

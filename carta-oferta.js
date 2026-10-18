@@ -31,6 +31,7 @@
   var canvas = el('signaturePad');
   var generateBtn = el('generateBtn');
   var btnTxt = generateBtn.querySelector('.co-generate-txt');
+  var btnTxtEn = generateBtn.querySelector('.co-generate-txt-en');
 
   // ---------- fecha / hora ----------
   function nowParts() {
@@ -584,6 +585,7 @@
     generateBtn.disabled = true;
     generateBtn.classList.add('loading');
     btnTxt.textContent = 'Generando…';
+    btnTxtEn.textContent = '/ Generating…';
     try {
       var pdf = buildPdf(values);
       var slug = (values.fullName || 'cliente').toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || 'cliente';
@@ -597,6 +599,7 @@
       generateBtn.disabled = false;
       generateBtn.classList.remove('loading');
       btnTxt.textContent = 'Generar carta de oferta (PDF)';
+      btnTxtEn.textContent = '/ Generate letter';
     }
   }
 
