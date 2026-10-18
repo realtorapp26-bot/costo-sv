@@ -25,7 +25,7 @@ const GROUPS: Group[] = [
       { label: 'Búsquedas activas', icon: 'fas fa-magnifying-glass', soon: true },
       { label: 'Publicidad inteligente', icon: 'fas fa-bullhorn', soon: true },
       { label: 'Captación', icon: 'fas fa-handshake', soon: true },
-      { label: 'KYC / Cumplimiento', icon: 'fas fa-shield-halved', soon: true },
+      { label: 'KYC / Cumplimiento', icon: 'fas fa-shield-halved', to: '/kyc' },
       { label: 'Comisiones', icon: 'fas fa-sack-dollar', soon: true },
     ],
   },

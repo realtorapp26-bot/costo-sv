@@ -1,4 +1,4 @@
-import type { Categoria, Estado, Interes, Origen, TipoContrato } from './types';
+import type { Categoria, Estado, Interes, KycClienteTipo, KycEstado, Origen, TipoContrato } from './types';
 
 export const ESTADOS: Estado[] = ['nuevo', 'contactado', 'calificado', 'perdido', 'cerrado'];
 export const ORIGENES: Origen[] = ['whatsapp', 'formulario_web', 'facebook_ads', 'marketplace', 'referido', 'otro'];
@@ -69,4 +69,53 @@ export const TIPO_CONTRATO_LABEL: Record<TipoContrato, string> = {
 export const PUBLICADA_CLASE: Record<'si' | 'no', string> = {
   si: 'bg-emerald-100 text-emerald-700',
   no: 'bg-slate-200 text-slate-600',
+};
+
+export const KYC_ESTADOS: KycEstado[] = ['pendiente', 'cerrado', 'cancelado'];
+
+export const KYC_ESTADO_LABEL: Record<KycEstado, string> = {
+  pendiente: 'Pendiente',
+  cerrado: 'Cerrado',
+  cancelado: 'Cancelado',
+};
+
+export const KYC_ESTADO_CLASE: Record<KycEstado, string> = {
+  pendiente: 'bg-amber-100 text-amber-800',
+  cerrado: 'bg-emerald-100 text-emerald-800',
+  cancelado: 'bg-slate-200 text-slate-600',
+};
+
+export const KYC_CLIENTE_TIPO_LABEL: Record<KycClienteTipo, string> = {
+  persona_natural: 'Persona natural',
+  persona_juridica: 'Persona jurídica',
+};
+
+// Borradores editables -- el agente los ajusta antes de guardar. No incluir
+// resultados de AML ni decisiones de Cumplimiento (así lo pide el formulario
+// de referencia de Walter).
+export const KYC_MOTIVO_PLANTILLAS: Record<string, { label: string; texto: string }> = {
+  captacion: {
+    label: 'Captación',
+    texto: 'Diligencia de captación de inmueble en gestión con el cliente. Describí el inmueble, su ubicación aproximada y cómo se originó la relación con el cliente.',
+  },
+  cliente_comprador: {
+    label: 'Cliente comprador',
+    texto: 'Cliente interesado en comprar un inmueble. Describí el inmueble de interés, el monto aproximado de la operación y cómo se originó la relación con el cliente.',
+  },
+  oferta_compra: {
+    label: 'Oferta de compra',
+    texto: 'El cliente presentó una oferta de compra. Describí el inmueble, el monto ofrecido, la forma de pago y cómo se originó la relación con el cliente.',
+  },
+  venta: {
+    label: 'Venta',
+    texto: 'Cliente propietario en proceso de venta de un inmueble. Describí el inmueble, el monto aproximado de la operación y cómo se originó la relación con el cliente.',
+  },
+  alquiler_inquilino: {
+    label: 'Alquiler - inquilino',
+    texto: 'Cliente interesado en alquilar un inmueble. Describí el inmueble de interés, el monto aproximado del alquiler y cómo se originó la relación con el cliente.',
+  },
+  alquiler_propietario: {
+    label: 'Alquiler - propietario',
+    texto: 'Cliente propietario que pone un inmueble en alquiler. Describí el inmueble, el monto aproximado del alquiler y cómo se originó la relación con el cliente.',
+  },
 };

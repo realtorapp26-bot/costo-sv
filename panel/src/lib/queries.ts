@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from './supabase';
-import type { Estado, Interes, LeadConContacto, Origen, Propiedad } from './types';
+import type { Estado, Interes, KycClienteTipo, KycEstado, KycSolicitud, LeadConContacto, Origen, Propiedad } from './types';
 
 const LEAD_COLS_BASE =
   'id,origen,interes,propiedad_referencia,estado,notas,created_at,contactos(nombre,telefono,correo)';
@@ -169,5 +169,67 @@ export function useDeletePropiedad() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['propiedades'] }),
+  });
+}
+
+// ---------- KYC / Cumplimiento ----------
+// numero/oficina/solicitante/estado los pone la base (trigger + default).
+export interface NuevoKyc {
+  cliente_tipo: KycClienteTipo;
+  cliente_nombre: string;
+  cliente_correo: string | null;
+  motivo_diligencia: string;
+  doc_frontal_path: string | null;
+  doc_reverso_path: string | null;
+}
+
+export function useKyc() {
+  return useQuery({
+    queryKey: ['kyc'],
+    queryFn: async (): Promise<KycSolicitud[]> => {
+      const { data, error } = await supabase
+        .from('kyc_solicitudes')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 15_000,
+  });
+}
+
+export function useCreateKyc() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: NuevoKyc) => {
+      const { error } = await supabase.from('kyc_solicitudes').insert(v);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kyc'] }),
+  });
+}
+
+export function useUpdateKycEstado() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, estado }: { id: string; estado: KycEstado }) => {
+      const { error } = await supabase
+        .from('kyc_solicitudes')
+        .update({ estado, updated_at: new Date().toISOString() })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kyc'] }),
+  });
+}
+
+export function useDeleteKyc() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('kyc_solicitudes').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kyc'] }),
   });
 }

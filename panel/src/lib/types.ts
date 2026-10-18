@@ -29,6 +29,27 @@ export interface Lead {
   updated_at: string;
 }
 
+export type KycClienteTipo = 'persona_natural' | 'persona_juridica';
+export type KycEstado = 'pendiente' | 'cerrado' | 'cancelado';
+
+// Refleja supabase/migrations/20261018000000_kyc_schema.sql.
+export interface KycSolicitud {
+  id: string;
+  numero: string;
+  oficina: string;
+  solicitante: string;
+  cliente_tipo: KycClienteTipo;
+  cliente_nombre: string;
+  cliente_correo: string | null;
+  motivo_diligencia: string;
+  estado: KycEstado;
+  doc_frontal_path: string | null;
+  doc_reverso_path: string | null;
+  vence_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // Lo que devuelve useLeads(): lead + contacto embebido.
 export interface LeadConContacto {
   id: string;

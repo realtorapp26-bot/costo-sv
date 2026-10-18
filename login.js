@@ -174,6 +174,28 @@
     if (typeof alTerminar === 'function') alTerminar();
   }
 
+  // Para archivos privados (documentos de identidad, etc.) que NO deben ir
+  // al bucket público fichas-fotos ni pasar por conversión de imagen (un PDF
+  // no se puede reescalar en un canvas). Devuelve la ruta dentro del bucket,
+  // no una URL pública — para verlo hace falta pedir un signed URL aparte.
+  async function subirArchivoPrivado(file, bucket, carpeta) {
+    const headers = await authHeaders();
+    const MAX = 20 * 1024 * 1024;
+    if (file.size > MAX) throw new Error('El archivo supera 20MB.');
+    const nombreLimpio = file.name.replace(/[^a-zA-Z0-9.\-]/g, '_');
+    const ruta = `${carpeta}/${Date.now()}-${nombreLimpio}`;
+    const res = await fetch(`${SUPA_URL}/storage/v1/object/${bucket}/${ruta}`, {
+      method: 'POST',
+      headers: { apikey: SUPA_KEY, Authorization: headers.Authorization, 'Content-Type': file.type || 'application/octet-stream' },
+      body: file,
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || data.error || `No se pudo subir el archivo (${res.status})`);
+    }
+    return ruta;
+  }
+
   function renderLoginGate(onSuccess) {
     const gate = document.createElement('div');
     gate.id = 'login-gate';
@@ -253,5 +275,5 @@
     renderLoginGate(onReady);
   }
 
-  window.CostoSVAuth = { signIn, signOut, getSession, authHeaders, requireLogin, recoverPassword, subirFoto, subirFotosA };
+  window.CostoSVAuth = { signIn, signOut, getSession, authHeaders, requireLogin, recoverPassword, subirFoto, subirFotosA, subirArchivoPrivado };
 })();
