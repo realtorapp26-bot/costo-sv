@@ -10,6 +10,7 @@
 
   var form = document.getElementById('responseForm');
   var el = function (id) { return document.getElementById(id); };
+  var documentLanguage = el('document_language');
   var letterMode = el('letter_mode');
   var transactionType = el('transaction_type');
   var ownerExtra = el('ownerExtra');
@@ -25,12 +26,18 @@
   var interestedDocumentNumber = el('interested_document_number');
   var acceptedAmountNumber = el('accepted_amount_number');
   var acceptedAmountWords = el('accepted_amount_words');
+  var acceptedAmountWordsEnglish = el('accepted_amount_words_english');
+  var acceptedAmountWordsEnglishWrap = el('acceptedAmountWordsEnglishWrap');
   var originalAmountNumber = el('original_amount_number');
   var originalAmountWords = el('original_amount_words');
+  var originalAmountWordsEnglish = el('original_amount_words_english');
+  var originalAmountWordsEnglishWrap = el('originalAmountWordsEnglishWrap');
   var paymentMethod = el('payment_method');
   var paymentDetails = el('payment_details');
   var rentalTerm = el('rental_term');
   var counterofferText = el('counteroffer_text');
+  var englishConsent = el('english_consent');
+  var englishConsentWrap = el('englishConsentWrap');
   var offerDateView = el('offer_date_view');
   var errorBox = el('errorBox');
   var errorList = el('errorList');
@@ -42,6 +49,7 @@
   function nowParts() {
     var now = new Date();
     var meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    var mesesEn = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     var dd = String(now.getDate()).padStart(2, '0');
     var mm = String(now.getMonth() + 1).padStart(2, '0');
     var yyyy = String(now.getFullYear());
@@ -50,6 +58,7 @@
     return {
       dateInput: dd + '/' + mm + '/' + yyyy,
       dateLong: now.getDate() + ' de ' + meses[now.getMonth()] + ' de ' + now.getFullYear(),
+      dateLongEnglish: mesesEn[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear(),
       time: hh + ':' + min,
     };
   }
@@ -106,6 +115,40 @@
     var currency = ip === 1 ? 'DÓLAR DE LOS ESTADOS UNIDOS DE AMÉRICA' : 'DÓLARES DE LOS ESTADOS UNIDOS DE AMÉRICA';
     return (numberToSpanish(ip) + ' CON ' + centsText + ' ' + currency).trim();
   }
+  // ---------- monto a letras (inglés) ----------
+  function numberToEnglish(n) {
+    n = Math.floor(Number(n));
+    if (!isFinite(n) || n < 0) return '';
+    if (n === 0) return 'ZERO';
+    var ones = ['', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'TEN', 'ELEVEN', 'TWELVE', 'THIRTEEN', 'FOURTEEN', 'FIFTEEN', 'SIXTEEN', 'SEVENTEEN', 'EIGHTEEN', 'NINETEEN'];
+    var tens = ['', '', 'TWENTY', 'THIRTY', 'FORTY', 'FIFTY', 'SIXTY', 'SEVENTY', 'EIGHTY', 'NINETY'];
+    function below1000(v) {
+      var t = '';
+      if (v >= 100) { t = ones[Math.floor(v / 100)] + ' HUNDRED'; v %= 100; if (v) t += ' '; }
+      if (v >= 20) { t += tens[Math.floor(v / 10)]; if (v % 10) t += '-' + ones[v % 10]; }
+      else if (v > 0) { t += ones[v]; }
+      return t;
+    }
+    var scales = [{ value: 1000000000, name: 'BILLION' }, { value: 1000000, name: 'MILLION' }, { value: 1000, name: 'THOUSAND' }];
+    var remaining = n, parts = [];
+    scales.forEach(function (s) {
+      if (remaining >= s.value) { parts.push(below1000(Math.floor(remaining / s.value)) + ' ' + s.name); remaining %= s.value; }
+    });
+    if (remaining) parts.push(below1000(remaining));
+    return parts.join(' ').replace(/\s+/g, ' ').trim();
+  }
+  function amountToWordsEnglish(value) {
+    var amount = Number(value || 0);
+    if (!amount || amount <= 0) return '';
+    var ip = Math.floor(amount);
+    var cents = Math.round((amount - ip) * 100);
+    var centsText = String(cents).padStart(2, '0') + '/100';
+    var currency = ip === 1 ? 'UNITED STATES DOLLAR' : 'UNITED STATES DOLLARS';
+    return (numberToEnglish(ip) + ' AND ' + centsText + ' ' + currency).trim();
+  }
+  function translatedPaymentMethod(v) {
+    return ({ 'Contado': 'Cash', 'Crédito': 'Financing', 'Mixto': 'Mixed' })[v] || v;
+  }
   function formatMoney(value) {
     var n = Number(value || 0);
     if (!n) return '0.00';
@@ -113,7 +156,9 @@
   }
   function syncAmountFields() {
     acceptedAmountWords.value = amountToWords(acceptedAmountNumber.value);
+    acceptedAmountWordsEnglish.value = amountToWordsEnglish(acceptedAmountNumber.value);
     originalAmountWords.value = amountToWords(originalAmountNumber.value);
+    originalAmountWordsEnglish.value = amountToWordsEnglish(originalAmountNumber.value);
   }
 
   // ---------- documento ----------
@@ -152,6 +197,16 @@
     setVis(registryCol, isAcc && isSale);
     setVis(saleAcceptance, isAcc && isSale);
     setVis(rentalAcceptance, isAcc && isRental);
+    toggleDocumentLanguage();
+  }
+  function toggleDocumentLanguage() {
+    var isEn = documentLanguage.value === 'en';
+    var isAcc = letterMode.value === 'ACEPTACION';
+    var isCounter = letterMode.value === 'CONTRAOFERTA';
+    setVis(acceptedAmountWordsEnglishWrap, isEn && isAcc);
+    setVis(originalAmountWordsEnglishWrap, isEn && isCounter);
+    setVis(englishConsentWrap, isEn);
+    if (!isEn) { englishConsent.checked = false; englishConsent.classList.remove('is-invalid'); }
   }
 
   // ---------- firma (canvas) ----------
@@ -344,7 +399,7 @@
     });
     return y + height;
   }
-  function legalCallout(pdf, lead, body, x, y, width) {
+  function legalCallout(pdf, lead, body, x, y, width, language) {
     var innerX = x + 13, innerWidth = width - 26, titleHeight = 14;
     var leadFit = fitText(pdf, lead, innerWidth, { fontSize: 8.7, minFontSize: 8.1, lineHeight: 11.2, fontStyle: 'bold' });
     var bodyFit = fitText(pdf, body, innerWidth, { fontSize: 8.45, minFontSize: 8.0, lineHeight: 10.9 });
@@ -357,14 +412,15 @@
     pdf.setTextColor(11, 45, 92);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(8.2);
-    pdf.text('ALCANCE Y CONDICIONES', innerX, y + 10, { baseline: 'top' });
+    pdf.text(language === 'en' ? 'SCOPE AND CONDITIONS' : 'ALCANCE Y CONDICIONES', innerX, y + 10, { baseline: 'top' });
     var textY = y + 10 + titleHeight;
     textY = paragraph(pdf, lead, innerX, textY, innerWidth, { fontSize: leadFit.fontSize, minFontSize: leadFit.fontSize, lineHeight: leadFit.lineHeight, fontStyle: 'bold' });
     textY += 4;
     paragraph(pdf, body, innerX, textY, innerWidth, { fontSize: bodyFit.fontSize, minFontSize: bodyFit.fontSize, lineHeight: bodyFit.lineHeight });
     return y + height;
   }
-  function drawPageHeader(pdf, title, continuation) {
+  function drawPageHeader(pdf, title, continuation, language) {
+    var isEnglish = language === 'en';
     var pageW = pdf.internal.pageSize.getWidth();
     var pageH = pdf.internal.pageSize.getHeight();
     pdf.setFillColor(252, 253, 255);
@@ -380,7 +436,7 @@
     pdf.setTextColor(83, 100, 125);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(7.5);
-    pdf.text(continuation ? 'CONTINUACIÓN' : 'DOCUMENTO DE GESTIÓN INMOBILIARIA', pageW - 64, continuation ? 29 : 36, { align: 'right' });
+    pdf.text(continuation ? (isEnglish ? 'CONTINUED' : 'CONTINUACIÓN') : (isEnglish ? 'REAL ESTATE MANAGEMENT DOCUMENT' : 'DOCUMENTO DE GESTIÓN INMOBILIARIA'), pageW - 64, continuation ? 29 : 36, { align: 'right' });
     var lineY = continuation ? 72 : 91;
     pdf.setDrawColor(205, 214, 227);
     pdf.line(64, lineY, pageW - 64, lineY);
@@ -390,42 +446,44 @@
     pdf.text(title, 64, continuation ? 88 : 108, { baseline: 'top' });
     return continuation ? 116 : 140;
   }
-  function ensureSpace(pdf, y, requiredHeight, title) {
+  function ensureSpace(pdf, y, requiredHeight, title, language) {
     var usableBottom = pdf.internal.pageSize.getHeight() - 54;
     if (y + requiredHeight <= usableBottom) return y;
     pdf.addPage();
-    return drawPageHeader(pdf, title, true);
+    return drawPageHeader(pdf, title, true, language);
   }
-  function addPageFooters(pdf) {
+  function addPageFooters(pdf, englishPageCount) {
     var pageW = pdf.internal.pageSize.getWidth();
     var pageH = pdf.internal.pageSize.getHeight();
     var total = pdf.getNumberOfPages();
     for (var page = 1; page <= total; page++) {
       pdf.setPage(page);
+      var isEnglish = !!englishPageCount && page <= englishPageCount;
       pdf.setDrawColor(218, 225, 235);
       pdf.line(64, pageH - 24, pageW - 64, pageH - 24);
       pdf.setTextColor(105, 119, 140);
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(7.2);
-      pdf.text('Guerrero Properties · Documento generado electrónicamente', 64, pageH - 10);
-      pdf.text('Página ' + page + ' de ' + total, pageW - 64, pageH - 10, { align: 'right' });
+      pdf.text(isEnglish ? 'Guerrero Properties · Electronically generated document' : 'Guerrero Properties · Documento generado electrónicamente', 64, pageH - 10);
+      pdf.text((isEnglish ? 'Page ' : 'Página ') + page + (isEnglish ? ' of ' : ' de ') + total, pageW - 64, pageH - 10, { align: 'right' });
     }
   }
-  function drawSignatureBlock(pdf, values, contentY, title) {
+  function drawSignatureBlock(pdf, values, contentY, title, language) {
+    var isEnglish = language === 'en';
     var pageH = pdf.internal.pageSize.getHeight();
     var x = 64;
     var dateY = Math.max(contentY + 14, 574);
     var signatureLineY = Math.max(dateY + 52, 642);
     if (signatureLineY + 42 > pageH - 24) {
       pdf.addPage();
-      drawPageHeader(pdf, title, true);
+      drawPageHeader(pdf, title, true, language);
       dateY = 146;
       signatureLineY = 218;
     }
     pdf.setTextColor(31, 43, 64);
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(9.8);
-    pdf.text(values.issueCity + ', a ' + values.signDateLong + '.', x, dateY);
+    pdf.text(isEnglish ? (values.issueCity + ', on ' + values.signDateLongEnglish + '.') : (values.issueCity + ', a ' + values.signDateLong + '.'), x, dateY);
     pdf.setDrawColor(139, 152, 171);
     pdf.line(x, signatureLineY, x + 214, signatureLineY);
     if (values.signatureData) {
@@ -442,10 +500,10 @@
     pdf.setTextColor(11, 45, 92);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(8.4);
-    pdf.text('FIRMA', x, signatureLineY + 16);
-    pdf.text('NOMBRE', x, signatureLineY + 35);
-    pdf.text('FECHA', rightX, signatureLineY + 16);
-    pdf.text('HORA', rightX, signatureLineY + 35);
+    pdf.text(isEnglish ? 'SIGNATURE' : 'FIRMA', x, signatureLineY + 16);
+    pdf.text(isEnglish ? 'NAME' : 'NOMBRE', x, signatureLineY + 35);
+    pdf.text(isEnglish ? 'DATE' : 'FECHA', rightX, signatureLineY + 16);
+    pdf.text(isEnglish ? 'TIME' : 'HORA', rightX, signatureLineY + 35);
     pdf.setTextColor(22, 31, 49);
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(9.5);
@@ -455,9 +513,8 @@
     return signatureLineY + 49;
   }
 
-  function buildPdf(values) {
-    var jsPDF = window.jspdf.jsPDF;
-    var pdf = new jsPDF({ unit: 'pt', format: 'letter', compress: true });
+  function renderResponseDocument(pdf, values, language) {
+    var isEnglish = language === 'en';
     var pageW = pdf.internal.pageSize.getWidth();
     var x = 64;
     var width = pageW - 128;
@@ -465,105 +522,173 @@
     var cardWidth = width - 24;
     var isSale = values.transactionType === 'VENTA';
     var title = values.letterMode === 'ACEPTACION'
-      ? (isSale ? 'ACEPTACIÓN CONDICIONADA DE OFERTA DE COMPRA' : 'ACEPTACIÓN CONDICIONADA DE OFERTA DE ALQUILER')
-      : ('CARTA DE CONTRAOFERTA DE ' + (isSale ? 'COMPRA' : 'ALQUILER'));
+      ? (isEnglish
+        ? (isSale ? 'CONDITIONAL ACCEPTANCE OF PURCHASE OFFER' : 'CONDITIONAL ACCEPTANCE OF RENTAL OFFER')
+        : (isSale ? 'ACEPTACIÓN CONDICIONADA DE OFERTA DE COMPRA' : 'ACEPTACIÓN CONDICIONADA DE OFERTA DE ALQUILER'))
+      : (isEnglish
+        ? ('COUNTEROFFER LETTER FOR ' + (isSale ? 'PURCHASE' : 'RENTAL'))
+        : ('CARTA DE CONTRAOFERTA DE ' + (isSale ? 'COMPRA' : 'ALQUILER')));
 
-    var y = drawPageHeader(pdf, title, false);
+    var y = drawPageHeader(pdf, title, false, language);
     pdf.setTextColor(22, 31, 49);
 
+    if (values.documentLanguage === 'en') {
+      pdf.setTextColor(11, 45, 92);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(8.4);
+      pdf.text(isEnglish ? 'ATTACHMENT: The complete Spanish version follows this page.' : 'ANEXO: La versión en inglés forma parte de este mismo documento.', x, y, { baseline: 'top' });
+      y += 14;
+    }
+
     if (values.letterMode === 'ACEPTACION') {
-      var ownerRole = isSale ? 'propietario/a o vendedor/a' : 'propietario/a';
-      y = sectionLabel(pdf, 'Declaración del propietario', x, y);
-      y = paragraph(pdf, 'Yo, ' + values.ownerName + ', en mi calidad de ' + ownerRole + ', manifiesto haber recibido y evaluado la oferta presentada respecto del inmueble indicado en esta carta.', x, y, width, { fontSize: 10.2, minFontSize: 9.2, lineHeight: 13.6, maxLines: 4 });
+      var ownerRole = isEnglish ? (isSale ? 'owner or seller' : 'owner') : (isSale ? 'propietario/a o vendedor/a' : 'propietario/a');
+      y = sectionLabel(pdf, isEnglish ? "Owner's Declaration" : 'Declaración del propietario', x, y);
+      y = paragraph(pdf,
+        isEnglish
+          ? 'I, ' + values.ownerName + ', in my capacity as ' + ownerRole + ', state that I have received and evaluated the offer submitted regarding the property identified in this letter.'
+          : 'Yo, ' + values.ownerName + ', en mi calidad de ' + ownerRole + ', manifiesto haber recibido y evaluado la oferta presentada respecto del inmueble indicado en esta carta.',
+        x, y, width, { fontSize: 10.2, minFontSize: 9.2, lineHeight: 13.6, maxLines: 4 });
       y += 5;
       y = infoGrid(pdf, [
-        { label: 'Interesado/a', value: values.interestedName, bold: true },
-        { label: 'Identificación', value: values.interestedDocumentType + ' ' + values.interestedDocumentNumber },
+        { label: isEnglish ? 'Interested Party' : 'Interesado/a', value: values.interestedName, bold: true },
+        { label: isEnglish ? 'ID' : 'Identificación', value: values.interestedDocumentType + ' ' + values.interestedDocumentNumber },
       ], cardX, y, cardWidth, { fontSize: 9.4 });
       y += 7;
 
-      y = sectionLabel(pdf, 'Inmueble', x, y);
+      y = sectionLabel(pdf, isEnglish ? 'Property' : 'Inmueble', x, y);
       var propItems = [
-        { label: 'Municipio', value: values.propertyMunicipality },
-        { label: 'Departamento', value: values.propertyDepartment },
-        { label: 'Dirección', value: values.propertyAddress, span: !(isSale && values.propertyRegistry) },
+        { label: isEnglish ? 'Municipality' : 'Municipio', value: values.propertyMunicipality },
+        { label: isEnglish ? 'State/Department' : 'Departamento', value: values.propertyDepartment },
+        { label: isEnglish ? 'Address' : 'Dirección', value: values.propertyAddress, span: !(isSale && values.propertyRegistry) },
       ];
-      if (isSale && values.propertyRegistry) propItems.push({ label: 'Matrícula', value: values.propertyRegistry });
+      if (isSale && values.propertyRegistry) propItems.push({ label: isEnglish ? 'Registry Number' : 'Matrícula', value: values.propertyRegistry });
       y = infoGrid(pdf, propItems, cardX, y, cardWidth, { fontSize: 9.2 });
       y += 7;
 
       if (isSale) {
-        y = sectionLabel(pdf, 'Condiciones económicas', x, y);
+        y = sectionLabel(pdf, isEnglish ? 'Financial Terms' : 'Condiciones económicas', x, y);
         y = termsCard(pdf, [
-          { label: 'Precio de compra', value: values.acceptedAmountWords + ' (US$ ' + formatMoney(values.acceptedAmountNumber) + ')', bold: true },
-          { label: 'Forma de pago', value: values.paymentMethod, bold: true },
-          { label: 'Detalles del pago', value: values.paymentDetails },
+          { label: isEnglish ? 'Purchase Price' : 'Precio de compra', value: (isEnglish ? values.acceptedAmountWordsEnglish : values.acceptedAmountWords) + ' (US$ ' + formatMoney(values.acceptedAmountNumber) + ')', bold: true },
+          { label: isEnglish ? 'Payment Method' : 'Forma de pago', value: isEnglish ? translatedPaymentMethod(values.paymentMethod) : values.paymentMethod, bold: true },
+          { label: isEnglish ? 'Payment Details' : 'Detalles del pago', value: values.paymentDetails },
         ], cardX, y, cardWidth);
         y += 6;
-        y = paragraph(pdf, 'AUTORIZO EXPRESAMENTE A GUERRERO PROPERTIES para comunicar esta conformidad al interesado y continuar coordinando la eventual formalización de la operación.', x, y, width, { fontSize: 9.5, minFontSize: 8.7, lineHeight: 12.6, maxLines: 4, fontStyle: 'bold' });
+        y = paragraph(pdf,
+          isEnglish
+            ? 'I EXPRESSLY AUTHORIZE GUERRERO PROPERTIES to communicate this acceptance to the interested party and to continue coordinating the eventual formalization of the transaction.'
+            : 'AUTORIZO EXPRESAMENTE A GUERRERO PROPERTIES para comunicar esta conformidad al interesado y continuar coordinando la eventual formalización de la operación.',
+          x, y, width, { fontSize: 9.5, minFontSize: 8.7, lineHeight: 12.6, maxLines: 4, fontStyle: 'bold' });
         y += 6;
-        y = ensureSpace(pdf, y, 124, title);
+        y = ensureSpace(pdf, y, 124, title, language);
         y = legalCallout(pdf,
-          'Esta carta no constituye por sí sola promesa de compraventa, compraventa definitiva, tradición del dominio, entrega del inmueble ni obligación irrevocable de contratar.',
-          'La aceptación queda sujeta al cumplimiento de las condiciones ofrecidas, a las verificaciones jurídicas y registrales, a la acreditación de la forma de pago o aprobación definitiva del financiamiento cuando corresponda, al acuerdo sobre las cláusulas pendientes y a la firma de la promesa de compraventa o del instrumento aplicable. Esta autorización no faculta a GUERRERO PROPERTIES para suscribir promesas, contratos o escrituras, recibir el precio de venta ni asumir obligaciones en nombre del propietario, salvo autorización escrita independiente. Las obligaciones definitivas surgirán únicamente del documento contractual que las partes suscriban. GUERRERO PROPERTIES interviene exclusivamente como intermediaria y no garantiza el financiamiento, el cumplimiento de las partes ni la conclusión de la operación.',
-          cardX, y, cardWidth);
+          isEnglish
+            ? 'This letter does not by itself constitute a promise to sell, a final sale, transfer of title, delivery of the property, or an irrevocable obligation to contract.'
+            : 'Esta carta no constituye por sí sola promesa de compraventa, compraventa definitiva, tradición del dominio, entrega del inmueble ni obligación irrevocable de contratar.',
+          isEnglish
+            ? "This acceptance is subject to compliance with the offered conditions, legal and registry verifications, proof of the payment method or final loan approval where applicable, agreement on any pending clauses, and the signing of the promise to sell or the applicable instrument. This authorization does not empower GUERRERO PROPERTIES to sign promises, contracts, or deeds, to receive the sale price, or to assume obligations on the owner's behalf, except under separate written authorization. Final obligations will arise solely from the contractual document the parties sign. GUERRERO PROPERTIES acts solely as an intermediary and does not guarantee financing, the parties' performance, or the completion of the transaction."
+            : 'La aceptación queda sujeta al cumplimiento de las condiciones ofrecidas, a las verificaciones jurídicas y registrales, a la acreditación de la forma de pago o aprobación definitiva del financiamiento cuando corresponda, al acuerdo sobre las cláusulas pendientes y a la firma de la promesa de compraventa o del instrumento aplicable. Esta autorización no faculta a GUERRERO PROPERTIES para suscribir promesas, contratos o escrituras, recibir el precio de venta ni asumir obligaciones en nombre del propietario, salvo autorización escrita independiente. Las obligaciones definitivas surgirán únicamente del documento contractual que las partes suscriban. GUERRERO PROPERTIES interviene exclusivamente como intermediaria y no garantiza el financiamiento, el cumplimiento de las partes ni la conclusión de la operación.',
+          cardX, y, cardWidth, language);
       } else {
-        y = sectionLabel(pdf, 'Condiciones del arrendamiento', x, y);
+        y = sectionLabel(pdf, isEnglish ? 'Rental Terms' : 'Condiciones del arrendamiento', x, y);
         y = termsCard(pdf, [
-          { label: 'Canon de alquiler', value: values.acceptedAmountWords + ' (US$ ' + formatMoney(values.acceptedAmountNumber) + ')', bold: true },
-          { label: 'Plazo', value: values.rentalTerm, bold: true },
-          { label: 'Condiciones adicionales', value: values.additionalTerms || 'Sin observaciones adicionales' },
+          { label: isEnglish ? 'Rental Amount' : 'Canon de alquiler', value: (isEnglish ? values.acceptedAmountWordsEnglish : values.acceptedAmountWords) + ' (US$ ' + formatMoney(values.acceptedAmountNumber) + ')', bold: true },
+          { label: isEnglish ? 'Term' : 'Plazo', value: values.rentalTerm, bold: true },
+          { label: isEnglish ? 'Additional Conditions' : 'Condiciones adicionales', value: values.additionalTerms || (isEnglish ? 'No additional remarks' : 'Sin observaciones adicionales') },
         ], cardX, y, cardWidth);
         y += 6;
-        y = sectionLabel(pdf, 'Autorización de reserva', x, y);
-        y = paragraph(pdf, 'AUTORIZO EXPRESAMENTE A GUERRERO PROPERTIES para recibir, por mi cuenta, la suma acordada en concepto de reserva y, una vez recibidos efectivamente los fondos y firmado el documento de reserva correspondiente, para retirar temporalmente el inmueble del mercado durante el plazo establecido en dicho documento.', x, y, width, { fontSize: 9.3, minFontSize: 8.5, lineHeight: 12.4, maxLines: 7, fontStyle: 'bold' });
+        y = sectionLabel(pdf, isEnglish ? 'Reservation Authorization' : 'Autorización de reserva', x, y);
+        y = paragraph(pdf,
+          isEnglish
+            ? 'I EXPRESSLY AUTHORIZE GUERRERO PROPERTIES to receive, on my behalf, the agreed amount as a reservation deposit and, once the funds have actually been received and the corresponding reservation document has been signed, to temporarily withdraw the property from the market for the period established in that document.'
+            : 'AUTORIZO EXPRESAMENTE A GUERRERO PROPERTIES para recibir, por mi cuenta, la suma acordada en concepto de reserva y, una vez recibidos efectivamente los fondos y firmado el documento de reserva correspondiente, para retirar temporalmente el inmueble del mercado durante el plazo establecido en dicho documento.',
+          x, y, width, { fontSize: 9.3, minFontSize: 8.5, lineHeight: 12.4, maxLines: 7, fontStyle: 'bold' });
         y += 4;
-        y = paragraph(pdf, 'La aplicación, devolución o eventual retención de la reserva y las consecuencias del desistimiento o incumplimiento se regirán por el documento de reserva, mientras se formaliza el contrato de arrendamiento.', x, y, width, { fontSize: 9.1, minFontSize: 8.4, lineHeight: 12.2, maxLines: 5 });
+        y = paragraph(pdf,
+          isEnglish
+            ? 'The application, refund, or possible forfeiture of the deposit, and the consequences of withdrawal or breach, will be governed by the reservation document while the lease agreement is being formalized.'
+            : 'La aplicación, devolución o eventual retención de la reserva y las consecuencias del desistimiento o incumplimiento se regirán por el documento de reserva, mientras se formaliza el contrato de arrendamiento.',
+          x, y, width, { fontSize: 9.1, minFontSize: 8.4, lineHeight: 12.2, maxLines: 5 });
         y += 5;
-        y = ensureSpace(pdf, y, 120, title);
+        y = ensureSpace(pdf, y, 120, title, language);
         y = legalCallout(pdf,
-          'Esta carta no constituye por sí sola contrato de arrendamiento, entrega del inmueble, derecho de ocupación ni obligación irrevocable de contratar.',
-          'Esta autorización se limita a recibir la reserva y efectuar el retiro temporal antes indicados; no faculta a GUERRERO PROPERTIES para suscribir el contrato de arrendamiento, entregar el inmueble, modificar las condiciones acordadas ni asumir otras obligaciones en nombre del propietario, salvo autorización escrita independiente. Las obligaciones definitivas surgirán del contrato que las partes suscriban. GUERRERO PROPERTIES actúa exclusivamente como intermediaria y no garantiza el cumplimiento de las partes ni la conclusión de la operación.',
-          cardX, y, cardWidth);
+          isEnglish
+            ? 'This letter does not by itself constitute a lease agreement, delivery of the property, a right of occupancy, or an irrevocable obligation to contract.'
+            : 'Esta carta no constituye por sí sola contrato de arrendamiento, entrega del inmueble, derecho de ocupación ni obligación irrevocable de contratar.',
+          isEnglish
+            ? "This authorization is limited to receiving the deposit and carrying out the temporary withdrawal described above; it does not empower GUERRERO PROPERTIES to sign the lease agreement, deliver the property, modify the agreed conditions, or assume other obligations on the owner's behalf, except under separate written authorization. Final obligations will arise from the contract the parties sign. GUERRERO PROPERTIES acts solely as an intermediary and does not guarantee the parties' performance or the completion of the transaction."
+            : 'Esta autorización se limita a recibir la reserva y efectuar el retiro temporal antes indicados; no faculta a GUERRERO PROPERTIES para suscribir el contrato de arrendamiento, entregar el inmueble, modificar las condiciones acordadas ni asumir otras obligaciones en nombre del propietario, salvo autorización escrita independiente. Las obligaciones definitivas surgirán del contrato que las partes suscriban. GUERRERO PROPERTIES actúa exclusivamente como intermediaria y no garantiza el cumplimiento de las partes ni la conclusión de la operación.',
+          cardX, y, cardWidth, language);
       }
     } else {
-      var interestWord = isSale ? 'compra' : 'alquiler';
-      y = sectionLabel(pdf, 'Declaración del propietario', x, y);
-      y = paragraph(pdf, 'Yo, ' + values.ownerName + ', en mi calidad de propietario/a, manifiesto haber recibido y evaluado la oferta descrita en esta carta.', x, y, width, { fontSize: 10.2, minFontSize: 9.2, lineHeight: 13.6, maxLines: 4 });
+      var interestWord = isEnglish ? (isSale ? 'purchase' : 'rental') : (isSale ? 'compra' : 'alquiler');
+      y = sectionLabel(pdf, isEnglish ? "Owner's Declaration" : 'Declaración del propietario', x, y);
+      y = paragraph(pdf,
+        isEnglish
+          ? 'I, ' + values.ownerName + ', in my capacity as owner, state that I have received and evaluated the offer described in this letter.'
+          : 'Yo, ' + values.ownerName + ', en mi calidad de propietario/a, manifiesto haber recibido y evaluado la oferta descrita en esta carta.',
+        x, y, width, { fontSize: 10.2, minFontSize: 9.2, lineHeight: 13.6, maxLines: 4 });
       y += 5;
       y = infoGrid(pdf, [
-        { label: 'Edad', value: values.ownerAge + ' años' },
-        { label: 'Identificación', value: values.ownerDocumentType + ' ' + values.ownerDocumentNumber },
-        { label: 'Domicilio', value: 'Distrito de ' + values.ownerDistrict + ', municipio de ' + values.ownerMunicipality + ', departamento de ' + values.ownerDepartment, span: true },
+        { label: isEnglish ? 'Age' : 'Edad', value: values.ownerAge + (isEnglish ? ' years' : ' años') },
+        { label: isEnglish ? 'ID' : 'Identificación', value: values.ownerDocumentType + ' ' + values.ownerDocumentNumber },
+        { label: isEnglish ? 'Address of Residence' : 'Domicilio', value: (isEnglish
+          ? 'District of ' + values.ownerDistrict + ', municipality of ' + values.ownerMunicipality + ', department of ' + values.ownerDepartment
+          : 'Distrito de ' + values.ownerDistrict + ', municipio de ' + values.ownerMunicipality + ', departamento de ' + values.ownerDepartment), span: true },
       ], cardX, y, cardWidth, { fontSize: 9.2 });
       y += 7;
 
-      y = sectionLabel(pdf, 'Inmueble', x, y);
+      y = sectionLabel(pdf, isEnglish ? 'Property' : 'Inmueble', x, y);
       y = infoGrid(pdf, [
-        { label: 'Distrito', value: values.propertyDistrict },
-        { label: 'Municipio', value: values.propertyMunicipality },
-        { label: 'Departamento', value: values.propertyDepartment },
-        { label: 'Dirección', value: values.propertyAddress },
+        { label: isEnglish ? 'District' : 'Distrito', value: values.propertyDistrict },
+        { label: isEnglish ? 'Municipality' : 'Municipio', value: values.propertyMunicipality },
+        { label: isEnglish ? 'State/Department' : 'Departamento', value: values.propertyDepartment },
+        { label: isEnglish ? 'Address' : 'Dirección', value: values.propertyAddress },
       ], cardX, y, cardWidth, { fontSize: 9.1 });
       y += 7;
 
-      y = sectionLabel(pdf, 'Oferta recibida', x, y);
-      y = paragraph(pdf, 'Agradezco la oferta de ' + interestWord + ' presentada por ' + values.interestedName + ', identificado/a con ' + values.interestedDocumentType + ' ' + values.interestedDocumentNumber + ', por un monto de ' + values.originalAmountWords + ' (US$ ' + formatMoney(values.originalAmountNumber) + '). Luego de analizar el valor y las condiciones del inmueble, formulo la siguiente contraoferta:', x, y, width, { fontSize: 9.6, minFontSize: 8.6, lineHeight: 12.8, maxLines: 8 });
+      y = sectionLabel(pdf, isEnglish ? 'Offer Received' : 'Oferta recibida', x, y);
+      y = paragraph(pdf,
+        isEnglish
+          ? 'I thank you for the ' + interestWord + ' offer submitted by ' + values.interestedName + ', identified with ' + values.interestedDocumentType + ' ' + values.interestedDocumentNumber + ', for the amount of ' + values.originalAmountWordsEnglish + ' (US$ ' + formatMoney(values.originalAmountNumber) + '). After reviewing the property\'s value and conditions, I submit the following counteroffer:'
+          : 'Agradezco la oferta de ' + interestWord + ' presentada por ' + values.interestedName + ', identificado/a con ' + values.interestedDocumentType + ' ' + values.interestedDocumentNumber + ', por un monto de ' + values.originalAmountWords + ' (US$ ' + formatMoney(values.originalAmountNumber) + '). Luego de analizar el valor y las condiciones del inmueble, formulo la siguiente contraoferta:',
+        x, y, width, { fontSize: 9.6, minFontSize: 8.6, lineHeight: 12.8, maxLines: 8 });
       y += 6;
-      y = sectionLabel(pdf, 'Condiciones de la contraoferta', x, y);
-      y = termsCard(pdf, [{ label: 'Contraoferta', value: values.counterofferText, bold: true }], cardX, y, cardWidth);
+      y = sectionLabel(pdf, isEnglish ? 'Counteroffer Terms' : 'Condiciones de la contraoferta', x, y);
+      y = termsCard(pdf, [{ label: isEnglish ? 'Counteroffer' : 'Contraoferta', value: values.counterofferText, bold: true }], cardX, y, cardWidth);
       y += 6;
-      y = paragraph(pdf, 'SOLICITO A GUERRERO PROPERTIES que notifique esta contraoferta al interesado para su debida consideración.', x, y, width, { fontSize: 9.4, minFontSize: 8.6, lineHeight: 12.5, maxLines: 3, fontStyle: 'bold' });
+      y = paragraph(pdf,
+        isEnglish
+          ? 'I REQUEST THAT GUERRERO PROPERTIES notify this counteroffer to the interested party for due consideration.'
+          : 'SOLICITO A GUERRERO PROPERTIES que notifique esta contraoferta al interesado para su debida consideración.',
+        x, y, width, { fontSize: 9.4, minFontSize: 8.6, lineHeight: 12.5, maxLines: 3, fontStyle: 'bold' });
       y += 5;
-      y = ensureSpace(pdf, y, 126, title);
+      y = ensureSpace(pdf, y, 126, title, language);
       y = legalCallout(pdf,
-        'Esta carta no constituye por sí sola promesa de compraventa, compraventa definitiva, contrato de arrendamiento, entrega del inmueble, reserva, exclusividad ni obligación irrevocable de contratar.',
-        'La eventual aceptación deberá constar por escrito y la operación quedará sujeta a las verificaciones correspondientes y a la firma del instrumento contractual aplicable. La solicitud de notificación no faculta a GUERRERO PROPERTIES para aceptar la contraoferta, modificar sus condiciones ni suscribir contratos en nombre del propietario. GUERRERO PROPERTIES actúa exclusivamente como intermediaria y no garantiza la aceptación, el cumplimiento de las partes ni la conclusión de la operación.',
-        cardX, y, cardWidth);
+        isEnglish
+          ? 'This letter does not by itself constitute a promise to sell, a final sale, a lease agreement, delivery of the property, a reservation, exclusivity, or an irrevocable obligation to contract.'
+          : 'Esta carta no constituye por sí sola promesa de compraventa, compraventa definitiva, contrato de arrendamiento, entrega del inmueble, reserva, exclusividad ni obligación irrevocable de contratar.',
+        isEnglish
+          ? 'Any eventual acceptance must be in writing, and the transaction will be subject to the corresponding verifications and the signing of the applicable contractual instrument. This notification request does not empower GUERRERO PROPERTIES to accept the counteroffer, modify its conditions, or sign contracts on the owner\'s behalf. GUERRERO PROPERTIES acts solely as an intermediary and does not guarantee acceptance, the parties\' performance, or the completion of the transaction.'
+          : 'La eventual aceptación deberá constar por escrito y la operación quedará sujeta a las verificaciones correspondientes y a la firma del instrumento contractual aplicable. La solicitud de notificación no faculta a GUERRERO PROPERTIES para aceptar la contraoferta, modificar sus condiciones ni suscribir contratos en nombre del propietario. GUERRERO PROPERTIES actúa exclusivamente como intermediaria y no garantiza la aceptación, el cumplimiento de las partes ni la conclusión de la operación.',
+        cardX, y, cardWidth, language);
     }
 
-    drawSignatureBlock(pdf, values, y, title);
-    addPageFooters(pdf);
+    drawSignatureBlock(pdf, values, y, title, language);
+  }
+
+  function buildPdf(values) {
+    var jsPDF = window.jspdf.jsPDF;
+    var pdf = new jsPDF({ unit: 'pt', format: 'letter', compress: true });
+    var englishPageCount = 0;
+    if (values.documentLanguage === 'en') {
+      renderResponseDocument(pdf, values, 'en');
+      englishPageCount = pdf.getNumberOfPages();
+      pdf.addPage();
+      renderResponseDocument(pdf, values, 'es');
+    } else {
+      renderResponseDocument(pdf, values, 'es');
+    }
+    addPageFooters(pdf, englishPageCount);
     return pdf;
   }
 
@@ -631,6 +756,8 @@
       if (!val('counteroffer_text')) bad(counterofferText, 'Escribí el texto de la contraoferta.');
     }
 
+    if (documentLanguage.value === 'en' && !englishConsent.checked) bad(englishConsent, 'Tenés que aceptar que el documento incluye la versión en inglés y su anexo en español.');
+
     var signatureData = getCleanSignatureData();
     if (!hasSignature || !signatureData) errors.push('La firma del propietario es obligatoria.');
 
@@ -643,6 +770,7 @@
 
     var now = nowParts();
     return {
+      documentLanguage: documentLanguage.value,
       letterMode: letterMode.value,
       transactionType: transactionType.value,
       issueCity: val('issue_city') || 'San Salvador',
@@ -665,16 +793,19 @@
       propertyRegistry: val('property_registry'),
       acceptedAmountNumber: Number(val('accepted_amount_number') || 0),
       acceptedAmountWords: val('accepted_amount_words'),
+      acceptedAmountWordsEnglish: val('accepted_amount_words_english'),
       paymentMethod: paymentMethod.value,
       paymentDetails: val('payment_details'),
       rentalTerm: val('rental_term'),
       additionalTerms: val('additional_terms'),
       originalAmountNumber: Number(val('original_amount_number') || 0),
       originalAmountWords: val('original_amount_words'),
+      originalAmountWordsEnglish: val('original_amount_words_english'),
       counterofferText: val('counteroffer_text'),
       signatureData: signatureData,
       signDate: now.dateInput,
       signDateLong: now.dateLong,
+      signDateLongEnglish: now.dateLongEnglish,
       signTime: now.time,
     };
   }
@@ -761,6 +892,7 @@
   }
 
   // ---------- init ----------
+  documentLanguage.addEventListener('change', toggleDocumentLanguage);
   letterMode.addEventListener('change', toggleFormMode);
   transactionType.addEventListener('change', toggleFormMode);
   interestedDocumentType.addEventListener('change', function () { normalizeDoc(interestedDocumentType, interestedDocumentNumber); });

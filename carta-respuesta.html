@@ -42,6 +42,8 @@
         .co-sign-wrap { border: 1.5px dashed #cbd5e1; border-radius: 12px; background: #fff; overflow: hidden; }
         #signaturePad { width: 100%; height: 200px; display: block; touch-action: none; cursor: crosshair; }
         .co-btn-clear { background: none; border: 1px solid #e2e8f0; border-radius: 8px; padding: 7px 14px; font: inherit; font-size: .82rem; cursor: pointer; color: #475569; margin-top: 8px; }
+        .co-check { display: flex; gap: 10px; align-items: flex-start; font-size: .86rem; color: #334155; margin-top: 4px; }
+        .co-check input { width: auto; margin-top: 3px; }
         .co-errors { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; }
         .co-errors h3 { color: #b91c1c; font-size: .95rem; margin: 0 0 8px; }
         .co-errors ul { margin: 0; padding-left: 18px; color: #7f1d1d; font-size: .85rem; }
@@ -72,6 +74,10 @@
             Documento de gestión inmobiliaria. La aceptación o la contraoferta se firma en pantalla
             y se descarga en PDF. La fecha y hora se agregan automáticamente.
         </div>
+        <div class="co-nota" id="langNote">
+            El PDF se genera en el idioma elegido. Si elegís <strong>Inglés</strong>, se adjunta además
+            una página en español con la misma información y la misma firma, en el mismo PDF.
+        </div>
 
         <div class="co-errors d-none" id="errorBox">
             <h3>Revisá la información</h3>
@@ -82,6 +88,13 @@
             <div class="co-card">
                 <h2>Tipo de respuesta</h2>
                 <div class="co-grid">
+                    <div class="co-field">
+                        <label for="document_language">Idioma del documento <span class="en">/ Document language</span></label>
+                        <select id="document_language" name="document_language">
+                            <option value="es">Español</option>
+                            <option value="en">Inglés + anexo en español</option>
+                        </select>
+                    </div>
                     <div class="co-field">
                         <label for="letter_mode">¿Qué respondés?</label>
                         <select id="letter_mode" name="letter_mode" required>
@@ -221,8 +234,12 @@
                         <input type="text" id="offer_date_view" name="offer_date_view" readonly>
                     </div>
                     <div class="co-field full">
-                        <label for="accepted_amount_words">Monto aceptado en letras</label>
+                        <label for="accepted_amount_words">Monto aceptado en letras (español)</label>
                         <input type="text" id="accepted_amount_words" name="accepted_amount_words" readonly>
+                    </div>
+                    <div class="co-field full d-none" id="acceptedAmountWordsEnglishWrap">
+                        <label for="accepted_amount_words_english">Monto aceptado en letras (inglés) <span class="en">/ Amount in words</span></label>
+                        <input type="text" id="accepted_amount_words_english" name="accepted_amount_words_english" readonly>
                     </div>
                 </div>
                 <div id="saleAcceptance" class="co-sub">
@@ -266,8 +283,12 @@
                         <input type="number" id="original_amount_number" name="original_amount_number" min="1" step="0.01">
                     </div>
                     <div class="co-field full">
-                        <label for="original_amount_words">Monto recibido en letras</label>
+                        <label for="original_amount_words">Monto recibido en letras (español)</label>
                         <input type="text" id="original_amount_words" name="original_amount_words" readonly>
+                    </div>
+                    <div class="co-field full d-none" id="originalAmountWordsEnglishWrap">
+                        <label for="original_amount_words_english">Monto recibido en letras (inglés) <span class="en">/ Amount in words</span></label>
+                        <input type="text" id="original_amount_words_english" name="original_amount_words_english" readonly>
                     </div>
                     <div class="co-field full">
                         <label for="counteroffer_text">Texto de la contraoferta</label>
@@ -283,6 +304,12 @@
                     <canvas id="signaturePad"></canvas>
                 </div>
                 <button type="button" class="co-btn-clear" id="clearSignature">Limpiar firma</button>
+                <div class="co-check d-none" id="englishConsentWrap" style="margin-top:16px;">
+                    <input type="checkbox" id="english_consent">
+                    <label for="english_consent" style="margin:0;font-weight:500;">
+                        Entiendo y acepto que el documento en inglés y su versión en español anexa se incluirán juntas en el mismo PDF.
+                    </label>
+                </div>
             </div>
 
             <button type="button" class="co-generate" id="generateBtn">
@@ -294,6 +321,6 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="config.js?v=2"></script>
-    <script src="carta-respuesta.js?v=1"></script>
+    <script src="carta-respuesta.js?v=2"></script>
 </body>
 </html>
