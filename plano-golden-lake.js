@@ -169,24 +169,34 @@ function showLot(p,n){
 }
 /* Lotes del Polígono 7 */
 const LOT7_HOUSE = {5:"clovis"};
+/* Lotes de la 7 partidos en porciones (venta de media parcela). Áreas reales
+   cuando Walter las dio (lote 5); el lote 4 se partió en dos mitades iguales
+   a falta de medidas topográficas exactas de cada porción. */
+const LOT7_PORC = {
+  4: {1:{area:324.57,estado:"Disponible"}, 2:{area:324.56,estado:"Disponible"}},
+  5: {1:{area:308.33,estado:"Vendida"}, 2:{area:314.57,estado:"Disponible"}}
+};
 document.querySelectorAll(".lot7").forEach(el=>{
-  const n=+el.dataset.lot;
+  const n=+el.dataset.lot, por=el.dataset.por;
   if(LOT7_HOUSE[n]) el.classList.add("house");
   el.setAttribute("tabindex","0"); el.setAttribute("role","button");
-  el.setAttribute("aria-label",`Polígono 7, Lote ${n}`);
-  const go=()=>{ if(LOT7_HOUSE[n]) return showProp(LOT7_HOUSE[n]); showLot7(n); };
+  el.setAttribute("aria-label",`Polígono 7, Lote ${n}${por?` · Porción ${por}`:""}`);
+  const go=()=>{ if(LOT7_HOUSE[n]) return showProp(LOT7_HOUSE[n]); showLot7(n,por,el); };
   el.addEventListener("click",e=>{e.stopPropagation();go()});
   el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}});
 });
-function showLot7(n){
+function showLot7(n,por,el){
   clearSel();
-  document.querySelector(`.lot7[data-lot="${n}"]`)?.classList.add("sel");
+  (el||document.querySelector(`.lot7[data-lot="${n}"]`))?.classList.add("sel");
+  const porc=por&&LOT7_PORC[n]?.[por];
+  const area=porc?porc.area:LOT_AREA[7][n];
+  const titulo=`Lote ${n}${por?` · Porción ${por}`:""}`;
   $("#gl-plano-panel").innerHTML=`
-    <div class="eyebrow">Polígono 7 · Lote ${n}</div>
-    <h2>Lote ${n}</h2>
-    <dl class="kv"><dt>Polígono</dt><dd>7 · franja frente al Bulevar Costa del Sol</dd><dt>Frente a</dt><dd>Calle Barcelona</dd><dt>Tamaño</dt><dd>${fmt2(LOT_AREA[7][n])} m² (${v2(LOT_AREA[7][n])} v²)</dd></dl>
+    <div class="eyebrow">Polígono 7 · ${titulo}</div>
+    <h2>${titulo}</h2>
+    <dl class="kv"><dt>Polígono</dt><dd>7 · franja frente al Bulevar Costa del Sol</dd><dt>Frente a</dt><dd>Calle Barcelona</dd><dt>Tamaño</dt><dd>${fmt2(area)} m² (${v2(area)} v²)</dd>${porc?`<dt>Estado</dt><dd>${porc.estado}</dd>`:""}</dl>
     <p class="note">Pregúntame por la disponibilidad de este lote y por las casas que se están construyendo en el Polígono 7.</p>
-    <a class="cta" href="${waLink(`Hola Walter, me interesa el Lote ${n} del Polígono 7 en Golden Lake.`)}" target="_blank" rel="noopener">Preguntar por el Lote ${n}</a>
+    <a class="cta" href="${waLink(`Hola Walter, me interesa el ${titulo} del Polígono 7 en Golden Lake.`)}" target="_blank" rel="noopener">Preguntar por el ${titulo}</a>
     <div class="phone">${WA_TXT}</div>`;
 }
 
@@ -277,7 +287,10 @@ document.querySelectorAll("#gl-plano-blocks .block").forEach(b=>{const d=POLY[b.
   b.addEventListener("mousemove",e=>tipOn(e,`<b>Polígono ${b.dataset.p}</b> · ${d.lotes} lotes · ${fmt(d.m2)} m²`));
   b.addEventListener("mouseleave",tipOff);});
 document.querySelectorAll(".lot7").forEach(l=>{
-  l.addEventListener("mousemove",e=>tipOn(e,l.dataset.lot==="5"?(l.dataset.por==="2"?`<b>Lote 5 · Porción 2</b> · 314.57 m² · Disponible`:`<b>Lote 5 · Porción 1</b> · 308.33 m² · Vendida`):`<b>Polígono 7 · Lote ${l.dataset.lot}</b> · ${fmt(LOT_AREA[7][l.dataset.lot])} m²`));
+  l.addEventListener("mousemove",e=>{
+    const n=l.dataset.lot, por=l.dataset.por, porc=por&&LOT7_PORC[n]?.[por];
+    tipOn(e, porc?`<b>Lote ${n} · Porción ${por}</b> · ${fmt2(porc.area)} m² · ${porc.estado}`:`<b>Polígono 7 · Lote ${n}</b> · ${fmt(LOT_AREA[7][n])} m²`);
+  });
   l.addEventListener("mouseleave",tipOff);});
 
 [["gl-plano-l-nums","no-nums"],["gl-plano-l-lamps","no-lamps"],["gl-plano-l-trees","no-trees"]].forEach(([id,cls])=>{
