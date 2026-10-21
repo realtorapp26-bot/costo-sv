@@ -455,34 +455,37 @@
     var x = 64;
     var gap = 40;
     var colW = (pageW - 128 - gap) / 2;
-    var y = ensureSpace(pdf, contentY, 150, title, language);
+    // Más espacio antes del bloque de firmas, firmas más grandes (antes
+    // tope de 34pt de alto) y más separación entre la imagen, la línea y
+    // los datos de abajo.
+    var y = ensureSpace(pdf, contentY, 190, title, language);
     pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8.6); pdf.setTextColor(11, 45, 92);
     pdf.text(isEnglish ? 'SELLER' : 'VENDEDOR', x, y);
     pdf.text(isEnglish ? 'BROKER' : 'CORREDOR', x + colW + gap, y);
-    y += 20;
+    y += 28;
 
     function block(colX, sigData, nombre, fecha) {
       if (sigData) {
         try {
           var props = pdf.getImageProperties(sigData);
           var ratio = props.width / props.height;
-          var sw = Math.min(140, 34 * ratio);
+          var sw = Math.min(190, 54 * ratio);
           var sh = sw / ratio;
-          if (sh > 34) { sh = 34; sw = sh * ratio; }
+          if (sh > 54) { sh = 54; sw = sh * ratio; }
           pdf.addImage(sigData, 'PNG', colX, y, sw, sh, undefined, 'FAST');
         } catch (e) {}
       }
       pdf.setDrawColor(139, 152, 171);
-      pdf.line(colX, y + 40, colX + colW, y + 40);
+      pdf.line(colX, y + 62, colX + colW, y + 62);
       pdf.setTextColor(105, 119, 140); pdf.setFont('helvetica', 'normal'); pdf.setFontSize(7.4);
-      pdf.text(isEnglish ? 'Signature' : 'Firma', colX, y + 50);
+      pdf.text(isEnglish ? 'Signature' : 'Firma', colX, y + 74);
       pdf.setTextColor(22, 31, 49); pdf.setFont('helvetica', 'normal'); pdf.setFontSize(9.0);
-      pdf.text((isEnglish ? 'Name: ' : 'Nombre: ') + (nombre || '—'), colX, y + 66);
-      pdf.text((isEnglish ? 'Date: ' : 'Fecha: ') + (fecha || '—'), colX, y + 80);
+      pdf.text((isEnglish ? 'Name: ' : 'Nombre: ') + (nombre || '—'), colX, y + 92);
+      pdf.text((isEnglish ? 'Date: ' : 'Fecha: ') + (fecha || '—'), colX, y + 108);
     }
     block(x, values.vendedorFirma, values.vendedorNombre, formatDateHuman(values.vendedorFecha, language));
     block(x + colW + gap, values.corredorFirma, values.corredorNombre, formatDateHuman(values.corredorFecha, language));
-    return y + 96;
+    return y + 124;
   }
 
   function renderContratoDocument(pdf, values, language) {

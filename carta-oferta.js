@@ -404,37 +404,46 @@
 
     // Si el contenido de arriba (sobre todo las notas adicionales) empujó
     // demasiado, "signatureTop" de abajo deja de crecer con "y" apenas
-    // y+74 pasa de 710 (queda fijo en 710) -- pasado ese punto la fecha
+    // y+90 pasa de 710 (queda fijo en 710) -- pasado ese punto la fecha
     // (dibujada en "y") y la firma terminan solapadas. Hay que pasar a una
     // página nueva ANTES de llegar ahí, no cuando ya se desbordó.
-    if (y > 620) { pdf.addPage(); y = 80; }
+    if (y > 600) { pdf.addPage(); y = 80; }
 
     pdf.setTextColor(15, 23, 42);
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(11.2);
     pdf.text(isEnglish ? values.issueCity + ', on ' + values.signDateLongEnglish + '.' : values.issueCity + ', a ' + values.signDateLong + '.', x, y);
 
-    var signatureTop = Math.min(710, Math.max(y + 74, 675));
+    // Más espacio entre el cuerpo del texto y la firma, y firma más grande
+    // y proporcional (antes 144x44 fijo, se veía chica y podía estirarse).
+    var signatureTop = Math.min(710, Math.max(y + 90, 675));
     pdf.setDrawColor(110, 122, 144);
-    pdf.line(x, signatureTop, x + 200, signatureTop);
+    pdf.line(x, signatureTop, x + 220, signatureTop);
     if (values.signatureData) {
-      try { pdf.addImage(values.signatureData, 'PNG', x + 10, signatureTop - 54, 144, 44); } catch (e) {}
+      try {
+        var sigProps = pdf.getImageProperties(values.signatureData);
+        var sigRatio = sigProps.width / sigProps.height;
+        var sw = Math.min(190, 58 * sigRatio);
+        var sh = sw / sigRatio;
+        if (sh > 58) { sh = 58; sw = sh * sigRatio; }
+        pdf.addImage(values.signatureData, 'PNG', x + 10, signatureTop - sh - 10, sw, sh);
+      } catch (e) {}
     }
     pdf.setTextColor(11, 45, 92);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(11.1);
-    pdf.text(isEnglish ? 'SIGNATURE:' : 'FIRMA:', x, signatureTop + 18);
-    pdf.text(isEnglish ? 'NAME:' : 'NOMBRE:', x, signatureTop + 38);
-    pdf.text((isEnglish && values.documentType === 'PASAPORTE' ? 'PASSPORT' : values.documentType.toUpperCase()) + ':', x, signatureTop + 58);
-    pdf.text(isEnglish ? 'DATE:' : 'FECHA:', x + 278, signatureTop + 18);
-    pdf.text(isEnglish ? 'TIME:' : 'HORA:', x + 278, signatureTop + 38);
+    pdf.text(isEnglish ? 'SIGNATURE:' : 'FIRMA:', x, signatureTop + 20);
+    pdf.text(isEnglish ? 'NAME:' : 'NOMBRE:', x, signatureTop + 42);
+    pdf.text((isEnglish && values.documentType === 'PASAPORTE' ? 'PASSPORT' : values.documentType.toUpperCase()) + ':', x, signatureTop + 64);
+    pdf.text(isEnglish ? 'DATE:' : 'FECHA:', x + 278, signatureTop + 20);
+    pdf.text(isEnglish ? 'TIME:' : 'HORA:', x + 278, signatureTop + 42);
     pdf.setTextColor(15, 23, 42);
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(11.1);
-    pdf.text(values.fullName, x + 70, signatureTop + 38);
-    pdf.text(values.documentNumber, x + 70, signatureTop + 58);
-    pdf.text(values.signDate, x + 332, signatureTop + 18);
-    pdf.text(values.signTime, x + 332, signatureTop + 38);
+    pdf.text(values.fullName, x + 70, signatureTop + 42);
+    pdf.text(values.documentNumber, x + 70, signatureTop + 64);
+    pdf.text(values.signDate, x + 332, signatureTop + 20);
+    pdf.text(values.signTime, x + 332, signatureTop + 42);
 
     pdf.setTextColor(100, 116, 139);
     pdf.setFont('helvetica', 'italic');

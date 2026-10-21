@@ -299,45 +299,47 @@
     var isEnglish = language === 'en';
     var pageH = pdf.internal.pageSize.getHeight();
     var x = 64;
-    var dateY = Math.max(contentY + 14, 574);
-    var signatureLineY = Math.max(dateY + 52, 642);
-    if (signatureLineY + 42 > pageH - 24) {
+    // Más separación entre el cuerpo del texto y la fecha/firma, y la firma
+    // se dibuja más grande (antes tope de 36pt de alto, se veía chica).
+    var dateY = Math.max(contentY + 24, 580);
+    var signatureLineY = Math.max(dateY + 70, 668);
+    if (signatureLineY + 60 > pageH - 24) {
       pdf.addPage();
       drawPageHeader(pdf, title, true, language);
-      dateY = 146;
-      signatureLineY = 218;
+      dateY = 150;
+      signatureLineY = 230;
     }
     pdf.setTextColor(31, 43, 64);
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(9.8);
     pdf.text(isEnglish ? 'Signed on ' + values.signDateLongEnglish + '.' : 'Firmado el ' + values.signDateLong + '.', x, dateY);
     pdf.setDrawColor(139, 152, 171);
-    pdf.line(x, signatureLineY, x + 214, signatureLineY);
+    pdf.line(x, signatureLineY, x + 220, signatureLineY);
     if (values.signatureData) {
       try {
         var props = pdf.getImageProperties(values.signatureData);
         var ratio = props.width / props.height;
-        var sw = Math.min(148, 36 * ratio);
+        var sw = Math.min(190, 58 * ratio);
         var sh = sw / ratio;
-        if (sh > 36) { sh = 36; sw = sh * ratio; }
-        pdf.addImage(values.signatureData, 'PNG', x + 14, signatureLineY - sh - 6, sw, sh, 'clientSignature', 'FAST');
+        if (sh > 58) { sh = 58; sw = sh * ratio; }
+        pdf.addImage(values.signatureData, 'PNG', x + 14, signatureLineY - sh - 10, sw, sh, 'clientSignature', 'FAST');
       } catch (e) {}
     }
     var rightX = x + 300;
     pdf.setTextColor(11, 45, 92);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(8.4);
-    pdf.text(isEnglish ? 'SIGNATURE' : 'FIRMA', x, signatureLineY + 16);
-    pdf.text(isEnglish ? 'NAME' : 'NOMBRE', x, signatureLineY + 35);
-    pdf.text(isEnglish ? 'DATE' : 'FECHA', rightX, signatureLineY + 16);
-    pdf.text(isEnglish ? 'TIME' : 'HORA', rightX, signatureLineY + 35);
+    pdf.text(isEnglish ? 'SIGNATURE' : 'FIRMA', x, signatureLineY + 20);
+    pdf.text(isEnglish ? 'NAME' : 'NOMBRE', x, signatureLineY + 42);
+    pdf.text(isEnglish ? 'DATE' : 'FECHA', rightX, signatureLineY + 20);
+    pdf.text(isEnglish ? 'TIME' : 'HORA', rightX, signatureLineY + 42);
     pdf.setTextColor(22, 31, 49);
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(9.5);
-    pdf.text(values.nombre, x + 58, signatureLineY + 35);
-    pdf.text(values.signDate, rightX + 52, signatureLineY + 16);
-    pdf.text(values.signTime, rightX + 52, signatureLineY + 35);
-    return signatureLineY + 49;
+    pdf.text(values.nombre, x + 58, signatureLineY + 42);
+    pdf.text(values.signDate, rightX + 52, signatureLineY + 20);
+    pdf.text(values.signTime, rightX + 52, signatureLineY + 42);
+    return signatureLineY + 58;
   }
 
   function renderKycDocument(pdf, values, language) {
