@@ -86,6 +86,16 @@
 
         <form id="offerForm" novalidate>
             <div class="co-card">
+                <h2>Borrador <span class="en">/ Draft</span></h2>
+                <p class="hint">Elegí un borrador para precargar las condiciones repetidas, o dejalo en blanco. <span class="en">Pick a draft to preload the repeated conditions, or leave it blank.</span></p>
+                <div class="co-field">
+                    <select id="borrador_select">
+                        <option value="">— Empezar en blanco / Start blank —</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="co-card">
                 <h2>Revisá la información <span class="en">/ Review the information</span></h2>
                 <div class="co-grid">
                     <div class="co-field">
@@ -226,6 +236,14 @@
                         <label for="payment_details">Detalle de entrega de fondos <span class="en">/ Funding details</span></label>
                         <textarea id="payment_details" name="payment_details" placeholder="Origen de fondos, institución financiera y plazos."></textarea>
                     </div>
+                </div>
+            </div>
+
+            <div class="co-card">
+                <h2>Notas adicionales <span class="en">/ Additional notes</span></h2>
+                <p class="hint">Opcional. Aparece impresa en el PDF, por ejemplo si la oferta incluye una lista de cosas. <span class="en">Optional. Printed in the PDF, for example if the offer includes a list of items.</span></p>
+                <div class="co-field full">
+                    <textarea id="additional_notes" name="additional_notes" placeholder="Ejemplo: La oferta incluye electrodomésticos, muebles de sala y cortinas."></textarea>
                 </div>
             </div>
 

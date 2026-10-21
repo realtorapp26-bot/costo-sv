@@ -26,6 +26,8 @@
   var paymentDetails = el('payment_details');
   var englishConsent = el('english_consent');
   var englishConsentWrap = el('englishConsentWrap');
+  var additionalNotes = el('additional_notes');
+  var borradorSelect = el('borrador_select');
   var errorBox = el('errorBox');
   var errorList = el('errorList');
   var canvas = el('signaturePad');
@@ -386,12 +388,26 @@
       y += 14;
     }
 
+    if (values.additionalNotes) {
+      y = paragraph(pdf,
+        (isEnglish ? 'Additional notes: ' : 'Notas adicionales: ') + values.additionalNotes,
+        x, y, width, { fontSize: 10.8, minFontSize: 9.4, lineHeight: 14.8, maxLines: 5 });
+      y += 14;
+    }
+
     y = paragraph(pdf,
       isEnglish
         ? 'I also expressly authorize GUERRERO PROPERTIES to notify the owner of the property of this offer in order to receive a response accepting or rejecting it.'
         : 'Así mismo, autorizo expresamente a GUERRERO PROPERTIES para que notifique al propietario de dicho inmueble la presente oferta, a efectos de recibir respuesta de aceptación o rechazo.',
       x, y, width, { fontSize: 11.2, minFontSize: 10, lineHeight: 15.4, maxLines: 5 });
     y += 20;
+
+    // Si el contenido de arriba (sobre todo las notas adicionales) empujó
+    // demasiado, "signatureTop" de abajo deja de crecer con "y" apenas
+    // y+74 pasa de 710 (queda fijo en 710) -- pasado ese punto la fecha
+    // (dibujada en "y") y la firma terminan solapadas. Hay que pasar a una
+    // página nueva ANTES de llegar ahí, no cuando ya se desbordó.
+    if (y > 620) { pdf.addPage(); y = 80; }
 
     pdf.setTextColor(15, 23, 42);
     pdf.setFont('helvetica', 'normal');
@@ -531,6 +547,7 @@
       ownerConditions: val('owner_conditions'),
       paymentMethod: paymentMethod.value,
       paymentDetails: val('payment_details'),
+      additionalNotes: val('additional_notes'),
       signatureData: signatureData,
       signDate: now.dateInput,
       signDateLong: now.dateLong,
@@ -603,6 +620,34 @@
     }
   }
 
+  // ---------- borradores (lectura pública, sin login -- los crea Walter
+  // desde el panel; esta página solo lee para precargar) ----------
+  function aplicarBorrador(campos) {
+    rentalTerm.value = campos.rental_term || '';
+    ownerConditions.value = campos.owner_conditions || '';
+    if (campos.payment_method) paymentMethod.value = campos.payment_method;
+    paymentDetails.value = campos.payment_details || '';
+    additionalNotes.value = campos.notas_adicionales || '';
+  }
+  function cargarBorradores() {
+    var cfg = window.SITE_CONFIG || {};
+    if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY) return;
+    fetch(cfg.SUPABASE_URL + '/rest/v1/oferta_borradores?select=*&order=created_at.desc', {
+      headers: { apikey: cfg.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + cfg.SUPABASE_ANON_KEY },
+    }).then(function (res) { return res.ok ? res.json() : []; }).then(function (borradores) {
+      borradores.forEach(function (b) {
+        var opt = document.createElement('option');
+        opt.value = b.id;
+        opt.textContent = b.nombre;
+        borradorSelect.appendChild(opt);
+      });
+      borradorSelect.addEventListener('change', function () {
+        var b = borradores.find(function (x) { return x.id === borradorSelect.value; });
+        if (b) aplicarBorrador(b);
+      });
+    }).catch(function () {});
+  }
+
   // ---------- prefill por querystring ----------
   function prefill() {
     var q = new URLSearchParams(window.location.search);
@@ -631,5 +676,6 @@
   refreshOfferDate();
   syncAmountWords();
   initCanvas();
+  cargarBorradores();
   setInterval(refreshOfferDate, 60000);
 })();

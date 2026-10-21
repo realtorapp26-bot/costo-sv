@@ -320,6 +320,7 @@
                         <div class="herr-tool-actions">
                             <a class="herr-mini" href="carta-oferta.html" target="_blank" rel="noopener">Abrir</a>
                             <button class="herr-mini" type="button" onclick="copiarLinkHerramienta('carta-oferta.html', 'la carta de oferta', 'el cliente')">Copiar link</button>
+                            <button class="herr-mini" type="button" onclick="abrirModalBorradoresOferta()">Borradores</button>
                         </div>
                     </div>
                     <div class="herr-tool">
@@ -1106,6 +1107,61 @@
                 <div class="actions-row" style="margin:0;">
                     <button class="btn-action btn-secondary" type="button" onclick="cerrarModalNuevoContrato()">Cancelar</button>
                     <button class="btn-action btn-primary" type="button" id="btn-crear-contrato" onclick="crearContrato()">Crear contrato</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: Borradores de Carta de Oferta ===== -->
+    <div class="modal-overlay" id="modal-borradores-oferta" onclick="if (event.target === this) cerrarModalBorradoresOferta()">
+        <div class="modal-box" style="max-width: 640px;">
+            <div class="modal-box-head">
+                <h3 style="margin:0;">Borradores de Carta de Oferta</h3>
+                <button type="button" class="modal-box-cerrar" onclick="cerrarModalBorradoresOferta()" aria-label="Cerrar">✕</button>
+            </div>
+
+            <div class="panel">
+                <h2>Borradores guardados</h2>
+                <div id="borradores-oferta-lista" style="display:flex; flex-direction:column; gap:8px;"></div>
+                <p id="borradores-oferta-vacio" class="empty-hint" style="display:none;">Todavía no hay borradores guardados.</p>
+            </div>
+
+            <div class="panel">
+                <h2>Nuevo borrador</h2>
+                <label>Se precargan en carta-oferta.html cuando el cliente (o vos) elija este borrador. Dejá en blanco lo que no aplique.</label>
+                <div class="form-grid">
+                    <div class="full">
+                        <label>Nombre del borrador</label>
+                        <input type="text" id="oferta-b-nombre" placeholder="Ej: Alquiler amueblado estándar">
+                    </div>
+                    <div class="full">
+                        <label>Plazo de alquiler</label>
+                        <input type="text" id="oferta-b-plazo" placeholder="Ej: 12 meses">
+                    </div>
+                    <div class="full">
+                        <label>Condiciones o solicitudes al propietario</label>
+                        <textarea id="oferta-b-condiciones"></textarea>
+                    </div>
+                    <div>
+                        <label>Forma de pago</label>
+                        <select id="oferta-b-forma-pago">
+                            <option value="">— Sin definir —</option>
+                            <option value="Contado">Contado / Cash</option>
+                            <option value="Crédito">Crédito / Financing</option>
+                            <option value="Mixto">Mixto / Mixed</option>
+                        </select>
+                    </div>
+                    <div class="full">
+                        <label>Detalle de entrega de fondos</label>
+                        <textarea id="oferta-b-fondos"></textarea>
+                    </div>
+                    <div class="full">
+                        <label>Notas adicionales</label>
+                        <textarea id="oferta-b-notas"></textarea>
+                    </div>
+                </div>
+                <div class="actions-row" style="justify-content: flex-end; margin-top: 12px;">
+                    <button class="btn-action btn-primary" type="button" onclick="crearBorradorOferta()">Guardar borrador</button>
                 </div>
             </div>
         </div>
@@ -2767,6 +2823,87 @@
                 alert(ex.message);
             } finally {
                 btn.disabled = false; btn.innerHTML = original;
+            }
+        }
+
+        // ---------- Borradores de Carta de Oferta ----------
+        let ofertaBorradoresData = [];
+
+        async function abrirModalBorradoresOferta() {
+            document.getElementById('modal-borradores-oferta').classList.add('show');
+            await cargarBorradoresOferta();
+        }
+        function cerrarModalBorradoresOferta() {
+            document.getElementById('modal-borradores-oferta').classList.remove('show');
+        }
+
+        async function cargarBorradoresOferta() {
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/oferta_borradores?select=*&order=created_at.desc`, { headers });
+                if (!res.ok) throw new Error('No se pudieron cargar los borradores (' + res.status + ')');
+                ofertaBorradoresData = await res.json();
+            } catch (ex) {
+                ofertaBorradoresData = [];
+            }
+            renderBorradoresOferta();
+        }
+
+        function renderBorradoresOferta() {
+            const cont = document.getElementById('borradores-oferta-lista');
+            const vacio = document.getElementById('borradores-oferta-vacio');
+            cont.innerHTML = '';
+            vacio.style.display = ofertaBorradoresData.length ? 'none' : 'block';
+            ofertaBorradoresData.forEach(b => {
+                const row = document.createElement('div');
+                row.style.cssText = 'display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm);';
+                row.innerHTML = `<span>${b.nombre}</span>`;
+                const btn = document.createElement('button');
+                btn.className = 'btn-eliminar-lead';
+                btn.innerHTML = '<i class="fas fa-trash"></i>';
+                btn.onclick = () => eliminarBorradorOferta(b.id, b.nombre);
+                row.appendChild(btn);
+                cont.appendChild(row);
+            });
+        }
+
+        async function crearBorradorOferta() {
+            const nombre = document.getElementById('oferta-b-nombre').value.trim();
+            if (!nombre) { alert('Ingresá un nombre para el borrador.'); return; }
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/oferta_borradores`, {
+                    method: 'POST', headers: { ...headers, Prefer: 'return=minimal' },
+                    body: JSON.stringify({
+                        nombre,
+                        rental_term: document.getElementById('oferta-b-plazo').value.trim() || null,
+                        owner_conditions: document.getElementById('oferta-b-condiciones').value.trim() || null,
+                        payment_method: document.getElementById('oferta-b-forma-pago').value || null,
+                        payment_details: document.getElementById('oferta-b-fondos').value.trim() || null,
+                        notas_adicionales: document.getElementById('oferta-b-notas').value.trim() || null,
+                    }),
+                });
+                if (!res.ok) throw new Error('No se pudo guardar el borrador (' + res.status + ')');
+                ['oferta-b-nombre', 'oferta-b-plazo', 'oferta-b-condiciones', 'oferta-b-fondos', 'oferta-b-notas']
+                    .forEach(id => document.getElementById(id).value = '');
+                document.getElementById('oferta-b-forma-pago').value = '';
+                await cargarBorradoresOferta();
+            } catch (ex) {
+                alert(ex.message);
+            }
+        }
+
+        async function eliminarBorradorOferta(id, nombre) {
+            if (!confirm(`¿Eliminar el borrador "${nombre}"? No se puede deshacer.`)) return;
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/oferta_borradores?id=eq.${id}`, {
+                    method: 'DELETE', headers: { ...headers, Prefer: 'return=minimal' },
+                });
+                if (!res.ok) throw new Error('No se pudo eliminar (' + res.status + ')');
+                await cargarBorradoresOferta();
+            } catch (ex) {
+                alert(ex.message);
             }
         }
 
