@@ -37,6 +37,7 @@
             outline: 0; border-color: var(--azul); background: #fff; box-shadow: 0 0 0 3px rgba(11,45,92,.12);
         }
         .co-field input.is-invalid { border-color: var(--rojo); background: #fef2f2; }
+        .co-field input[readonly] { background: #eef2f7; color: #475569; cursor: default; }
         .co-review-item .rlabel { display: block; font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; }
         .co-review-item .rvalue { font-size: .93rem; color: #0f172a; font-weight: 500; line-height: 1.4; }
         .co-table { width: 100%; border-collapse: collapse; font-size: .85rem; margin-top: 6px; }
@@ -157,6 +158,9 @@
             <form id="firmaForm" novalidate>
                 <div class="co-card">
                     <h2>Your signature <span class="en">/ Tu firma</span></h2>
+                    <p class="hint">This agreement can't be edited here. If anything above needs to change, contact your agent before signing -- once you sign, it's final.
+                        <span class="en">Este acuerdo no se puede editar desde acá. Si algo de lo anterior necesita cambiar, contactá a tu agente antes de firmar -- una vez que firmás, queda en firme.</span>
+                    </p>
                     <div class="co-grid">
                         <div class="co-field full">
                             <label for="document_language">Document language <span class="en">/ Idioma del documento</span></label>
@@ -167,7 +171,7 @@
                         </div>
                         <div class="co-field full">
                             <label for="vendedor_nombre_input">Full name (Seller) <span class="en">/ Nombre completo (Vendedor)</span></label>
-                            <input type="text" id="vendedor_nombre_input" required>
+                            <input type="text" id="vendedor_nombre_input" readonly>
                         </div>
                     </div>
                     <div class="co-sign-wrap" style="margin-top:14px;">
