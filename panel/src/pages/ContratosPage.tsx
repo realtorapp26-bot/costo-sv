@@ -1,9 +1,18 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import type { ContratoComercializacion, ContratoEstado, ItemInventario, TipoListado } from '../lib/types';
+import type { CamposContratoBorrador, ContratoComercializacion, ContratoEstado, ItemInventario, TipoListado } from '../lib/types';
 import { CONTRATO_ESTADO_CLASE, CONTRATO_ESTADOS, CONTRATO_ESTADO_LABEL, TIPO_LISTADO_LABEL } from '../lib/enums';
 import { formatearFecha } from '../lib/format';
 import { contratoDocumentoSignedUrl, subirFirmaCorredor } from '../lib/storageContratos';
-import { useContratos, useCreateContrato, useDeleteContrato, useUpdateContratoEstado, type NuevoContrato } from '../lib/queries';
+import {
+  useContratoBorradores,
+  useContratos,
+  useCreateContrato,
+  useCreateContratoBorrador,
+  useDeleteContrato,
+  useDeleteContratoBorrador,
+  useUpdateContratoEstado,
+  type NuevoContrato,
+} from '../lib/queries';
 import { Badge, Button, Card, ChipRow, EmptyState, Field, Modal, cx, inputClass } from '../components/ui';
 
 const SITE = 'https://guerrero-properties.com';
@@ -330,8 +339,12 @@ function NuevoContratoModal({
   onCreated: (c: ContratoComercializacion) => void;
 }) {
   const createContrato = useCreateContrato();
+  const { data: borradores = [] } = useContratoBorradores();
+  const createBorrador = useCreateContratoBorrador();
+  const deleteBorrador = useDeleteContratoBorrador();
   const hoy = new Date().toISOString().slice(0, 10);
 
+  const [borradorId, setBorradorId] = useState('');
   const [fechaAcuerdo, setFechaAcuerdo] = useState(hoy);
   const [vendedorNombre, setVendedorNombre] = useState('');
   const [corredorNombre, setCorredorNombre] = useState('');
@@ -359,6 +372,7 @@ function NuevoContratoModal({
   }, [plazoInicio, plazoMeses]);
 
   function reset() {
+    setBorradorId('');
     setFechaAcuerdo(hoy);
     setVendedorNombre(''); setCorredorNombre('');
     setDescripcion(''); setRegistro(''); setDireccion(''); setGravamenes(''); setCertificado('');
@@ -370,6 +384,68 @@ function NuevoContratoModal({
 
   function actualizarFila(i: number, campo: keyof ItemInventario, valor: string) {
     setInventario((rows) => rows.map((r, idx) => (idx === i ? { ...r, [campo]: valor } : r)));
+  }
+
+  function aplicarBorrador(id: string) {
+    setBorradorId(id);
+    if (!id) return;
+    const b = borradores.find((x) => x.id === id);
+    if (!b) return;
+    const c = b.campos;
+    setVendedorNombre(c.vendedor_nombre || '');
+    setCorredorNombre(c.corredor_nombre || '');
+    setDescripcion(c.propiedad_descripcion || '');
+    setRegistro(c.propiedad_registro || '');
+    setDireccion(c.propiedad_direccion || '');
+    setGravamenes(c.propiedad_gravamenes || '');
+    setCertificado(c.propiedad_certificado || '');
+    setPrecio(c.precio_lista ? String(c.precio_lista) : '');
+    setTipoListado(c.tipo_listado || 'no_exclusivo');
+    setComision(c.comision_porcentaje != null ? String(c.comision_porcentaje) : '5');
+    setIva(c.comision_incluye_iva !== false);
+    setPlazoMeses(c.plazo_meses ? String(c.plazo_meses) : '6');
+    setProteccionDias(c.periodo_proteccion_dias != null ? String(c.periodo_proteccion_dias) : '180');
+    setInventario(c.inventario ? c.inventario.map((it) => ({ ...it })) : []);
+    setNotas(c.notas || '');
+  }
+
+  function camposActuales(): CamposContratoBorrador {
+    return {
+      vendedor_nombre: vendedorNombre.trim(),
+      corredor_nombre: corredorNombre.trim(),
+      propiedad_descripcion: descripcion.trim(),
+      propiedad_registro: registro.trim() || null,
+      propiedad_direccion: direccion.trim() || null,
+      propiedad_gravamenes: gravamenes.trim() || null,
+      propiedad_certificado: certificado.trim() || null,
+      precio_lista: parseFloat(precio) || 0,
+      tipo_listado: tipoListado,
+      comision_porcentaje: parseFloat(comision) || 5,
+      comision_incluye_iva: iva,
+      plazo_meses: parseInt(plazoMeses, 10) || 6,
+      periodo_proteccion_dias: parseInt(proteccionDias, 10) || 180,
+      inventario: inventario.filter((f) => f.item.trim() || f.descripcion.trim()),
+      notas: notas.trim() || null,
+    };
+  }
+
+  async function guardarComoBorrador() {
+    const nombre = (prompt('¿Con qué nombre querés guardar este borrador?') || '').trim();
+    if (!nombre) return;
+    try {
+      await createBorrador.mutateAsync({ nombre, campos: camposActuales() });
+      alert(`Borrador "${nombre}" guardado.`);
+    } catch (ex) {
+      alert((ex as Error).message || 'No se pudo guardar el borrador.');
+    }
+  }
+
+  async function eliminarBorradorSeleccionado() {
+    const b = borradores.find((x) => x.id === borradorId);
+    if (!b) return;
+    if (!confirm(`¿Eliminar el borrador "${b.nombre}"? No se puede deshacer.`)) return;
+    await deleteBorrador.mutateAsync(b.id);
+    setBorradorId('');
   }
 
   async function crear() {
@@ -426,6 +502,24 @@ function NuevoContratoModal({
     <Modal open={open} onClose={onClose} title="Nuevo contrato de comercialización" size="xl">
       <div className="space-y-5">
         {errorMsg && <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{errorMsg}</div>}
+
+        <section className="space-y-2">
+          <h4 className="text-xs font-bold uppercase tracking-wide text-navy">Borrador (opcional)</h4>
+          <p className="text-xs text-slate-500">Elegí un borrador para precargar el formulario, o empezá en blanco.</p>
+          <div className="flex gap-2">
+            <select value={borradorId} onChange={(e) => aplicarBorrador(e.target.value)} className={cx(inputClass, 'flex-1')}>
+              <option value="">— Empezar en blanco —</option>
+              {borradores.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.nombre}
+                </option>
+              ))}
+            </select>
+            <Button type="button" variant="danger" disabled={!borradorId} onClick={eliminarBorradorSeleccionado}>
+              <i className="fas fa-trash" />
+            </Button>
+          </div>
+        </section>
 
         <section className="space-y-3">
           <h4 className="text-xs font-bold uppercase tracking-wide text-navy">Acuerdo</h4>
@@ -544,13 +638,18 @@ function NuevoContratoModal({
         </section>
       </div>
 
-      <div className="mt-5 flex justify-end gap-2">
-        <Button variant="outline" onClick={onClose} disabled={busy}>
-          Cancelar
+      <div className="mt-5 flex items-center justify-between gap-2">
+        <Button type="button" variant="outline" onClick={guardarComoBorrador}>
+          <i className="fas fa-floppy-disk" /> <span className="hidden sm:inline">Guardar como borrador</span>
         </Button>
-        <Button onClick={crear} disabled={busy}>
-          {busy ? 'Creando…' : 'Crear contrato'}
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={onClose} disabled={busy}>
+            Cancelar
+          </Button>
+          <Button onClick={crear} disabled={busy}>
+            {busy ? 'Creando…' : 'Crear contrato'}
+          </Button>
+        </div>
       </div>
     </Modal>
   );

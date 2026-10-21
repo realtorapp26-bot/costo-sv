@@ -107,6 +107,34 @@ export interface ContratoComercializacion {
   updated_at: string;
 }
 
+// Campos reusables de un contrato (sin fechas ni firma -- esas siempre se
+// vuelven a poner frescas en cada contrato nuevo que se crea desde el
+// borrador). Refleja supabase/migrations/20261021000000_contrato_borradores.sql.
+export interface CamposContratoBorrador {
+  vendedor_nombre: string;
+  corredor_nombre: string;
+  propiedad_descripcion: string;
+  propiedad_registro: string | null;
+  propiedad_direccion: string | null;
+  propiedad_gravamenes: string | null;
+  propiedad_certificado: string | null;
+  precio_lista: number;
+  tipo_listado: TipoListado;
+  comision_porcentaje: number;
+  comision_incluye_iva: boolean;
+  plazo_meses: number;
+  periodo_proteccion_dias: number;
+  inventario: ItemInventario[];
+  notas: string | null;
+}
+
+export interface ContratoBorrador {
+  id: string;
+  nombre: string;
+  campos: CamposContratoBorrador;
+  created_at: string;
+}
+
 // Lo que devuelve useLeads(): lead + contacto embebido.
 export interface LeadConContacto {
   id: string;

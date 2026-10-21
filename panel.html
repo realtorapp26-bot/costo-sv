@@ -973,6 +973,24 @@
             </div>
 
             <div class="panel">
+                <h2>Borrador (opcional)</h2>
+                <label>Elegí un borrador para precargar el formulario, o empezá en blanco.</label>
+                <div class="form-grid">
+                    <div class="full" style="display:flex; gap:8px; align-items:flex-end;">
+                        <div style="flex:1;">
+                            <label style="visibility:hidden;">x</label>
+                            <select id="contrato-f-borrador" onchange="aplicarBorradorContrato()">
+                                <option value="">— Empezar en blanco —</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn-eliminar-lead" id="btn-eliminar-borrador" style="margin:0; height:42px;" onclick="eliminarBorradorContrato()" disabled title="Eliminar este borrador">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
                 <h2>Acuerdo</h2>
                 <div class="form-grid">
                     <div>
@@ -1083,9 +1101,12 @@
                 </div>
             </div>
 
-            <div class="actions-row" style="justify-content: flex-end; margin-top: 16px;">
-                <button class="btn-action btn-secondary" type="button" onclick="cerrarModalNuevoContrato()">Cancelar</button>
-                <button class="btn-action btn-primary" type="button" id="btn-crear-contrato" onclick="crearContrato()">Crear contrato</button>
+            <div class="actions-row" style="justify-content: space-between; margin-top: 16px;">
+                <button class="btn-nota" type="button" onclick="guardarBorradorContrato()"><i class="fas fa-floppy-disk"></i> Guardar como borrador</button>
+                <div class="actions-row" style="margin:0;">
+                    <button class="btn-action btn-secondary" type="button" onclick="cerrarModalNuevoContrato()">Cancelar</button>
+                    <button class="btn-action btn-primary" type="button" id="btn-crear-contrato" onclick="crearContrato()">Crear contrato</button>
+                </div>
             </div>
         </div>
     </div>
@@ -2557,6 +2578,111 @@
             });
         })();
 
+        // ---- borradores de contrato ----
+        let contratoBorradoresData = [];
+
+        async function cargarBorradoresContrato() {
+            const sel = document.getElementById('contrato-f-borrador');
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/contrato_borradores?select=*&order=created_at.desc`, { headers });
+                if (!res.ok) throw new Error('No se pudieron cargar los borradores (' + res.status + ')');
+                contratoBorradoresData = await res.json();
+            } catch (ex) {
+                contratoBorradoresData = [];
+            }
+            sel.innerHTML = '<option value="">— Empezar en blanco —</option>' +
+                contratoBorradoresData.map(b => `<option value="${b.id}">${b.nombre}</option>`).join('');
+            document.getElementById('btn-eliminar-borrador').disabled = true;
+        }
+
+        function aplicarBorradorContrato() {
+            const id = document.getElementById('contrato-f-borrador').value;
+            document.getElementById('btn-eliminar-borrador').disabled = !id;
+            if (!id) return;
+            const b = contratoBorradoresData.find(x => x.id === id);
+            if (!b) return;
+            const c = b.campos || {};
+            document.getElementById('contrato-f-vendedor').value = c.vendedor_nombre || '';
+            document.getElementById('contrato-f-corredor').value = c.corredor_nombre || '';
+            document.getElementById('contrato-f-descripcion').value = c.propiedad_descripcion || '';
+            document.getElementById('contrato-f-registro').value = c.propiedad_registro || '';
+            document.getElementById('contrato-f-direccion').value = c.propiedad_direccion || '';
+            document.getElementById('contrato-f-gravamenes').value = c.propiedad_gravamenes || '';
+            document.getElementById('contrato-f-certificado').value = c.propiedad_certificado || '';
+            document.getElementById('contrato-f-precio').value = c.precio_lista || '';
+            document.getElementById('contrato-f-tipo-listado').value = c.tipo_listado || 'no_exclusivo';
+            document.getElementById('contrato-f-comision').value = c.comision_porcentaje != null ? c.comision_porcentaje : 5;
+            document.getElementById('contrato-f-iva').checked = c.comision_incluye_iva !== false;
+            document.getElementById('contrato-f-plazo-meses').value = c.plazo_meses || 6;
+            document.getElementById('contrato-f-proteccion-dias').value = c.periodo_proteccion_dias != null ? c.periodo_proteccion_dias : 180;
+            document.getElementById('contrato-f-notas').value = c.notas || '';
+            calcularPlazoFinContrato();
+            const cont = document.getElementById('contrato-f-inventario-rows');
+            cont.innerHTML = '';
+            (c.inventario || []).forEach(it => {
+                agregarFilaInventarioContrato();
+                const fila = cont.lastElementChild;
+                fila.querySelector('.inv-item').value = it.item || '';
+                fila.querySelector('.inv-desc').value = it.descripcion || '';
+                fila.querySelector('.inv-cant').value = it.cantidad || '';
+            });
+        }
+
+        function leerCamposContratoActual() {
+            return {
+                vendedor_nombre: document.getElementById('contrato-f-vendedor').value.trim(),
+                corredor_nombre: document.getElementById('contrato-f-corredor').value.trim(),
+                propiedad_descripcion: document.getElementById('contrato-f-descripcion').value.trim(),
+                propiedad_registro: document.getElementById('contrato-f-registro').value.trim() || null,
+                propiedad_direccion: document.getElementById('contrato-f-direccion').value.trim() || null,
+                propiedad_gravamenes: document.getElementById('contrato-f-gravamenes').value.trim() || null,
+                propiedad_certificado: document.getElementById('contrato-f-certificado').value.trim() || null,
+                precio_lista: parseFloat(document.getElementById('contrato-f-precio').value) || null,
+                tipo_listado: document.getElementById('contrato-f-tipo-listado').value,
+                comision_porcentaje: parseFloat(document.getElementById('contrato-f-comision').value) || 5,
+                comision_incluye_iva: document.getElementById('contrato-f-iva').checked,
+                plazo_meses: parseInt(document.getElementById('contrato-f-plazo-meses').value, 10) || 6,
+                periodo_proteccion_dias: parseInt(document.getElementById('contrato-f-proteccion-dias').value, 10) || 180,
+                inventario: leerInventarioContrato(),
+                notas: document.getElementById('contrato-f-notas').value.trim() || null,
+            };
+        }
+
+        async function guardarBorradorContrato() {
+            const nombre = (prompt('¿Con qué nombre querés guardar este borrador?') || '').trim();
+            if (!nombre) return;
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/contrato_borradores`, {
+                    method: 'POST', headers: { ...headers, Prefer: 'return=minimal' },
+                    body: JSON.stringify({ nombre, campos: leerCamposContratoActual() }),
+                });
+                if (!res.ok) throw new Error('No se pudo guardar el borrador (' + res.status + ')');
+                await cargarBorradoresContrato();
+                alert('Borrador "' + nombre + '" guardado.');
+            } catch (ex) {
+                alert(ex.message);
+            }
+        }
+
+        async function eliminarBorradorContrato() {
+            const id = document.getElementById('contrato-f-borrador').value;
+            const b = contratoBorradoresData.find(x => x.id === id);
+            if (!b) return;
+            if (!confirm(`¿Eliminar el borrador "${b.nombre}"? No se puede deshacer.`)) return;
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/contrato_borradores?id=eq.${id}`, {
+                    method: 'DELETE', headers: { ...headers, Prefer: 'return=minimal' },
+                });
+                if (!res.ok) throw new Error('No se pudo eliminar (' + res.status + ')');
+                await cargarBorradoresContrato();
+            } catch (ex) {
+                alert(ex.message);
+            }
+        }
+
         function abrirModalNuevoContrato() {
             ['contrato-f-vendedor', 'contrato-f-corredor', 'contrato-f-descripcion', 'contrato-f-registro', 'contrato-f-direccion', 'contrato-f-gravamenes', 'contrato-f-certificado', 'contrato-f-notas']
                 .forEach(id => document.getElementById(id).value = '');
@@ -2571,9 +2697,11 @@
             document.getElementById('contrato-f-plazo-inicio').value = hoy;
             calcularPlazoFinContrato();
             document.getElementById('contrato-f-inventario-rows').innerHTML = '';
+            document.getElementById('contrato-f-borrador').value = '';
             contratoFirmaTrazada = false; contratoFirmaDataUrl = '';
             document.getElementById('modal-nuevo-contrato').classList.add('show');
             setTimeout(initContratoFirmaPad, 30);
+            cargarBorradoresContrato();
         }
         function cerrarModalNuevoContrato() {
             document.getElementById('modal-nuevo-contrato').classList.remove('show');

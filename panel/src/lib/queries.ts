@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from './supabase';
-import type { ContratoComercializacion, ContratoEstado, Estado, Interes, ItemInventario, KycClienteTipo, KycEstado, KycSolicitud, LeadConContacto, Origen, Propiedad, TipoListado } from './types';
+import type { CamposContratoBorrador, ContratoBorrador, ContratoComercializacion, ContratoEstado, Estado, Interes, ItemInventario, KycClienteTipo, KycEstado, KycSolicitud, LeadConContacto, Origen, Propiedad, TipoListado } from './types';
 
 const LEAD_COLS_BASE =
   'id,origen,interes,propiedad_referencia,estado,notas,created_at,contactos(nombre,telefono,correo)';
@@ -311,5 +311,43 @@ export function useDeleteContrato() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['contratos'] }),
+  });
+}
+
+// ---------- Borradores de contrato ----------
+export function useContratoBorradores() {
+  return useQuery({
+    queryKey: ['contrato-borradores'],
+    queryFn: async (): Promise<ContratoBorrador[]> => {
+      const { data, error } = await supabase
+        .from('contrato_borradores')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 15_000,
+  });
+}
+
+export function useCreateContratoBorrador() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: { nombre: string; campos: CamposContratoBorrador }) => {
+      const { error } = await supabase.from('contrato_borradores').insert(v);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['contrato-borradores'] }),
+  });
+}
+
+export function useDeleteContratoBorrador() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('contrato_borradores').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['contrato-borradores'] }),
   });
 }
