@@ -322,7 +322,7 @@ const FirmaPad = forwardRef<FirmaPadHandle>(function FirmaPad(_props, ref) {
 
   return (
     <div className="overflow-hidden rounded-lg border border-dashed border-slate-300 bg-white">
-      <canvas ref={canvasRef} className="block h-40 w-full cursor-crosshair touch-none" />
+      <canvas ref={canvasRef} className="block h-[clamp(200px,30vh,260px)] w-full cursor-crosshair touch-none" />
     </div>
   );
 });

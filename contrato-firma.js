@@ -122,6 +122,11 @@
     renderPreview(contrato);
     vendedorNombreInput.value = contrato.vendedor_nombre || '';
     el('formWrap').classList.remove('d-none');
+    // El formulario (y el canvas de firma) estaban ocultos cuando se llamó
+    // initCanvas() al cargar el script -- recién ahora tiene su tamaño real,
+    // hay que volver a medirlo o el área donde se puede dibujar queda
+    // achicada al tamaño de respaldo y la firma sale cortada.
+    setTimeout(initCanvas, 0);
   }
 
   function reviewItem(parent, labelEn, labelEs, value, full) {
