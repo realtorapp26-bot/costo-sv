@@ -71,6 +71,47 @@ window.imgOpt = function (url, w, q) {
     }).catch((err) => console.error('No se pudo registrar el lead de WhatsApp:', err));
   }
 
+  // Aviso al hacer click en WhatsApp: el link solo PRECARGA el mensaje, la
+  // persona igual tiene que tocar Enviar adentro de WhatsApp -- mucha gente
+  // no lo sabe y abandona ahí. En computadora, si no tiene WhatsApp Web ya
+  // vinculado en ese navegador, el link le muestra un código QR y la
+  // mayoría no lo escanea desde la misma compu. Por eso este aviso (con el
+  // teléfono como respaldo) en vez de asumir que el mensaje llegó solo.
+  let waAvisoTimer = null;
+  function mostrarAvisoWhatsapp() {
+    let aviso = document.getElementById('wa-aviso');
+    if (!aviso) {
+      aviso = document.createElement('div');
+      aviso.id = 'wa-aviso';
+      aviso.setAttribute('role', 'status');
+      aviso.setAttribute('aria-live', 'polite');
+      aviso.style.cssText =
+        'position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(16px);' +
+        'max-width:340px;width:calc(100% - 32px);background:#fff;border:1px solid #e2e8f0;' +
+        'border-radius:14px;box-shadow:0 12px 32px rgba(15,23,42,.18);padding:14px 36px 14px 16px;' +
+        'z-index:9999;font-family:inherit;font-size:.85rem;line-height:1.4;color:#0f172a;' +
+        'opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;';
+      aviso.innerHTML =
+        'Se abrió WhatsApp con tu mensaje listo — <strong>tocá Enviar</strong> para mandarlo.<br>' +
+        '¿No se abrió? Escribinos al <a href="tel:+' + WA_NUMBER + '" style="color:#25D366;font-weight:700;text-decoration:underline;">' +
+        formatearTelefono(WA_NUMBER) + '</a>.' +
+        '<button type="button" aria-label="Cerrar" style="position:absolute;top:4px;right:8px;background:none;border:none;' +
+        'font-size:1.1rem;color:#94a3b8;cursor:pointer;line-height:1;padding:6px;">&times;</button>';
+      document.body.appendChild(aviso);
+      aviso.querySelector('button').addEventListener('click', () => { aviso.style.opacity = '0'; aviso.style.pointerEvents = 'none'; });
+    }
+    aviso.style.opacity = '1';
+    aviso.style.transform = 'translateX(-50%) translateY(0)';
+    aviso.style.pointerEvents = 'auto';
+    clearTimeout(waAvisoTimer);
+    waAvisoTimer = setTimeout(() => { aviso.style.opacity = '0'; aviso.style.pointerEvents = 'none'; }, 9000);
+  }
+  function formatearTelefono(soloDigitos) {
+    // "50370381941" -> "+503 7038-1941" (formato ya usado en el resto del sitio).
+    const m = soloDigitos.match(/^(\d{3})(\d{4})(\d{4})$/);
+    return m ? `+${m[1]} ${m[2]}-${m[3]}` : `+${soloDigitos}`;
+  }
+
   // wa.me a veces NO abre la app en celular: según el navegador/Android, en
   // vez de disparar el intent de la app carga la página web de WhatsApp con
   // un botón "Abrir aplicación" que después tira "La acción no se pudo
@@ -107,6 +148,7 @@ window.imgOpt = function (url, w, q) {
       if (!esMobile) { a.target = '_blank'; a.rel = 'noopener'; }
       a.addEventListener('click', (e) => {
         registrarLeadWhatsapp(mensaje);
+        mostrarAvisoWhatsapp();
         if (esMobile) {
           e.preventDefault();
           abrirWhatsAppMobil(mensaje);
