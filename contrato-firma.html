@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <title>Sales Agreement | Guerrero Properties</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <style>
+        :root { --azul: #0b2d5c; --rojo: #e53935; }
+        body { background: #eef1f6; color: #0f172a; font-family: 'Outfit', system-ui, sans-serif; }
+        .co-header { background: var(--azul); color: #fff; padding: 30px 0; }
+        .co-header .container { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .co-header .co-brand { font-size: .78rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #c9d6ea; margin-bottom: 4px; }
+        .co-header h1 { font-family: 'Playfair Display', serif; font-size: 1.5rem; margin: 0; }
+        .co-header p { margin: 2px 0 0; color: #c9d6ea; font-size: .9rem; }
+        .co-wrap { max-width: 800px; margin: 28px auto 80px; padding: 0 18px; }
+        .co-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 26px 24px; margin-bottom: 18px; box-shadow: 0 8px 24px rgba(15,23,42,.05); }
+        .co-card h2 { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--azul); margin: 0 0 4px; }
+        .co-card h2 .en { font-family: 'Outfit', system-ui, sans-serif; font-size: .78rem; font-weight: 500; color: #94a3b8; }
+        .co-card .hint { font-size: .82rem; color: #64748b; margin: 0 0 18px; }
+        .hint .en { color: inherit; opacity: .72; font-weight: 500; }
+        .co-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .co-grid .full { grid-column: 1 / -1; }
+        .co-field label { display: block; font-size: .8rem; font-weight: 600; color: #475569; margin-bottom: 6px; }
+        .co-field label .en { color: #94a3b8; font-weight: 500; }
+        .co-field input, .co-field select, .co-field textarea {
+            width: 100%; padding: 12px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px;
+            font: inherit; font-size: .95rem; color: #0f172a; background: #f8fafc; box-sizing: border-box;
+        }
+        .co-field input:focus, .co-field select:focus, .co-field textarea:focus {
+            outline: 0; border-color: var(--azul); background: #fff; box-shadow: 0 0 0 3px rgba(11,45,92,.12);
+        }
+        .co-field input.is-invalid { border-color: var(--rojo); background: #fef2f2; }
+        .co-review-item .rlabel { display: block; font-size: .72rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; }
+        .co-review-item .rvalue { font-size: .93rem; color: #0f172a; font-weight: 500; line-height: 1.4; }
+        .co-table { width: 100%; border-collapse: collapse; font-size: .85rem; margin-top: 6px; }
+        .co-table th { text-align: left; background: #f1f5f9; color: #475569; font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; padding: 9px 10px; }
+        .co-table td { padding: 9px 10px; border-top: 1px solid #e5e7eb; vertical-align: top; }
+        .co-clause { margin: 0 0 12px; font-size: .86rem; color: #334155; line-height: 1.55; }
+        .co-clause b { color: #0b2d5c; }
+        .co-clause .en { display: block; color: #94a3b8; margin-top: 3px; }
+        .co-sig-preview { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .co-sig-preview img { max-width: 220px; max-height: 76px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; padding: 6px; }
+        .co-sig-preview .meta { font-size: .85rem; color: #475569; }
+        .co-sign-wrap { border: 1.5px dashed #cbd5e1; border-radius: 12px; background: #fff; overflow: hidden; }
+        #signaturePad { width: 100%; height: 200px; display: block; touch-action: none; cursor: crosshair; }
+        .co-sign-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+        .co-btn-clear { background: none; border: 1px solid #e2e8f0; border-radius: 8px; padding: 7px 14px; font: inherit; font-size: .82rem; cursor: pointer; color: #475569; }
+        .co-check { display: flex; gap: 10px; align-items: flex-start; font-size: .86rem; color: #334155; margin-top: 4px; }
+        .co-check input { width: auto; margin-top: 3px; }
+        .co-errors { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; }
+        .co-errors h3 { color: #b91c1c; font-size: .95rem; margin: 0 0 8px; }
+        .co-errors ul { margin: 0; padding-left: 18px; color: #7f1d1d; font-size: .85rem; }
+        .co-generate { width: 100%; padding: 16px; border: 0; border-radius: 12px; background: var(--azul); color: #fff; font: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .co-generate:hover { background: #082245; }
+        .co-generate:disabled { opacity: .7; cursor: progress; }
+        .co-generate-txt-en { color: rgba(255,255,255,.68); font-weight: 500; font-size: .86rem; }
+        .co-spin { width: 16px; height: 16px; border: 2.5px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: co-rot .7s linear infinite; display: none; }
+        .co-generate.loading .co-spin { display: block; }
+        @keyframes co-rot { to { transform: rotate(360deg); } }
+        .co-note { font-size: .8rem; color: #64748b; background: #f1f5f9; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; }
+        .co-note .en { display: block; color: #94a3b8; margin-top: 6px; }
+        .co-done { text-align: center; padding: 50px 20px; }
+        .co-done i { font-size: 2.6rem; color: #16a34a; }
+        .co-done.co-pending i { color: #94a3b8; }
+        .co-done h2 { font-family: 'Playfair Display', serif; color: var(--azul); margin: 14px 0 6px; }
+        .d-none { display: none !important; }
+        @media (max-width: 620px) { .co-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <header class="co-header">
+        <div class="container">
+            <div>
+                <div class="co-brand">Guerrero Properties</div>
+                <h1>Sales Agreement <span style="color:#c9d6ea; font-weight:500; font-size:.9rem;">/ Acuerdo de venta</span></h1>
+                <p>Review the agreement below and sign electronically <span class="en" style="display:block; margin-top:2px;">Revisá el acuerdo y firmalo electrónicamente</span></p>
+            </div>
+        </div>
+    </header>
+
+    <div class="co-wrap">
+        <div id="loadingWrap" class="co-card" style="text-align:center; padding:50px 20px; color:#64748b;">
+            Loading your agreement… <span class="en" style="display:block; margin-top:4px;">Cargando tu acuerdo…</span>
+        </div>
+
+        <div id="loadError" class="co-errors d-none">
+            <h3>This link isn't working / Este link no funciona</h3>
+            <p style="margin:0; font-size:.85rem; color:#7f1d1d;">Please ask your agent for a new link. / Pedile a tu agente un link nuevo.</p>
+        </div>
+
+        <div id="alreadyWrap" class="co-card co-done co-pending d-none">
+            <i class="fas fa-circle-info"></i>
+            <h2 id="alreadyTitle"></h2>
+            <p id="alreadyText" style="color:#64748b; max-width:460px; margin:0 auto;"></p>
+        </div>
+
+        <div id="formWrap" class="d-none">
+            <div class="co-note">
+                Review every section below before signing. The PDF will include the version you choose plus a
+                second-language copy of the same information, in the same document.
+                <span class="en">Revisá cada sección antes de firmar. El PDF incluirá la versión que elijas más una copia en el otro idioma de la misma información, en el mismo documento.</span>
+            </div>
+
+            <div class="co-errors d-none" id="errorBox">
+                <h3>Please check the information / Revisá la información</h3>
+                <ul id="errorList"></ul>
+            </div>
+
+            <div class="co-card">
+                <h2>Agreement <span class="en">/ Acuerdo</span></h2>
+                <div class="co-grid" id="partiesGrid"></div>
+            </div>
+
+            <div class="co-card">
+                <h2>Property <span class="en">/ Propiedad</span></h2>
+                <div class="co-grid" id="propertyGrid"></div>
+            </div>
+
+            <div class="co-card">
+                <h2>Key terms <span class="en">/ Términos clave</span></h2>
+                <div class="co-grid" id="termsGrid"></div>
+            </div>
+
+            <div class="co-card">
+                <h2>Terms and conditions <span class="en">/ Términos y condiciones</span></h2>
+                <div id="clausesBox"></div>
+            </div>
+
+            <div class="co-card d-none" id="inventoryCard">
+                <h2>Included items <span class="en">/ Bienes incluidos</span></h2>
+                <p class="hint">These items remain on the Property and are included in the sale price.
+                    <span class="en">Estos artículos permanecen en la Propiedad y están incluidos en el precio de venta.</span>
+                </p>
+                <table class="co-table">
+                    <thead><tr><th>Item</th><th>Description / location <span class="en" style="display:block; font-weight:500; text-transform:none;">/ Descripción / ubicación</span></th><th>Qty <span class="en" style="display:block; font-weight:500; text-transform:none;">/ Cant.</span></th></tr></thead>
+                    <tbody id="inventoryBody"></tbody>
+                </table>
+            </div>
+
+            <div class="co-card d-none" id="notesCard">
+                <h2>Notes <span class="en">/ Notas</span></h2>
+                <p class="co-review-item rvalue" id="notesText" style="margin:0;"></p>
+            </div>
+
+            <div class="co-card">
+                <h2>Broker signature <span class="en">/ Firma del corredor</span></h2>
+                <div class="co-sig-preview" id="brokerSigBox"></div>
+            </div>
+
+            <form id="firmaForm" novalidate>
+                <div class="co-card">
+                    <h2>Your signature <span class="en">/ Tu firma</span></h2>
+                    <div class="co-grid">
+                        <div class="co-field full">
+                            <label for="document_language">Document language <span class="en">/ Idioma del documento</span></label>
+                            <select id="document_language">
+                                <option value="en" selected>English + Spanish copy</option>
+                                <option value="es">Español solamente</option>
+                            </select>
+                        </div>
+                        <div class="co-field full">
+                            <label for="vendedor_nombre_input">Full name (Seller) <span class="en">/ Nombre completo (Vendedor)</span></label>
+                            <input type="text" id="vendedor_nombre_input" required>
+                        </div>
+                    </div>
+                    <div class="co-sign-wrap" style="margin-top:14px;">
+                        <canvas id="signaturePad"></canvas>
+                    </div>
+                    <div class="co-sign-actions">
+                        <button type="button" class="co-btn-clear" id="clearSignature">Clear signature <span class="en">/ Limpiar firma</span></button>
+                    </div>
+                    <div class="co-check" style="margin-top: 16px;">
+                        <input type="checkbox" id="declaracion_acepto">
+                        <label for="declaracion_acepto" style="margin: 0; font-weight: 500;">
+                            I have read this agreement and accept its terms.
+                            <span class="en" style="display: block; color: #94a3b8; font-weight: 500; margin-top: 2px;">Leí este acuerdo y acepto sus términos.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="button" class="co-generate" id="generateBtn">
+                    <span class="co-spin"></span>
+                    <span class="co-generate-txt">Sign agreement</span>
+                    <span class="co-generate-txt-en">/ Firmar acuerdo</span>
+                </button>
+            </form>
+        </div>
+
+        <div id="doneWrap" class="co-card co-done d-none">
+            <i class="fas fa-circle-check"></i>
+            <h2>Thank you! <span style="display:block; font-size:1rem; color:#64748b; font-weight:500;">¡Gracias!</span></h2>
+            <p style="color:#64748b; max-width:420px; margin:0 auto;">
+                Your signature was submitted successfully. Your agent will follow up with you with a copy.
+                <span class="en" style="display:block; margin-top:6px;">Tu firma se envió correctamente. Tu agente se va a comunicar con vos con una copia.</span>
+            </p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="config.js?v=2"></script>
+    <script src="contrato-firma.js?v=1"></script>
+</body>
+</html>

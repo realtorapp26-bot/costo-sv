@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from './supabase';
-import type { Estado, Interes, KycClienteTipo, KycEstado, KycSolicitud, LeadConContacto, Origen, Propiedad } from './types';
+import type { ContratoComercializacion, ContratoEstado, Estado, Interes, ItemInventario, KycClienteTipo, KycEstado, KycSolicitud, LeadConContacto, Origen, Propiedad, TipoListado } from './types';
 
 const LEAD_COLS_BASE =
   'id,origen,interes,propiedad_referencia,estado,notas,created_at,contactos(nombre,telefono,correo)';
@@ -232,5 +232,84 @@ export function useDeleteKyc() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['kyc'] }),
+  });
+}
+
+// ---------- Contratos de comercialización ----------
+// id/numero/estado/completado_at/pdf_path/vendedor_firma_* los pone la base
+// o el vendedor al firmar (contrato-firma.html) -- acá solo se manda lo que
+// completa el corredor al crear el contrato.
+export interface NuevoContrato {
+  id: string;
+  fecha_acuerdo: string;
+  vendedor_nombre: string;
+  corredor_nombre: string;
+  propiedad_descripcion: string;
+  propiedad_registro: string | null;
+  propiedad_direccion: string | null;
+  propiedad_gravamenes: string | null;
+  propiedad_certificado: string | null;
+  precio_lista: number;
+  tipo_listado: TipoListado;
+  comision_porcentaje: number;
+  comision_incluye_iva: boolean;
+  plazo_meses: number;
+  plazo_inicio: string;
+  plazo_fin: string;
+  periodo_proteccion_dias: number;
+  inventario: ItemInventario[];
+  notas: string | null;
+  corredor_firma_path: string;
+}
+
+export function useContratos() {
+  return useQuery({
+    queryKey: ['contratos'],
+    queryFn: async (): Promise<ContratoComercializacion[]> => {
+      const { data, error } = await supabase
+        .from('contratos_comercializacion')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 15_000,
+  });
+}
+
+export function useCreateContrato() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: NuevoContrato): Promise<ContratoComercializacion> => {
+      const { data, error } = await supabase.from('contratos_comercializacion').insert(v).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['contratos'] }),
+  });
+}
+
+export function useUpdateContratoEstado() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, estado }: { id: string; estado: ContratoEstado }) => {
+      const { error } = await supabase
+        .from('contratos_comercializacion')
+        .update({ estado, updated_at: new Date().toISOString() })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['contratos'] }),
+  });
+}
+
+export function useDeleteContrato() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('contratos_comercializacion').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['contratos'] }),
   });
 }

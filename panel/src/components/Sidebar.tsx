@@ -26,6 +26,7 @@ const GROUPS: Group[] = [
       { label: 'Publicidad inteligente', icon: 'fas fa-bullhorn', soon: true },
       { label: 'Captación', icon: 'fas fa-handshake', soon: true },
       { label: 'KYC / Cumplimiento', icon: 'fas fa-shield-halved', to: '/kyc' },
+      { label: 'Contratos', icon: 'fas fa-file-signature', to: '/contratos' },
       { label: 'Comisiones', icon: 'fas fa-sack-dollar', soon: true },
     ],
   },

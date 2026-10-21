@@ -208,6 +208,12 @@
         .btn-copiar-link-kyc { background: var(--primary); color: #fff; border: none; border-radius: var(--radius-sm); padding: 6px 12px; font-size: 0.8rem; font-weight: 600; cursor: pointer; margin-right: 4px; }
         .btn-copiar-link-kyc:hover { opacity: 0.9; }
         .btn-eliminar-lead { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: var(--radius-sm); padding: 5px 10px; font-size: 0.8rem; cursor: pointer; margin-left: 6px; }
+        .firma-pad-wrap { border: 1.5px dashed var(--border); border-radius: var(--radius-sm); background: #fff; overflow: hidden; margin-top: 8px; }
+        .firma-pad-wrap canvas { width: 100%; height: 160px; display: block; touch-action: none; cursor: crosshair; }
+        .inventario-fila { display: grid; grid-template-columns: 1fr 2fr 70px 32px; gap: 8px; margin-bottom: 8px; align-items: center; }
+        .inventario-fila input { margin: 0; }
+        .inventario-fila button { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: var(--radius-sm); cursor: pointer; height: 38px; }
+        @media (max-width: 640px) { .inventario-fila { grid-template-columns: 1fr; } }
         .contacto-nombre { font-weight: 600; color: var(--primary); }
         .contacto-tel { font-size: 0.8rem; color: var(--text-light); display: flex; align-items: center; gap: 6px; }
         .contacto-tel a { color: inherit; text-decoration: none; }
@@ -296,6 +302,7 @@
                 <button class="tab-btn" id="btn-tab-franquicias" onclick="cambiarTab('franquicias')">🏪 Franquicias</button>
                 <button class="tab-btn" id="btn-tab-leads" onclick="cambiarTab('leads')">📋 Leads</button>
                 <button class="tab-btn" id="btn-tab-kyc" onclick="cambiarTab('kyc')">🛡️ KYC</button>
+                <button class="tab-btn" id="btn-tab-contratos" onclick="cambiarTab('contratos')">📄 Contratos</button>
                 <button class="tab-btn" id="btn-tab-metricas" onclick="cambiarTab('metricas')">📊 Métricas</button>
                 <button class="tab-btn" id="btn-tab-testimonios" onclick="cambiarTab('testimonios')">⭐ Testimonios</button>
             </div>
@@ -763,6 +770,39 @@
             </table>
         </div>
 
+        <!-- ===== TAB: CONTRATOS ===== -->
+        <div class="tab-panel" id="tab-contratos">
+            <div class="panel-actions-row">
+                <button class="btn-action btn-secondary" onclick="abrirModalNuevoContrato()">➕ Nuevo contrato</button>
+            </div>
+
+            <div class="filters-bar">
+                <span class="filter-label">Estado</span>
+                <select id="contrato-filtro-estado" class="estado-select" onchange="renderContratos()">
+                    <option value="">Todos</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="firmado">Firmado</option>
+                    <option value="cancelado">Cancelado</option>
+                </select>
+            </div>
+
+            <table class="leads-table">
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Vendedor</th>
+                        <th>Propiedad</th>
+                        <th>Precio</th>
+                        <th>Comisión</th>
+                        <th>Estado</th>
+                        <th>Creado</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="contratos-body"></tbody>
+            </table>
+        </div>
+
         <!-- ===== TAB: METRICAS ===== -->
         <div class="tab-panel" id="tab-metricas">
             <div class="kpi-row">
@@ -924,6 +964,132 @@
         </div>
     </div>
 
+    <!-- ===== MODAL: Nuevo contrato de comercialización ===== -->
+    <div class="modal-overlay" id="modal-nuevo-contrato" onclick="if (event.target === this) cerrarModalNuevoContrato()">
+        <div class="modal-box" style="max-width: 820px;">
+            <div class="modal-box-head">
+                <h3 style="margin:0;">Nuevo contrato de comercialización</h3>
+                <button type="button" class="modal-box-cerrar" onclick="cerrarModalNuevoContrato()" aria-label="Cerrar">✕</button>
+            </div>
+
+            <div class="panel">
+                <h2>Acuerdo</h2>
+                <div class="form-grid">
+                    <div>
+                        <label>Fecha del acuerdo</label>
+                        <input type="date" id="contrato-f-fecha">
+                    </div>
+                    <div>
+                        <label>Vendedor</label>
+                        <input type="text" id="contrato-f-vendedor" placeholder="Nombre completo del vendedor">
+                    </div>
+                    <div class="full">
+                        <label>Corredor</label>
+                        <input type="text" id="contrato-f-corredor" placeholder="Nombre de quien firma como corredor">
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>Propiedad</h2>
+                <div class="form-grid">
+                    <div class="full">
+                        <label>Descripción</label>
+                        <input type="text" id="contrato-f-descripcion" placeholder="Ej: Rancho de playa, terreno rústico, 540.64 m²">
+                    </div>
+                    <div>
+                        <label>No. de registro</label>
+                        <input type="text" id="contrato-f-registro" placeholder="Matrícula...">
+                    </div>
+                    <div>
+                        <label>Dirección</label>
+                        <input type="text" id="contrato-f-direccion">
+                    </div>
+                    <div class="full">
+                        <label>Gravámenes / restricciones</label>
+                        <input type="text" id="contrato-f-gravamenes" placeholder="Ninguno / detalle">
+                    </div>
+                    <div class="full">
+                        <label>Certificado de registro</label>
+                        <input type="text" id="contrato-f-certificado" placeholder="Certificación CNR, número de solicitud, fecha...">
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>Términos clave</h2>
+                <div class="form-grid">
+                    <div>
+                        <label>Precio de lista (US$)</label>
+                        <input type="number" id="contrato-f-precio" min="0" step="0.01">
+                    </div>
+                    <div>
+                        <label>Tipo de listado</label>
+                        <select id="contrato-f-tipo-listado">
+                            <option value="no_exclusivo">No exclusivo</option>
+                            <option value="exclusivo">Exclusivo</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Comisión (%)</label>
+                        <input type="number" id="contrato-f-comision" min="0" step="0.1" value="5">
+                    </div>
+                    <div style="display:flex; align-items:flex-end;">
+                        <label style="display:flex; align-items:center; gap:6px; font-weight:500; margin-bottom:10px;">
+                            <input type="checkbox" id="contrato-f-iva" checked style="width:auto;"> + IVA
+                        </label>
+                    </div>
+                    <div>
+                        <label>Plazo (meses)</label>
+                        <input type="number" id="contrato-f-plazo-meses" min="1" value="6" onchange="calcularPlazoFinContrato()">
+                    </div>
+                    <div>
+                        <label>Período de protección (días)</label>
+                        <input type="number" id="contrato-f-proteccion-dias" min="0" value="180">
+                    </div>
+                    <div>
+                        <label>Inicio del plazo</label>
+                        <input type="date" id="contrato-f-plazo-inicio" onchange="calcularPlazoFinContrato()">
+                    </div>
+                    <div>
+                        <label>Fin del plazo</label>
+                        <input type="date" id="contrato-f-plazo-fin">
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>Bienes incluidos (opcional)</h2>
+                <label>Artículos que quedan en la propiedad, incluidos en el precio de venta.</label>
+                <div id="contrato-f-inventario-rows"></div>
+                <div class="actions-row" style="margin-top: 8px;">
+                    <button type="button" class="btn-nota" onclick="agregarFilaInventarioContrato()">+ Agregar artículo</button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>Notas (opcional)</h2>
+                <textarea id="contrato-f-notas" placeholder="Notas internas o aclaraciones adicionales para este contrato."></textarea>
+            </div>
+
+            <div class="panel">
+                <h2>Firma del corredor</h2>
+                <label>Firmá en el recuadro -- esta firma queda impresa en el PDF final, junto a la del vendedor.</label>
+                <div class="firma-pad-wrap">
+                    <canvas id="contrato-firma-pad"></canvas>
+                </div>
+                <div class="actions-row" style="margin-top: 8px;">
+                    <button type="button" class="btn-nota" id="contrato-limpiar-firma">Limpiar firma</button>
+                </div>
+            </div>
+
+            <div class="actions-row" style="justify-content: flex-end; margin-top: 16px;">
+                <button class="btn-action btn-secondary" type="button" onclick="cerrarModalNuevoContrato()">Cancelar</button>
+                <button class="btn-action btn-primary" type="button" id="btn-crear-contrato" onclick="crearContrato()">Crear contrato</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.4/heic2any.min.js"></script>
     <script src="config.js?v=2"></script>
     <script src="login.js?v=6"></script>
@@ -931,7 +1097,7 @@
         const SUPA_URL = window.SITE_CONFIG.SUPABASE_URL;
 
         function cambiarTab(nombre) {
-            ['propiedades', 'franquicias', 'leads', 'kyc', 'metricas', 'testimonios'].forEach(t => {
+            ['propiedades', 'franquicias', 'leads', 'kyc', 'contratos', 'metricas', 'testimonios'].forEach(t => {
                 document.getElementById('tab-' + t).classList.toggle('active', t === nombre);
                 document.getElementById('btn-tab-' + t).classList.toggle('active', t === nombre);
             });
@@ -2187,6 +2353,295 @@
             }
         }
 
+        // ---------- Contratos de comercialización ----------
+        let contratosData = [];
+        const contratoEstadoLabels = { pendiente: 'Pendiente', firmado: 'Firmado', cancelado: 'Cancelado' };
+        let contratoFirmaDataUrl = '';
+        let contratoFirmaDrawing = false;
+        let contratoFirmaTrazada = false;
+
+        async function cargarContratos() {
+            const body = document.getElementById('contratos-body');
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/contratos_comercializacion?select=*&order=created_at.desc`, { headers });
+                if (!res.ok) throw new Error('No se pudieron cargar los contratos (' + res.status + ')');
+                contratosData = await res.json();
+                renderContratos();
+            } catch (ex) {
+                body.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#b91c1c; padding:20px;">${ex.message}</td></tr>`;
+            }
+        }
+
+        function fmtMoneyContrato(n) {
+            return 'US$ ' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function renderContratos() {
+            const filtroEstado = document.getElementById('contrato-filtro-estado').value;
+            const filtrados = contratosData.filter(c => !filtroEstado || c.estado === filtroEstado);
+
+            const body = document.getElementById('contratos-body');
+            body.innerHTML = '';
+            if (!filtrados.length) {
+                body.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-light); padding:20px;">No hay contratos con estos filtros.</td></tr>';
+                return;
+            }
+            filtrados.forEach((c) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${c.numero}</td>
+                    <td>${c.vendedor_nombre}</td>
+                    <td>${(c.propiedad_descripcion || '').slice(0, 60)}</td>
+                    <td>${fmtMoneyContrato(c.precio_lista)}</td>
+                    <td>${c.comision_porcentaje}%${c.comision_incluye_iva ? ' + IVA' : ''}</td>
+                    <td>
+                        <select class="estado-select estado-${c.estado}" data-id="${c.id}" onchange="cambiarEstadoContrato(this)">
+                            ${Object.keys(contratoEstadoLabels).map(e => `<option value="${e}" ${e === c.estado ? 'selected' : ''}>${contratoEstadoLabels[e]}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td>${formatearFecha(c.created_at)}</td>
+                    <td>
+                        ${c.estado === 'pendiente' ? `<button class="btn-copiar-link-kyc" onclick="copiarLinkContrato('${c.id}')"><i class="fas fa-link"></i> Copiar link</button>` : `<span class="btn-nota" title="Ya no está pendiente de firma" style="color:#16a34a; cursor:default;"><i class="fas fa-circle-check"></i></span>`}
+                        ${c.pdf_path ? `<button class="btn-nota" title="Descargar PDF firmado" onclick="verPdfContrato('${c.pdf_path}', this)"><i class="fas fa-file-pdf"></i></button>` : ''}
+                        <button class="btn-eliminar-lead" onclick="eliminarContrato('${c.id}', '${(c.vendedor_nombre || 'este contrato').replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function copiarLinkContrato(id) {
+            const c = contratosData.find(x => x.id === id);
+            if (!c) return;
+            const base = ((window.SITE_CONFIG && window.SITE_CONFIG.SITE_URL) || location.origin).replace(/\/$/, '');
+            const params = new URLSearchParams({ contrato: c.id, numero: c.numero });
+            const url = `${base}/contrato-firma.html?${params.toString()}`;
+            navigator.clipboard.writeText(url).then(
+                () => alert('Link para ' + c.vendedor_nombre + ' copiado:\n\n' + url + '\n\nMandáselo para que revise el acuerdo y firme.'),
+                () => prompt('Copiá el link:', url)
+            );
+        }
+
+        async function verPdfContrato(path, btn) {
+            const original = btn ? btn.innerHTML : '';
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/storage/v1/object/sign/contratos-documentos/${path}`, {
+                    method: 'POST', headers,
+                    body: JSON.stringify({ expiresIn: 120 }),
+                });
+                if (!res.ok) throw new Error('No se pudo generar el enlace (' + res.status + ')');
+                const data = await res.json();
+                window.open(`${SUPA_URL}/storage/v1${data.signedURL}`, '_blank', 'noopener');
+            } catch (ex) {
+                alert('No se pudo abrir el documento: ' + ex.message);
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = original; }
+            }
+        }
+
+        async function cambiarEstadoContrato(select) {
+            const id = select.getAttribute('data-id');
+            const nuevoEstado = select.value;
+            const claseAnterior = select.className;
+            select.className = 'estado-select estado-' + nuevoEstado;
+            select.disabled = true;
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/contratos_comercializacion?id=eq.${id}`, {
+                    method: 'PATCH', headers: { ...headers, Prefer: 'return=minimal' },
+                    body: JSON.stringify({ estado: nuevoEstado, updated_at: new Date().toISOString() }),
+                });
+                if (!res.ok) throw new Error('No se pudo actualizar (' + res.status + ')');
+                const c = contratosData.find(x => x.id === id);
+                if (c) c.estado = nuevoEstado;
+                renderContratos();
+            } catch (ex) {
+                alert(ex.message);
+                select.className = claseAnterior;
+            } finally {
+                select.disabled = false;
+            }
+        }
+
+        async function eliminarContrato(id, nombre) {
+            if (!confirm(`¿Eliminar el contrato de "${nombre}"? No se puede deshacer.`)) return;
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/contratos_comercializacion?id=eq.${id}`, {
+                    method: 'DELETE', headers: { ...headers, Prefer: 'return=minimal' },
+                });
+                if (!res.ok) throw new Error('No se pudo eliminar (' + res.status + ')');
+                contratosData = contratosData.filter(c => c.id !== id);
+                renderContratos();
+            } catch (ex) {
+                alert(ex.message);
+            }
+        }
+
+        // ---- inventario (filas dinámicas) ----
+        function agregarFilaInventarioContrato() {
+            const cont = document.getElementById('contrato-f-inventario-rows');
+            const fila = document.createElement('div');
+            fila.className = 'inventario-fila';
+            fila.innerHTML = `
+                <input type="text" placeholder="Artículo" class="inv-item">
+                <input type="text" placeholder="Descripción / ubicación" class="inv-desc">
+                <input type="text" placeholder="Cant." class="inv-cant">
+                <button type="button" onclick="this.closest('.inventario-fila').remove()"><i class="fas fa-trash"></i></button>
+            `;
+            cont.appendChild(fila);
+        }
+        function leerInventarioContrato() {
+            return Array.from(document.querySelectorAll('#contrato-f-inventario-rows .inventario-fila')).map(fila => ({
+                item: fila.querySelector('.inv-item').value.trim(),
+                descripcion: fila.querySelector('.inv-desc').value.trim(),
+                cantidad: fila.querySelector('.inv-cant').value.trim(),
+            })).filter(f => f.item || f.descripcion);
+        }
+
+        function calcularPlazoFinContrato() {
+            const inicioEl = document.getElementById('contrato-f-plazo-inicio');
+            const mesesEl = document.getElementById('contrato-f-plazo-meses');
+            const finEl = document.getElementById('contrato-f-plazo-fin');
+            if (!inicioEl.value || !mesesEl.value) return;
+            const inicio = new Date(inicioEl.value + 'T00:00:00');
+            inicio.setMonth(inicio.getMonth() + parseInt(mesesEl.value, 10));
+            finEl.value = inicio.toISOString().slice(0, 10);
+        }
+
+        // ---- firma del corredor (canvas) ----
+        function initContratoFirmaPad() {
+            const canvas = document.getElementById('contrato-firma-pad');
+            const ctx = canvas.getContext('2d');
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            const rect = canvas.getBoundingClientRect();
+            const width = Math.max(Math.floor(rect.width), 300);
+            const height = Math.max(Math.floor(rect.height), 140);
+            canvas.width = Math.floor(width * ratio);
+            canvas.height = Math.floor(height * ratio);
+            ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = '#0b2d5c';
+        }
+        function contratoFirmaPoint(canvas, e) {
+            const rect = canvas.getBoundingClientRect();
+            const p = e.touches && e.touches[0] ? e.touches[0] : e;
+            return { x: p.clientX - rect.left, y: p.clientY - rect.top };
+        }
+        (function () {
+            const canvas = document.getElementById('contrato-firma-pad');
+            const ctx = canvas.getContext('2d');
+            function start(e) { e.preventDefault(); contratoFirmaDrawing = true; const p = contratoFirmaPoint(canvas, e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }
+            function move(e) { if (!contratoFirmaDrawing) return; e.preventDefault(); const p = contratoFirmaPoint(canvas, e); ctx.lineTo(p.x, p.y); ctx.stroke(); contratoFirmaTrazada = true; }
+            function end(e) {
+                if (!contratoFirmaDrawing) return;
+                e.preventDefault();
+                contratoFirmaDrawing = false;
+                ctx.closePath();
+                contratoFirmaDataUrl = contratoFirmaTrazada ? canvas.toDataURL('image/png') : '';
+            }
+            ['mousedown', 'touchstart'].forEach(ev => canvas.addEventListener(ev, start, { passive: false }));
+            ['mousemove', 'touchmove'].forEach(ev => canvas.addEventListener(ev, move, { passive: false }));
+            ['mouseup', 'mouseleave', 'touchend', 'touchcancel'].forEach(ev => canvas.addEventListener(ev, end, { passive: false }));
+            document.getElementById('contrato-limpiar-firma').addEventListener('click', () => {
+                contratoFirmaTrazada = false; contratoFirmaDataUrl = '';
+                initContratoFirmaPad();
+            });
+        })();
+
+        function abrirModalNuevoContrato() {
+            ['contrato-f-vendedor', 'contrato-f-corredor', 'contrato-f-descripcion', 'contrato-f-registro', 'contrato-f-direccion', 'contrato-f-gravamenes', 'contrato-f-certificado', 'contrato-f-notas']
+                .forEach(id => document.getElementById(id).value = '');
+            document.getElementById('contrato-f-precio').value = '';
+            document.getElementById('contrato-f-tipo-listado').value = 'no_exclusivo';
+            document.getElementById('contrato-f-comision').value = '5';
+            document.getElementById('contrato-f-iva').checked = true;
+            document.getElementById('contrato-f-plazo-meses').value = '6';
+            document.getElementById('contrato-f-proteccion-dias').value = '180';
+            const hoy = new Date().toISOString().slice(0, 10);
+            document.getElementById('contrato-f-fecha').value = hoy;
+            document.getElementById('contrato-f-plazo-inicio').value = hoy;
+            calcularPlazoFinContrato();
+            document.getElementById('contrato-f-inventario-rows').innerHTML = '';
+            contratoFirmaTrazada = false; contratoFirmaDataUrl = '';
+            document.getElementById('modal-nuevo-contrato').classList.add('show');
+            setTimeout(initContratoFirmaPad, 30);
+        }
+        function cerrarModalNuevoContrato() {
+            document.getElementById('modal-nuevo-contrato').classList.remove('show');
+        }
+
+        async function crearContrato() {
+            const vendedor = document.getElementById('contrato-f-vendedor').value.trim();
+            const corredor = document.getElementById('contrato-f-corredor').value.trim();
+            const descripcion = document.getElementById('contrato-f-descripcion').value.trim();
+            const precio = parseFloat(document.getElementById('contrato-f-precio').value);
+            const fechaAcuerdo = document.getElementById('contrato-f-fecha').value;
+            const plazoInicio = document.getElementById('contrato-f-plazo-inicio').value;
+            const plazoFin = document.getElementById('contrato-f-plazo-fin').value;
+
+            if (!vendedor) { alert('Ingresá el nombre del vendedor.'); return; }
+            if (!corredor) { alert('Ingresá el nombre del corredor.'); return; }
+            if (!descripcion) { alert('Describí la propiedad.'); return; }
+            if (!precio || precio <= 0) { alert('Ingresá el precio de lista.'); return; }
+            if (!plazoFin) { alert('No se pudo calcular el fin del plazo -- revisá la fecha de inicio y los meses.'); return; }
+            if (!contratoFirmaTrazada || !contratoFirmaDataUrl) { alert('Falta la firma del corredor.'); return; }
+
+            const btn = document.getElementById('btn-crear-contrato');
+            const original = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = 'Creando...';
+            try {
+                const contratoId = crypto.randomUUID();
+                const firmaBlob = await (await fetch(contratoFirmaDataUrl)).blob();
+                const firmaFile = new File([firmaBlob], 'firma-corredor.png', { type: 'image/png' });
+                const corredorFirmaPath = await CostoSVAuth.subirArchivoPrivado(firmaFile, 'contratos-documentos', contratoId);
+
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/contratos_comercializacion`, {
+                    method: 'POST', headers: { ...headers, Prefer: 'return=representation' },
+                    body: JSON.stringify({
+                        id: contratoId,
+                        fecha_acuerdo: fechaAcuerdo,
+                        vendedor_nombre: vendedor,
+                        corredor_nombre: corredor,
+                        propiedad_descripcion: descripcion,
+                        propiedad_registro: document.getElementById('contrato-f-registro').value.trim() || null,
+                        propiedad_direccion: document.getElementById('contrato-f-direccion').value.trim() || null,
+                        propiedad_gravamenes: document.getElementById('contrato-f-gravamenes').value.trim() || null,
+                        propiedad_certificado: document.getElementById('contrato-f-certificado').value.trim() || null,
+                        precio_lista: precio,
+                        tipo_listado: document.getElementById('contrato-f-tipo-listado').value,
+                        comision_porcentaje: parseFloat(document.getElementById('contrato-f-comision').value) || 5,
+                        comision_incluye_iva: document.getElementById('contrato-f-iva').checked,
+                        plazo_meses: parseInt(document.getElementById('contrato-f-plazo-meses').value, 10) || 6,
+                        plazo_inicio: plazoInicio,
+                        plazo_fin: plazoFin,
+                        periodo_proteccion_dias: parseInt(document.getElementById('contrato-f-proteccion-dias').value, 10) || 180,
+                        inventario: leerInventarioContrato(),
+                        notas: document.getElementById('contrato-f-notas').value.trim() || null,
+                        corredor_firma_path: corredorFirmaPath,
+                    }),
+                });
+                if (!res.ok) throw new Error('No se pudo crear el contrato (' + res.status + ')');
+                const creado = (await res.json())[0];
+                cerrarModalNuevoContrato();
+                await cargarContratos();
+                if (creado) copiarLinkContrato(creado.id);
+            } catch (ex) {
+                alert(ex.message);
+            } finally {
+                btn.disabled = false; btn.innerHTML = original;
+            }
+        }
+
         // ---------- Métricas ----------
         const PAGINA_LABELS = {
             'index.html': 'Inicio', '': 'Inicio',
@@ -2258,6 +2713,7 @@
             cargarFranquicias();
             cargarLeads();
             cargarKyc();
+            cargarContratos();
             cargarUsoIA();
             cargarTestimonios();
         });

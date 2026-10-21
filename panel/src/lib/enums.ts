@@ -1,4 +1,4 @@
-import type { Categoria, Estado, Interes, KycClienteTipo, KycEstado, Origen, TipoContrato } from './types';
+import type { Categoria, ContratoEstado, Estado, Interes, KycClienteTipo, KycEstado, Origen, TipoContrato, TipoListado } from './types';
 
 export const ESTADOS: Estado[] = ['nuevo', 'contactado', 'calificado', 'perdido', 'cerrado'];
 export const ORIGENES: Origen[] = ['whatsapp', 'formulario_web', 'facebook_ads', 'marketplace', 'referido', 'otro'];
@@ -118,4 +118,23 @@ export const KYC_MOTIVO_PLANTILLAS: Record<string, { label: string; texto: strin
     label: 'Alquiler - propietario',
     texto: 'Cliente propietario que pone un inmueble en alquiler. Describí el inmueble, el monto aproximado del alquiler y cómo se originó la relación con el cliente.',
   },
+};
+
+export const CONTRATO_ESTADOS: ContratoEstado[] = ['pendiente', 'firmado', 'cancelado'];
+
+export const CONTRATO_ESTADO_LABEL: Record<ContratoEstado, string> = {
+  pendiente: 'Pendiente',
+  firmado: 'Firmado',
+  cancelado: 'Cancelado',
+};
+
+export const CONTRATO_ESTADO_CLASE: Record<ContratoEstado, string> = {
+  pendiente: 'bg-amber-100 text-amber-800',
+  firmado: 'bg-emerald-100 text-emerald-800',
+  cancelado: 'bg-slate-200 text-slate-600',
+};
+
+export const TIPO_LISTADO_LABEL: Record<TipoListado, string> = {
+  exclusivo: 'Exclusivo',
+  no_exclusivo: 'No exclusivo',
 };

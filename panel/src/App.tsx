@@ -8,6 +8,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { LeadsPage } from './pages/LeadsPage';
 import { PropiedadesPage } from './pages/PropiedadesPage';
 import { KycPage } from './pages/KycPage';
+import { ContratosPage } from './pages/ContratosPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 
 const queryClient = new QueryClient({
@@ -35,6 +36,7 @@ export default function App() {
               <Route path="/publicidad" element={<PlaceholderPage titulo="Publicidad inteligente" />} />
               <Route path="/captacion" element={<PlaceholderPage titulo="Captación" />} />
               <Route path="/kyc" element={<KycPage />} />
+              <Route path="/contratos" element={<ContratosPage />} />
               <Route path="/comisiones" element={<PlaceholderPage titulo="Comisiones" />} />
               <Route path="/calculadoras" element={<PlaceholderPage titulo="Calculadoras" />} />
             </Route>

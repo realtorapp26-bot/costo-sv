@@ -99,6 +99,14 @@
       "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
     },
     {
+      "source": "/contrato-firma.js",
+      "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
+    },
+    {
+      "source": "/contrato-firma.html",
+      "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
+    },
+    {
       "source": "/propiedades.html",
       "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
     },

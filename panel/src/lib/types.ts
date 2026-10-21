@@ -63,6 +63,50 @@ export interface KycSolicitud {
   updated_at: string;
 }
 
+export type TipoListado = 'exclusivo' | 'no_exclusivo';
+export type ContratoEstado = 'pendiente' | 'firmado' | 'cancelado';
+
+export interface ItemInventario {
+  item: string;
+  descripcion: string;
+  cantidad: string;
+}
+
+// Refleja supabase/migrations/20261020000000_contratos_schema.sql. El
+// vendedor completa vendedor_firma_nombre/fecha y pdf_path desde
+// contrato-firma.html (server-side, vía /api/lead) -- quedan en null hasta
+// que firma.
+export interface ContratoComercializacion {
+  id: string;
+  numero: string;
+  fecha_acuerdo: string;
+  vendedor_nombre: string;
+  corredor_nombre: string;
+  propiedad_descripcion: string;
+  propiedad_registro: string | null;
+  propiedad_direccion: string | null;
+  propiedad_gravamenes: string | null;
+  propiedad_certificado: string | null;
+  precio_lista: number;
+  tipo_listado: TipoListado;
+  comision_porcentaje: number;
+  comision_incluye_iva: boolean;
+  plazo_meses: number;
+  plazo_inicio: string;
+  plazo_fin: string;
+  periodo_proteccion_dias: number;
+  inventario: ItemInventario[];
+  notas: string | null;
+  estado: ContratoEstado;
+  corredor_firma_path: string | null;
+  vendedor_firma_nombre: string | null;
+  vendedor_firma_fecha: string | null;
+  pdf_path: string | null;
+  completado_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // Lo que devuelve useLeads(): lead + contacto embebido.
 export interface LeadConContacto {
   id: string;
