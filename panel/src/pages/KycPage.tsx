@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { KycClienteTipo, KycEstado, KycSolicitud } from '../lib/types';
 import { KYC_CLIENTE_TIPO_LABEL, KYC_ESTADOS, KYC_ESTADO_CLASE, KYC_ESTADO_LABEL, KYC_MOTIVO_PLANTILLAS } from '../lib/enums';
 import { formatearFecha } from '../lib/format';
@@ -11,9 +12,10 @@ export function KycPage() {
   const updateEstado = useUpdateKycEstado();
   const deleteKyc = useDeleteKyc();
 
+  const [params] = useSearchParams();
   const [fEstado, setFEstado] = useState<KycEstado | null>(null);
   const [soloPendientes, setSoloPendientes] = useState(false);
-  const [nuevoOpen, setNuevoOpen] = useState(false);
+  const [nuevoOpen, setNuevoOpen] = useState(params.get('nuevo') === '1');
 
   const filtrados = useMemo(
     () =>

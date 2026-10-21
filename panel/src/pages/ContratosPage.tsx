@@ -1,4 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { CamposContratoBorrador, ContratoComercializacion, ContratoEstado, ItemInventario, TipoListado } from '../lib/types';
 import { CONTRATO_ESTADO_CLASE, CONTRATO_ESTADOS, CONTRATO_ESTADO_LABEL, TIPO_LISTADO_LABEL } from '../lib/enums';
 import { formatearFecha } from '../lib/format';
@@ -32,8 +33,9 @@ export function ContratosPage() {
   const updateEstado = useUpdateContratoEstado();
   const deleteContrato = useDeleteContrato();
 
+  const [params] = useSearchParams();
   const [fEstado, setFEstado] = useState<ContratoEstado | null>(null);
-  const [nuevoOpen, setNuevoOpen] = useState(false);
+  const [nuevoOpen, setNuevoOpen] = useState(params.get('nuevo') === '1');
 
   const filtrados = useMemo(
     () => contratos.filter((c) => !fEstado || c.estado === fEstado),

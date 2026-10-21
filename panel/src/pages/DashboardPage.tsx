@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { nombreDe } from '../lib/usuarios';
-import { useLeads } from '../lib/queries';
+import { useContratos, useKyc, useLeads } from '../lib/queries';
 import { ESTADOS, ESTADO_LABEL } from '../lib/enums';
 import { esHoy, diasDesde } from '../lib/format';
 import { Badge, Button, Card, StatCard } from '../components/ui';
@@ -11,6 +11,8 @@ const SITE = 'https://guerrero-properties.com';
 export function DashboardPage() {
   const { email } = useAuth();
   const { data: leads = [], isLoading } = useLeads();
+  const { data: casosKyc = [], isLoading: cargandoKyc } = useKyc();
+  const { data: contratos = [], isLoading: cargandoContratos } = useContratos();
 
   const nuevosHoy = leads.filter((l) => esHoy(l.created_at)).length;
   const seguimiento = leads.filter((l) => ['nuevo', 'contactado'].includes(l.estado)).length;
@@ -18,6 +20,8 @@ export function DashboardPage() {
   const sinMover7d = leads.filter(
     (l) => ['nuevo', 'contactado'].includes(l.estado) && diasDesde(l.created_at) >= 7,
   ).length;
+  const kycPendientes = casosKyc.filter((k) => k.estado === 'pendiente').length;
+  const contratosPendientes = contratos.filter((c) => c.estado === 'pendiente').length;
 
   return (
     <div className="space-y-6">
@@ -43,13 +47,23 @@ export function DashboardPage() {
             <i className="fas fa-reply" /> Carta de respuesta
           </Button>
         </a>
+        <Link to="/kyc?nuevo=1">
+          <Button variant="outline">
+            <i className="fas fa-shield-halved" /> Nuevo KYC
+          </Button>
+        </Link>
+        <Link to="/contratos?nuevo=1">
+          <Button variant="outline">
+            <i className="fas fa-file-contract" /> Nuevo contrato
+          </Button>
+        </Link>
       </div>
 
       <section>
         <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-400">
           Pendientes importantes
         </h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <StatCard label="Leads nuevos hoy" value={isLoading ? '…' : nuevosHoy} icon="fas fa-bolt" tono="blue" />
           <StatCard label="En seguimiento" value={isLoading ? '…' : seguimiento} icon="fas fa-clock" tono="amber" />
           <StatCard label="Calificados" value={isLoading ? '…' : calificados} icon="fas fa-circle-check" tono="emerald" />
@@ -60,6 +74,22 @@ export function DashboardPage() {
             icon="fas fa-triangle-exclamation"
             tono={sinMover7d > 0 ? 'red' : 'navy'}
           />
+          <Link to="/kyc">
+            <StatCard
+              label="KYC pendientes"
+              value={cargandoKyc ? '…' : kycPendientes}
+              icon="fas fa-shield-halved"
+              tono={kycPendientes > 0 ? 'amber' : 'navy'}
+            />
+          </Link>
+          <Link to="/contratos">
+            <StatCard
+              label="Contratos por firmar"
+              value={cargandoContratos ? '…' : contratosPendientes}
+              icon="fas fa-file-contract"
+              tono={contratosPendientes > 0 ? 'amber' : 'navy'}
+            />
+          </Link>
         </div>
       </section>
 
