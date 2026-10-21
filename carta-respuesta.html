@@ -94,6 +94,16 @@
 
         <form id="responseForm" novalidate>
             <div class="co-card">
+                <h2>Borrador <span class="en">/ Draft</span></h2>
+                <p class="hint">Elegí un borrador para precargar las condiciones repetidas, o dejalo en blanco. <span class="en">Pick a draft to preload the repeated conditions, or leave it blank.</span></p>
+                <div class="co-field">
+                    <select id="borrador_select">
+                        <option value="">— Empezar en blanco / Start blank —</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="co-card">
                 <h2>Tipo de respuesta <span class="en">/ Response type</span></h2>
                 <div class="co-grid">
                     <div class="co-field">
@@ -302,6 +312,14 @@
                         <label for="counteroffer_text">Texto de la contraoferta <span class="en">/ Counteroffer text</span></label>
                         <textarea id="counteroffer_text" name="counteroffer_text" placeholder="Ej: Contraoferto en US$ 105,000 al contado, cierre en 45 días, el inmueble se entrega desocupado."></textarea>
                     </div>
+                </div>
+            </div>
+
+            <div class="co-card">
+                <h2>Notas adicionales <span class="en">/ Additional notes</span></h2>
+                <p class="hint">Opcional. Aparece impresa en el PDF. <span class="en">Optional. Printed in the PDF.</span></p>
+                <div class="co-field full">
+                    <textarea id="additional_notes" name="additional_notes" placeholder="Ejemplo: Se incluyen electrodomésticos y cortinas en la entrega."></textarea>
                 </div>
             </div>
 

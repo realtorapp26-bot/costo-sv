@@ -38,6 +38,8 @@
   var counterofferText = el('counteroffer_text');
   var englishConsent = el('english_consent');
   var englishConsentWrap = el('englishConsentWrap');
+  var additionalNotes = el('additional_notes');
+  var borradorSelect = el('borrador_select');
   var offerDateView = el('offer_date_view');
   var errorBox = el('errorBox');
   var errorList = el('errorList');
@@ -674,6 +676,14 @@
         cardX, y, cardWidth, language);
     }
 
+    if (values.additionalNotes) {
+      y += 4;
+      y = ensureSpace(pdf, y, 70, title, language);
+      y = sectionLabel(pdf, isEnglish ? 'Additional Notes' : 'Notas adicionales', x, y);
+      y = paragraph(pdf, values.additionalNotes, x, y, width, { fontSize: 9.4, minFontSize: 8.6, lineHeight: 12.8, maxLines: 6 });
+      y += 6;
+    }
+
     drawSignatureBlock(pdf, values, y, title, language);
   }
 
@@ -803,6 +813,7 @@
       originalAmountWords: val('original_amount_words'),
       originalAmountWordsEnglish: val('original_amount_words_english'),
       counterofferText: val('counteroffer_text'),
+      additionalNotes: val('additional_notes'),
       signatureData: signatureData,
       signDate: now.dateInput,
       signDateLong: now.dateLong,
@@ -878,6 +889,34 @@
     }
   }
 
+  // ---------- borradores (lectura pública, sin login -- los crea Walter
+  // desde el panel; esta página solo lee para precargar) ----------
+  function aplicarBorrador(campos) {
+    if (campos.payment_method) paymentMethod.value = campos.payment_method;
+    paymentDetails.value = campos.payment_details || '';
+    rentalTerm.value = campos.rental_term || '';
+    el('additional_terms').value = campos.additional_terms || '';
+    additionalNotes.value = campos.notas_adicionales || '';
+  }
+  function cargarBorradores() {
+    var cfg = window.SITE_CONFIG || {};
+    if (!cfg.SUPABASE_URL || !cfg.SUPABASE_ANON_KEY) return;
+    fetch(cfg.SUPABASE_URL + '/rest/v1/respuesta_borradores?select=*&order=created_at.desc', {
+      headers: { apikey: cfg.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + cfg.SUPABASE_ANON_KEY },
+    }).then(function (res) { return res.ok ? res.json() : []; }).then(function (borradores) {
+      borradores.forEach(function (b) {
+        var opt = document.createElement('option');
+        opt.value = b.id;
+        opt.textContent = b.nombre;
+        borradorSelect.appendChild(opt);
+      });
+      borradorSelect.addEventListener('change', function () {
+        var b = borradores.find(function (x) { return x.id === borradorSelect.value; });
+        if (b) aplicarBorrador(b);
+      });
+    }).catch(function () {});
+  }
+
   // ---------- prefill por querystring ----------
   function prefill() {
     var q = new URLSearchParams(window.location.search);
@@ -911,5 +950,6 @@
   refreshDate();
   syncAmountFields();
   initCanvas();
+  cargarBorradores();
   setInterval(refreshDate, 60000);
 })();

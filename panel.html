@@ -328,6 +328,7 @@
                         <div class="herr-tool-actions">
                             <a class="herr-mini" href="carta-respuesta.html" target="_blank" rel="noopener">Abrir</a>
                             <button class="herr-mini" type="button" onclick="copiarLinkHerramienta('carta-respuesta.html', 'la carta de respuesta', 'el propietario')">Copiar link</button>
+                            <button class="herr-mini" type="button" onclick="abrirModalBorradoresRespuesta()">Borradores</button>
                         </div>
                     </div>
 
@@ -1162,6 +1163,61 @@
                 </div>
                 <div class="actions-row" style="justify-content: flex-end; margin-top: 12px;">
                     <button class="btn-action btn-primary" type="button" onclick="crearBorradorOferta()">Guardar borrador</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: Borradores de Carta de Respuesta ===== -->
+    <div class="modal-overlay" id="modal-borradores-respuesta" onclick="if (event.target === this) cerrarModalBorradoresRespuesta()">
+        <div class="modal-box" style="max-width: 640px;">
+            <div class="modal-box-head">
+                <h3 style="margin:0;">Borradores de Carta de Respuesta</h3>
+                <button type="button" class="modal-box-cerrar" onclick="cerrarModalBorradoresRespuesta()" aria-label="Cerrar">✕</button>
+            </div>
+
+            <div class="panel">
+                <h2>Borradores guardados</h2>
+                <div id="borradores-respuesta-lista" style="display:flex; flex-direction:column; gap:8px;"></div>
+                <p id="borradores-respuesta-vacio" class="empty-hint" style="display:none;">Todavía no hay borradores guardados.</p>
+            </div>
+
+            <div class="panel">
+                <h2>Nuevo borrador</h2>
+                <label>Se precargan en carta-respuesta.html cuando se elija este borrador. Dejá en blanco lo que no aplique.</label>
+                <div class="form-grid">
+                    <div class="full">
+                        <label>Nombre del borrador</label>
+                        <input type="text" id="respuesta-b-nombre" placeholder="Ej: Aceptación venta de contado">
+                    </div>
+                    <div>
+                        <label>Forma de pago</label>
+                        <select id="respuesta-b-forma-pago">
+                            <option value="">— Sin definir —</option>
+                            <option value="Contado">Contado / Cash</option>
+                            <option value="Crédito">Crédito / Financing</option>
+                            <option value="Mixto">Mixto / Mixed</option>
+                        </select>
+                    </div>
+                    <div class="full">
+                        <label>Detalle de cómo recibirá el pago</label>
+                        <textarea id="respuesta-b-fondos"></textarea>
+                    </div>
+                    <div class="full">
+                        <label>Plazo de alquiler</label>
+                        <input type="text" id="respuesta-b-plazo" placeholder="Ej: 12 meses">
+                    </div>
+                    <div class="full">
+                        <label>Condiciones adicionales (alquiler)</label>
+                        <textarea id="respuesta-b-condiciones"></textarea>
+                    </div>
+                    <div class="full">
+                        <label>Notas adicionales</label>
+                        <textarea id="respuesta-b-notas"></textarea>
+                    </div>
+                </div>
+                <div class="actions-row" style="justify-content: flex-end; margin-top: 12px;">
+                    <button class="btn-action btn-primary" type="button" onclick="crearBorradorRespuesta()">Guardar borrador</button>
                 </div>
             </div>
         </div>
@@ -2902,6 +2958,87 @@
                 });
                 if (!res.ok) throw new Error('No se pudo eliminar (' + res.status + ')');
                 await cargarBorradoresOferta();
+            } catch (ex) {
+                alert(ex.message);
+            }
+        }
+
+        // ---------- Borradores de Carta de Respuesta ----------
+        let respuestaBorradoresData = [];
+
+        async function abrirModalBorradoresRespuesta() {
+            document.getElementById('modal-borradores-respuesta').classList.add('show');
+            await cargarBorradoresRespuesta();
+        }
+        function cerrarModalBorradoresRespuesta() {
+            document.getElementById('modal-borradores-respuesta').classList.remove('show');
+        }
+
+        async function cargarBorradoresRespuesta() {
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/respuesta_borradores?select=*&order=created_at.desc`, { headers });
+                if (!res.ok) throw new Error('No se pudieron cargar los borradores (' + res.status + ')');
+                respuestaBorradoresData = await res.json();
+            } catch (ex) {
+                respuestaBorradoresData = [];
+            }
+            renderBorradoresRespuesta();
+        }
+
+        function renderBorradoresRespuesta() {
+            const cont = document.getElementById('borradores-respuesta-lista');
+            const vacio = document.getElementById('borradores-respuesta-vacio');
+            cont.innerHTML = '';
+            vacio.style.display = respuestaBorradoresData.length ? 'none' : 'block';
+            respuestaBorradoresData.forEach(b => {
+                const row = document.createElement('div');
+                row.style.cssText = 'display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm);';
+                row.innerHTML = `<span>${b.nombre}</span>`;
+                const btn = document.createElement('button');
+                btn.className = 'btn-eliminar-lead';
+                btn.innerHTML = '<i class="fas fa-trash"></i>';
+                btn.onclick = () => eliminarBorradorRespuesta(b.id, b.nombre);
+                row.appendChild(btn);
+                cont.appendChild(row);
+            });
+        }
+
+        async function crearBorradorRespuesta() {
+            const nombre = document.getElementById('respuesta-b-nombre').value.trim();
+            if (!nombre) { alert('Ingresá un nombre para el borrador.'); return; }
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/respuesta_borradores`, {
+                    method: 'POST', headers: { ...headers, Prefer: 'return=minimal' },
+                    body: JSON.stringify({
+                        nombre,
+                        payment_method: document.getElementById('respuesta-b-forma-pago').value || null,
+                        payment_details: document.getElementById('respuesta-b-fondos').value.trim() || null,
+                        rental_term: document.getElementById('respuesta-b-plazo').value.trim() || null,
+                        additional_terms: document.getElementById('respuesta-b-condiciones').value.trim() || null,
+                        notas_adicionales: document.getElementById('respuesta-b-notas').value.trim() || null,
+                    }),
+                });
+                if (!res.ok) throw new Error('No se pudo guardar el borrador (' + res.status + ')');
+                ['respuesta-b-nombre', 'respuesta-b-fondos', 'respuesta-b-plazo', 'respuesta-b-condiciones', 'respuesta-b-notas']
+                    .forEach(id => document.getElementById(id).value = '');
+                document.getElementById('respuesta-b-forma-pago').value = '';
+                await cargarBorradoresRespuesta();
+            } catch (ex) {
+                alert(ex.message);
+            }
+        }
+
+        async function eliminarBorradorRespuesta(id, nombre) {
+            if (!confirm(`¿Eliminar el borrador "${nombre}"? No se puede deshacer.`)) return;
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/respuesta_borradores?id=eq.${id}`, {
+                    method: 'DELETE', headers: { ...headers, Prefer: 'return=minimal' },
+                });
+                if (!res.ok) throw new Error('No se pudo eliminar (' + res.status + ')');
+                await cargarBorradoresRespuesta();
             } catch (ex) {
                 alert(ex.message);
             }
