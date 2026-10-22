@@ -814,23 +814,114 @@
       var pedido = new URLSearchParams(window.location.search).get('borrador');
       if (pedido) {
         var b = borradores.find(function (x) { return x.id === pedido; });
-        if (b) { borradorSelect.value = b.id; aplicarBorrador(b); }
+        if (b) {
+          borradorSelect.value = b.id;
+          aplicarBorrador(b);
+          // Lo que el agente dejó explícito en el link le gana al borrador.
+          prefill();
+          aplicarSeleccionItems();
+          toggleOfferType();
+          toggleDocumentLanguage();
+          syncAmountWords();
+        }
       }
     }).catch(function () {});
   }
 
   // ---------- prefill por querystring ----------
+  // Se corre dos veces: al cargar, y otra vez después de aplicar el borrador,
+  // para que lo que el agente dejó explícito en el link le gane al borrador.
   function prefill() {
     var q = new URLSearchParams(window.location.search);
     var tipo = (q.get('tipo') || '').toLowerCase();
     if (tipo === 'venta') offerType.value = 'VENTA';
     else if (tipo === 'alquiler') offerType.value = 'ALQUILER';
+    if (q.get('idioma')) documentLanguage.value = q.get('idioma');
     if (q.get('municipio')) el('property_municipality').value = q.get('municipio');
     if (q.get('departamento')) el('property_department').value = q.get('departamento');
     if (q.get('direccion')) el('property_address').value = q.get('direccion');
     if (q.get('ciudad')) el('issue_city').value = q.get('ciudad');
+    if (q.get('pago')) paymentMethod.value = q.get('pago');
+    if (q.get('detallepago')) paymentDetails.value = q.get('detallepago');
+    if (q.get('plazo')) rentalTerm.value = q.get('plazo');
+    if (q.get('condiciones')) ownerConditions.value = q.get('condiciones');
+    if (q.get('notas')) additionalNotes.value = q.get('notas');
+    if (q.get('cerrado')) firmPrice.checked = q.get('cerrado') === '1';
+    var lista = (q.get('lista') || '').replace(/[^0-9.]/g, '');
+    if (lista) listPrice.value = lista;
     var monto = (q.get('monto') || '').replace(/[^0-9.]/g, '');
     if (monto) amountNumber.value = monto;
+  }
+
+  // ---------- modo agente: preparar la carta y generar el link del cliente ----------
+  function aplicarSeleccionItems() {
+    var crudo = new URLSearchParams(window.location.search).get('items');
+    if (crudo === null) return;
+    var marcados = crudo.split(',').filter(function (s) { return s !== ''; });
+    inventoryItemsWrap.querySelectorAll('input[type=checkbox]').forEach(function (cb, i) {
+      cb.checked = marcados.indexOf(String(i)) !== -1;
+    });
+  }
+  function construirLinkCliente() {
+    var base = ((window.SITE_CONFIG || {}).SITE_URL || (location.origin + location.pathname.replace(/[^/]*$/, ''))).replace(/\/$/, '');
+    var p = new URLSearchParams();
+    if (borradorSelect.value) p.set('borrador', borradorSelect.value);
+    if (offerType.value) p.set('tipo', offerType.value.toLowerCase());
+    p.set('idioma', documentLanguage.value);
+    if (el('issue_city').value.trim()) p.set('ciudad', el('issue_city').value.trim());
+    if (el('property_municipality').value.trim()) p.set('municipio', el('property_municipality').value.trim());
+    if (el('property_department').value.trim()) p.set('departamento', el('property_department').value.trim());
+    if (el('property_address').value.trim()) p.set('direccion', el('property_address').value.trim());
+    if (listPrice.value) p.set('lista', listPrice.value);
+    if (amountNumber.value) p.set('monto', amountNumber.value);
+    if (paymentMethod.value) p.set('pago', paymentMethod.value);
+    if (paymentDetails.value.trim()) p.set('detallepago', paymentDetails.value.trim());
+    if (rentalTerm.value.trim()) p.set('plazo', rentalTerm.value.trim());
+    if (ownerConditions.value.trim()) p.set('condiciones', ownerConditions.value.trim());
+    if (additionalNotes.value.trim()) p.set('notas', additionalNotes.value.trim());
+    p.set('cerrado', firmPrice.checked ? '1' : '0');
+    var marcados = [];
+    inventoryItemsWrap.querySelectorAll('input[type=checkbox]').forEach(function (cb, i) {
+      if (cb.checked) marcados.push(i);
+    });
+    if (inventoryItemsWrap.querySelectorAll('input[type=checkbox]').length) p.set('items', marcados.join(','));
+    return base + '/carta-oferta.html?' + p.toString();
+  }
+  function modoAgente() {
+    if (new URLSearchParams(window.location.search).get('agente') !== '1') return;
+    el('agenteCard').classList.remove('d-none');
+    function copiar(url, aviso) {
+      var salida = el('agenteLink');
+      salida.value = url;
+      salida.classList.remove('d-none');
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(
+          function () { el('agenteAviso').textContent = aviso; },
+          function () { el('agenteAviso').textContent = 'No se pudo copiar solo. Copiá el link del recuadro de abajo.'; });
+      } else {
+        el('agenteAviso').textContent = 'Copiá el link del recuadro de abajo.';
+      }
+      salida.select();
+    }
+    el('copiarLinkRevision').addEventListener('click', function () {
+      copiar(construirLinkCliente() + '&revision=1',
+        'Link de revisión copiado. Mandáselo primero al propietario: lo ve completo, de solo lectura, sin poder firmar ni modificar.');
+    });
+    el('copiarLinkCliente').addEventListener('click', function () {
+      copiar(construirLinkCliente(),
+        'Link del cliente copiado. Mandáselo recién cuando el propietario haya dado el visto bueno: el cliente solo pone su nombre, su documento y firma.');
+    });
+  }
+
+  // ---------- modo revisión: el propietario ve la oferta, no la firma ----------
+  function modoRevision() {
+    if (new URLSearchParams(window.location.search).get('revision') !== '1') return;
+    document.body.classList.add('co-revision');
+    el('revisionBanner').classList.remove('d-none');
+    ['agenteCard', 'borradorCard', 'clienteCard', 'firmaCard'].forEach(function (id) {
+      if (el(id)) el(id).classList.add('d-none');
+    });
+    generateBtn.classList.add('d-none');
   }
 
   // ---------- init ----------
@@ -847,6 +938,8 @@
   refreshOfferDate();
   syncAmountWords();
   initCanvas();
+  modoAgente();
+  modoRevision();
   cargarBorradores();
   setInterval(refreshOfferDate, 60000);
 })();

@@ -2950,6 +2950,14 @@
                 const acciones = document.createElement('div');
                 acciones.className = 'actions-row';
                 acciones.style.margin = '0';
+                const btnPreparar = document.createElement('button');
+                btnPreparar.className = 'btn-nota';
+                btnPreparar.innerHTML = '<i class="fas fa-pen-to-square"></i> Preparar oferta';
+                btnPreparar.title = 'Abre la carta para que la dejes lista y generes los links (revisión del propietario y del cliente)';
+                btnPreparar.onclick = () => {
+                    const base = ((window.SITE_CONFIG && window.SITE_CONFIG.SITE_URL) || location.origin).replace(/\/$/, '');
+                    window.open(`${base}/carta-oferta.html?agente=1&borrador=${b.id}`, '_blank');
+                };
                 const btnLink = document.createElement('button');
                 btnLink.className = 'btn-nota';
                 btnLink.innerHTML = '<i class="fas fa-link"></i> Copiar link';
@@ -2959,6 +2967,7 @@
                 btn.className = 'btn-eliminar-lead';
                 btn.innerHTML = '<i class="fas fa-trash"></i>';
                 btn.onclick = () => eliminarBorradorOferta(b.id, b.nombre);
+                acciones.appendChild(btnPreparar);
                 acciones.appendChild(btnLink);
                 acciones.appendChild(btn);
                 row.appendChild(acciones);

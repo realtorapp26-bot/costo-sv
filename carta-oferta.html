@@ -56,6 +56,8 @@
         .co-closing-row span { flex: 1; }
         .co-closing-row strong { font-variant-numeric: tabular-nums; white-space: nowrap; color: #0b2d5c; }
         .co-closing-row.total { background: #eef2ff; font-weight: 700; }
+        .co-revision #offerForm { pointer-events: none; }
+        .co-revision #offerForm input, .co-revision #offerForm select, .co-revision #offerForm textarea { background: #f8fafc; color: #334155; }
         .co-errors { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; }
         .co-errors h3 { color: #b91c1c; font-size: .95rem; margin: 0 0 8px; }
         .co-errors ul { margin: 0; padding-left: 18px; color: #7f1d1d; font-size: .85rem; }
@@ -93,8 +95,25 @@
             <ul id="errorList"></ul>
         </div>
 
+        <div class="co-note d-none" id="revisionBanner" style="background:#eef2ff;border-color:#c7d2fe;">
+            <strong>Revisión del propietario.</strong> Esta es la oferta que se le va a enviar al comprador para que la complete y firme.
+            Revisá el precio, la forma de pago y los bienes incluidos. Si algo no está correcto, avisale a tu agente antes de que se envíe.
+            <span class="en"><strong>Owner review.</strong> This is the offer that will be sent to the buyer to complete and sign. Please review the price, payment method and included items. If anything is not correct, let your agent know before it is sent.</span>
+        </div>
+
         <form id="offerForm" novalidate>
-            <div class="co-card">
+            <div class="co-card d-none" id="agenteCard" style="border-color:#0b2d5c;">
+                <h2>Preparar el link para el cliente</h2>
+                <p class="hint">Modo agente. Llená abajo todo lo que quieras dejar listo (inmueble, precio, forma de pago, bienes incluidos) y después apretá el botón: se copia un link que le abre al cliente la carta ya con todo eso puesto. Él solo pone su nombre, su documento y firma.</p>
+                <div class="co-sign-actions" style="justify-content:flex-start;gap:10px;flex-wrap:wrap;">
+                    <button type="button" class="co-btn-clear" id="copiarLinkRevision" style="font-weight:600;">1. Copiar link de revisión (propietario)</button>
+                    <button type="button" class="co-btn-clear" id="copiarLinkCliente" style="font-weight:600;">2. Copiar link para el cliente</button>
+                </div>
+                <div class="co-help" id="agenteAviso" style="margin-top:8px;"></div>
+                <textarea id="agenteLink" class="d-none" readonly rows="2" style="margin-top:8px;font-size:.78rem;"></textarea>
+            </div>
+
+            <div class="co-card" id="borradorCard">
                 <h2>Borrador <span class="en">/ Draft</span></h2>
                 <p class="hint">Elegí un borrador para precargar las condiciones repetidas, o dejalo en blanco. <span class="en">Pick a draft to preload the repeated conditions, or leave it blank.</span></p>
                 <div class="co-field">
@@ -129,7 +148,7 @@
                 </div>
             </div>
 
-            <div class="co-card">
+            <div class="co-card" id="clienteCard">
                 <h2>Datos del cliente <span class="en">/ Client details</span></h2>
                 <div class="co-grid">
                     <div class="co-field full">
@@ -277,7 +296,7 @@
                 </div>
             </div>
 
-            <div class="co-card">
+            <div class="co-card" id="firmaCard">
                 <h2>Firma <span class="en">/ Signature</span></h2>
                 <p class="hint">Firma del cliente. La fecha y hora se agregan automáticamente. <span class="en">/ Client's signature. The date and time are added automatically.</span></p>
                 <div class="co-sign-wrap">
