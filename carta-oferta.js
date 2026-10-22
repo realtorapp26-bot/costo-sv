@@ -13,6 +13,7 @@
   var offerType = el('offer_type');
   var documentType = el('document_type');
   var documentNumber = el('document_number');
+  var listPrice = el('list_price');
   var amountNumber = el('amount_number');
   var amountWords = el('amount_words');
   var amountWordsEnglish = el('amount_words_english');
@@ -454,6 +455,21 @@
       isEnglish ? (isSale ? 'Offered purchase price' : 'Offered rental price') : (isSale ? 'Precio de compra ofrecido' : 'Precio de alquiler ofrecido'),
       language);
 
+    if (values.listPrice > 0) {
+      var diff = values.listPrice - values.amountNumber;
+      var listText = isEnglish
+        ? 'Authorized list price: US$ ' + formatMoney(values.listPrice) + '. ' + (
+            diff > 0 ? 'This offer is US$ ' + formatMoney(diff) + ' below the list price.'
+            : diff < 0 ? 'This offer is US$ ' + formatMoney(-diff) + ' above the list price.'
+            : 'This offer matches the list price.')
+        : 'Precio de lista autorizado: US$ ' + formatMoney(values.listPrice) + '. ' + (
+            diff > 0 ? 'Esta oferta está US$ ' + formatMoney(diff) + ' por debajo del precio de lista.'
+            : diff < 0 ? 'Esta oferta está US$ ' + formatMoney(-diff) + ' por encima del precio de lista.'
+            : 'Esta oferta corresponde al precio de lista.');
+      y = paragraph(pdf, listText, x, y, width, { fontSize: 10.8, minFontSize: 9.6, lineHeight: 14.6, maxLines: 3 });
+      y += 10;
+    }
+
     if (values.firmPrice) {
       pdf.setTextColor(11, 45, 92);
       y = paragraph(pdf,
@@ -660,6 +676,7 @@
       propertyDepartment: val('property_department'),
       propertyAddress: val('property_address'),
       amountNumber: amount,
+      listPrice: Number(val('list_price')) || 0,
       amountWords: val('amount_words'),
       amountWordsEnglish: val('amount_words_english'),
       rentalTerm: val('rental_term'),
@@ -772,6 +789,7 @@
   // ---------- borradores (lectura pública, sin login -- los crea Walter
   // desde el panel; esta página solo lee para precargar) ----------
   function aplicarBorrador(campos) {
+    listPrice.value = campos.precio_lista != null ? campos.precio_lista : '';
     rentalTerm.value = campos.rental_term || '';
     ownerConditions.value = campos.owner_conditions || '';
     if (campos.payment_method) paymentMethod.value = campos.payment_method;
