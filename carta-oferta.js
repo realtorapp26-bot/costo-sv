@@ -441,8 +441,8 @@
     pdf.setTextColor(15, 23, 42);
     y = paragraph(pdf,
       isEnglish
-        ? 'I, ' + values.fullName + ', ' + values.age + ' years of age, domiciled in the city of ' + values.domicileCity + ', state or department of ' + values.domicileDepartment + ', holder of my ' + (values.documentType === 'PASAPORTE' ? 'passport' : values.documentType) + ' number ' + values.documentNumber + ', acting as the ' + (isSale ? 'buyer' : 'prospective tenant') + ', declare that I am interested in ' + (isSale ? 'purchasing' : 'renting') + ' the property with the following characteristics:'
-        : 'Yo, ' + values.fullName + ', de ' + values.age + ' años de edad, del domicilio de la ciudad de ' + values.domicileCity + ', departamento de ' + values.domicileDepartment + ', portador de mi ' + values.documentType + ' número ' + values.documentNumber + ', en mi calidad de ' + (isSale ? 'comprador' : 'cliente') + ', declaro que me encuentro interesado en ' + (isSale ? 'comprar' : 'alquilar') + ' el inmueble que cuenta con las siguientes características:',
+        ? 'I, ' + values.fullName + ', holder of my ' + (values.documentType === 'PASAPORTE' ? 'passport' : values.documentType) + ' number ' + values.documentNumber + ', acting as the ' + (isSale ? 'buyer' : 'prospective tenant') + ', declare that I am interested in ' + (isSale ? 'purchasing' : 'renting') + ' the property with the following characteristics:'
+        : 'Yo, ' + values.fullName + ', portador de mi ' + values.documentType + ' número ' + values.documentNumber + ', en mi calidad de ' + (isSale ? 'comprador' : 'cliente') + ', declaro que me encuentro interesado en ' + (isSale ? 'comprar' : 'alquilar') + ' el inmueble que cuenta con las siguientes características:',
       x, y, width, { fontSize: 11.8, minFontSize: 10.2, lineHeight: 16.8, maxLines: 7 });
     y += 12;
 
@@ -614,7 +614,7 @@
       if (node) { node.classList.add('is-invalid'); if (!firstInvalid) firstInvalid = node; }
       errors.push(msg);
     }
-    ['full_name', 'age', 'domicile_city', 'domicile_department', 'property_municipality', 'property_department', 'property_address', 'amount_number', 'offer_type', 'document_type']
+    ['full_name', 'property_municipality', 'property_department', 'property_address', 'amount_number', 'offer_type', 'document_type']
       .forEach(function (n) { if (form.elements[n]) form.elements[n].classList.remove('is-invalid'); });
     documentNumber.classList.remove('is-invalid');
     paymentMethod.classList.remove('is-invalid');
@@ -625,10 +625,6 @@
 
     if (!offerType.value) bad(offerType, 'Seleccioná venta o alquiler.');
     if (!val('full_name')) bad(form.elements['full_name'], 'Ingresá el nombre completo.');
-    var age = Number(val('age'));
-    if (!val('age') || !Number.isInteger(age) || age < 18 || age > 120) bad(form.elements['age'], 'Ingresá una edad válida (18 a 120).');
-    if (!val('domicile_city')) bad(form.elements['domicile_city'], 'Ingresá la ciudad de domicilio.');
-    if (!val('domicile_department')) bad(form.elements['domicile_department'], 'Ingresá el departamento de domicilio.');
     if (!documentType.value) bad(documentType, 'Seleccioná el tipo de documento.');
     if (!validDocumentNumber()) bad(documentNumber, 'Número de documento inválido para el tipo elegido.');
     if (!val('property_municipality')) bad(form.elements['property_municipality'], 'Ingresá el municipio del inmueble.');
@@ -665,13 +661,8 @@
       offerType: offerType.value,
       issueCity: val('issue_city') || 'San Salvador',
       fullName: val('full_name'),
-      age: val('age'),
-      domicileCity: val('domicile_city'),
-      domicileDepartment: val('domicile_department'),
       documentType: documentType.value,
       documentNumber: val('document_number'),
-      clientPhone: val('client_phone'),
-      clientEmail: val('client_email'),
       propertyMunicipality: val('property_municipality'),
       propertyDepartment: val('property_department'),
       propertyAddress: val('property_address'),
@@ -711,14 +702,13 @@
     var resumen = 'Carta de oferta (' + (v.offerType === 'VENTA' ? 'venta' : 'alquiler') + ') — US$ ' + formatMoney(v.amountNumber) +
       ' — ' + v.propertyAddress +
       ' — Cliente: ' + v.fullName + ' (' + v.documentType + ' ' + v.documentNumber + ')' +
-      (v.clientPhone ? ' — Tel: ' + v.clientPhone : '') +
       (v.offerType === 'VENTA' ? ' — Forma de pago: ' + v.paymentMethod : ' — Plazo: ' + v.rentalTerm);
 
     (pdfBlob ? blobToBase64(pdfBlob) : Promise.resolve(null)).then(function (pdfBase64) {
       return fetch('/api/lead', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          nombre: v.fullName, telefono: v.clientPhone || '', correo: v.clientEmail || '',
+          nombre: v.fullName, telefono: '', correo: '',
           origen: 'formulario_web', interes: v.offerType === 'VENTA' ? 'comprar' : 'otro',
           propiedad_referencia: v.propertyAddress, notas: resumen,
           actividad: { tipo: 'nota', detalle: resumen },
