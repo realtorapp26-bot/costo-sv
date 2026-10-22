@@ -381,10 +381,12 @@
 
     // El modo agente lo usa Walter: queda siempre en español.
     if (el('agenteTitle')) {
-      el('agenteTitle').textContent = esProp ? 'Preparar el link para el propietario' : 'Preparar el link para el cliente';
+      el('agenteTitle').textContent = esProp
+        ? 'Zona del agente — oferta de venta'
+        : 'Zona del agente — oferta de compra';
       el('agenteHint').textContent = esProp
-        ? 'Modo agente. Dejá lista la oferta (inmueble, precio, vigencia, bienes incluidos) y copiá el link de firma: se le abre al propietario con todo puesto y él solo pone su nombre, su documento y firma. El PDF firmado se archiva y vos se lo reenviás al comprador.'
-        : 'Modo agente. Llená abajo todo lo que quieras dejar listo (inmueble, precio, forma de pago, bienes incluidos) y después apretá el botón: se copia un link que le abre al cliente la carta ya con todo eso puesto. Él solo pone su nombre, su documento y firma.';
+        ? 'Esto solo lo ves vos. Elegí el borrador, completá abajo el trato (a quién va dirigida, vigencia, bienes) y copiá el link: al propietario le llega todo puesto de solo lectura y solo elige el monto, revisa los bienes y firma.'
+        : 'Esto solo lo ves vos. Elegí el borrador, completá abajo todo lo que quieras dejar listo (inmueble, precio, forma de pago, bienes) y copiá el link: al cliente le llega todo puesto y solo pone lo suyo y firma.';
       el('copiarLinkRevision').textContent = esProp
         ? '1. Copiar link de vista previa (solo lectura)'
         : '1. Copiar link de revisión (propietario)';
@@ -1130,6 +1132,9 @@
     var emisor = (q.get('emisor') || '').toUpperCase();
     if (emisor === 'PROPIETARIO' || emisor === 'COMPRADOR') letterIssuer.value = emisor;
     if (q.get('dirigidaa')) recipientName.value = q.get('dirigidaa');
+    if (q.get('firmante')) el('full_name').value = q.get('firmante');
+    if (q.get('tipodoc')) documentType.value = q.get('tipodoc');
+    if (q.get('doc')) documentNumber.value = q.get('doc');
     if (q.get('vigencia')) offerValidity.value = q.get('vigencia');
     if (q.get('previa')) subjectPriorSale.checked = q.get('previa') === '1';
     if (q.get('idioma')) documentLanguage.value = q.get('idioma');
@@ -1158,6 +1163,41 @@
       cb.checked = marcados.indexOf(String(i)) !== -1;
     });
   }
+  // Qué le quedaría por llenar al que firma, aparte de lo suyo (monto, bienes
+  // y firma). Sirve para avisarle al agente antes de mandar el link: si acá
+  // hay algo, es porque él no lo completó.
+  function pendientesDelFirmante() {
+    var faltan = [];
+    if (!offerType.value) faltan.push('el tipo de oferta (venta o alquiler)');
+    if (delPropietario() && !recipientName.value.trim()) faltan.push('a quién va dirigida la carta');
+    if (!el('property_municipality').value.trim()) faltan.push('el municipio del inmueble');
+    if (!el('property_department').value.trim()) faltan.push('el departamento del inmueble');
+    if (!el('property_address').value.trim()) faltan.push('la dirección del inmueble');
+    if (offerType.value === 'VENTA') {
+      if (!paymentMethod.value) faltan.push('la forma de pago');
+      if (!paymentDetails.value.trim()) faltan.push('el detalle de entrega de fondos');
+    }
+    if (offerType.value === 'ALQUILER') {
+      if (!rentalTerm.value.trim()) faltan.push('el plazo de alquiler');
+      if (!ownerConditions.value.trim()) faltan.push('las condiciones al propietario');
+    }
+    return faltan;
+  }
+  function mostrarPendientes() {
+    var caja = el('agentePendientes');
+    if (!caja) return;
+    var faltan = pendientesDelFirmante();
+    var quien = delPropietario() ? 'El propietario' : 'El cliente';
+    if (faltan.length) {
+      caja.innerHTML = '<strong style="color:#b45309;">Ojo:</strong> ' + quien +
+        ' va a tener que completar ' + faltan.join(', ') + '. Si no querés que lo haga él, llenalo acá antes de copiar el link.';
+    } else {
+      caja.innerHTML = '<strong style="color:#15803d;">Listo:</strong> ' + quien +
+        ' solo va a elegir el monto, revisar los bienes incluidos y firmar.';
+    }
+    caja.classList.remove('d-none');
+  }
+
   function construirLinkCliente() {
     var base = ((window.SITE_CONFIG || {}).SITE_URL || (location.origin + location.pathname.replace(/[^/]*$/, ''))).replace(/\/$/, '');
     var p = new URLSearchParams();
@@ -1169,6 +1209,11 @@
       if (offerValidity.value) p.set('vigencia', offerValidity.value);
       p.set('previa', subjectPriorSale.checked ? '1' : '0');
     }
+    // Datos del que firma: solo viajan si el agente los escribió. Llegan
+    // precargados pero editables, para que pueda corregirlos antes de firmar.
+    if (el('full_name').value.trim()) p.set('firmante', el('full_name').value.trim());
+    if (documentType.value) p.set('tipodoc', documentType.value);
+    if (documentNumber.value.trim()) p.set('doc', documentNumber.value.trim());
     p.set('idioma', documentLanguage.value);
     if (el('issue_city').value.trim()) p.set('ciudad', el('issue_city').value.trim());
     if (el('property_municipality').value.trim()) p.set('municipio', el('property_municipality').value.trim());
@@ -1206,15 +1251,17 @@
       salida.select();
     }
     el('copiarLinkRevision').addEventListener('click', function () {
-      copiar(construirLinkCliente() + '&revision=1',
-        'Link de revisión copiado. Mandáselo primero al propietario: lo ve completo, de solo lectura, sin poder firmar ni modificar.');
+      copiar(construirLinkCliente() + '&simple=1&revision=1',
+        'Link de revisión copiado. Lo ve completo, de solo lectura, sin poder firmar ni modificar.');
+      mostrarPendientes();
     });
     el('copiarLinkCliente').addEventListener('click', function () {
       // simple=1: al que firma se le esconde todo lo que ya quedó definido acá.
       copiar(construirLinkCliente() + '&simple=1',
         delPropietario()
-          ? 'Link de firma copiado. Mandáselo al propietario: ve de solo lectura todo lo que dejaste armado y solo elige el monto, revisa los bienes incluidos, pone su nombre y documento, y firma.'
-          : 'Link del cliente copiado. Mandáselo recién cuando el propietario haya dado el visto bueno: el cliente solo pone su nombre, su documento y firma.');
+          ? 'Link de firma copiado. Mandáselo al propietario: ve de solo lectura todo lo que dejaste armado y solo elige el monto, revisa los bienes incluidos y firma.'
+          : 'Link del cliente copiado. Mandáselo recién cuando el propietario haya dado el visto bueno: el cliente solo pone lo suyo y firma.');
+      mostrarPendientes();
     });
   }
 
@@ -1268,7 +1315,6 @@
     el('resumenCard').classList.toggle('d-none', !html);
 
     // Esconder solo lo que ya está resuelto.
-    el('borradorCard').classList.add('d-none');
     additionalNotes.closest('.co-card').classList.add('d-none');
     // Esa tarjeta lleva también el idioma y la dirección de la carta: solo se
     // esconde si el tipo de oferta ya vino resuelto (si no, el que firma no
@@ -1301,7 +1347,7 @@
     if (new URLSearchParams(window.location.search).get('revision') !== '1') return;
     document.body.classList.add('co-revision');
     el('revisionBanner').classList.remove('d-none');
-    ['agenteCard', 'borradorCard', 'clienteCard', 'firmaCard'].forEach(function (id) {
+    ['agenteCard', 'clienteCard', 'firmaCard'].forEach(function (id) {
       if (el(id)) el(id).classList.add('d-none');
     });
     generateBtn.classList.add('d-none');

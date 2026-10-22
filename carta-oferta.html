@@ -106,14 +106,24 @@
         <div class="co-note d-none" id="revisionBanner" style="background:#eef2ff;border-color:#c7d2fe;"></div>
 
         <form id="offerForm" novalidate>
-            <div class="co-card d-none" id="agenteCard" style="border-color:#0b2d5c;">
-                <h2 id="agenteTitle">Preparar el link para el cliente</h2>
-                <p class="hint" id="agenteHint">Modo agente. Llená abajo todo lo que quieras dejar listo (inmueble, precio, forma de pago, bienes incluidos) y después apretá el botón: se copia un link que le abre al cliente la carta ya con todo eso puesto. Él solo pone su nombre, su documento y firma.</p>
-                <div class="co-sign-actions" style="justify-content:flex-start;gap:10px;flex-wrap:wrap;">
+            <!-- Zona del agente: solo aparece con ?agente=1. El que firma
+                 nunca ve esta parte ni elige borrador. -->
+            <div class="co-card d-none" id="agenteCard" style="border-color:#0b2d5c;border-width:2px;">
+                <h2 id="agenteTitle">Zona del agente</h2>
+                <p class="hint" id="agenteHint">Esto solo lo ves vos. Elegí el borrador, completá abajo todo lo del trato y después copiá el link.</p>
+                <div class="co-field">
+                    <label for="borrador_select">Borrador de la propiedad</label>
+                    <select id="borrador_select">
+                        <option value="">— Empezar en blanco —</option>
+                    </select>
+                    <div class="co-help">Precarga el inmueble, el precio de lista, la forma de pago y los bienes incluidos.</div>
+                </div>
+                <div class="co-sign-actions" style="justify-content:flex-start;gap:10px;flex-wrap:wrap;margin-top:14px;">
                     <button type="button" class="co-btn-clear" id="copiarLinkRevision" style="font-weight:600;">1. Copiar link de revisión (propietario)</button>
                     <button type="button" class="co-btn-clear" id="copiarLinkCliente" style="font-weight:600;">2. Copiar link para el cliente</button>
                 </div>
                 <div class="co-help" id="agenteAviso" style="margin-top:8px;"></div>
+                <div class="co-help d-none" id="agentePendientes" style="margin-top:8px;"></div>
                 <textarea id="agenteLink" class="d-none" readonly rows="2" style="margin-top:8px;font-size:.78rem;"></textarea>
             </div>
 
@@ -123,16 +133,6 @@
                 <h2 id="resumenTitulo">Ya está completado por tu agente <span class="en">/ Already filled in by your agent</span></h2>
                 <p class="hint" id="resumenHint">Revisalo. Abajo solo tenés que poner lo tuyo. <span class="en">Please review it. Below you only need to add your part.</span></p>
                 <div id="resumenRows" class="co-resumen"></div>
-            </div>
-
-            <div class="co-card" id="borradorCard">
-                <h2>Borrador <span class="en">/ Draft</span></h2>
-                <p class="hint">Elegí un borrador para precargar las condiciones repetidas, o dejalo en blanco. <span class="en">Pick a draft to preload the repeated conditions, or leave it blank.</span></p>
-                <div class="co-field">
-                    <select id="borrador_select">
-                        <option value="" data-es="— Empezar en blanco" data-en="— Start blank">— Empezar en blanco / Start blank —</option>
-                    </select>
-                </div>
             </div>
 
             <div class="co-card">
