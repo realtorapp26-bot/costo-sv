@@ -809,15 +809,16 @@
         <!-- ===== TAB: CARTAS ===== -->
         <div class="tab-panel" id="tab-cartas">
             <p class="empty-hint" style="margin-bottom:12px;">
-                Archivo de las cartas generadas y firmadas: ofertas de compradores, aceptaciones y contraofertas de propietarios.
-                Cada una guarda sus términos y el PDF firmado.
+                Archivo de las cartas generadas y firmadas: ofertas de compradores, ofertas de venta de propietarios,
+                aceptaciones y contraofertas. Cada una guarda sus términos y el PDF firmado.
             </p>
 
             <div class="filters-bar">
                 <span class="filter-label">Tipo</span>
                 <select id="carta-filtro-tipo" class="estado-select" onchange="renderCartas()">
                     <option value="">Todas</option>
-                    <option value="oferta">Ofertas</option>
+                    <option value="oferta">Ofertas de compra</option>
+                    <option value="oferta_venta">Ofertas de venta</option>
                     <option value="aceptacion">Aceptaciones</option>
                     <option value="contraoferta">Contraofertas</option>
                 </select>
@@ -2964,9 +2965,14 @@
             }
         }
 
-        // ---------- Archivo de cartas (ofertas / aceptaciones / contraofertas) ----------
+        // ---------- Archivo de cartas (ofertas de compra y de venta / aceptaciones / contraofertas) ----------
         let cartasData = [];
-        const CARTA_ETIQUETA = { oferta: 'Oferta', aceptacion: 'Aceptación', contraoferta: 'Contraoferta' };
+        const CARTA_ETIQUETA = {
+            oferta: 'Oferta de compra',
+            oferta_venta: 'Oferta de venta',
+            aceptacion: 'Aceptación',
+            contraoferta: 'Contraoferta',
+        };
 
         async function cargarCartas() {
             try {
@@ -3017,12 +3023,15 @@
                 ['Tipo', CARTA_ETIQUETA[c.tipo] || c.tipo],
                 ['Operación', c.transaccion === 'ALQUILER' ? 'Alquiler' : 'Venta'],
                 ['Idioma del documento', c.idioma === 'en' ? 'Inglés + anexo en español' : 'Español'],
-                ['Cliente', c.cliente_nombre],
+                [c.tipo === 'oferta_venta' ? 'Dirigida a (comprador)' : 'Cliente', c.cliente_nombre],
                 ['Documento del cliente', c.cliente_documento],
-                ['Propietario', c.propietario_nombre],
+                [c.tipo === 'oferta_venta' ? 'Propietario que firma' : 'Propietario', c.propietario_nombre],
+                ['Documento del propietario', c.propietario_documento],
                 ['Inmueble', [c.propiedad_direccion, c.propiedad_municipio, c.propiedad_departamento].filter(Boolean).join(', ')],
                 ['Monto', money(c.monto)],
                 ['Precio de lista', c.precio_lista != null ? money(c.precio_lista) : null],
+                ['Vigencia de la oferta', c.vigencia ? new Date(c.vigencia + 'T12:00:00').toLocaleDateString('es-SV') : null],
+                ['Sujeta a venta previa', c.sujeto_venta_previa ? 'Sí — se sigue publicando hasta que haya reserva depositada' : null],
                 ['Forma de pago', c.forma_pago],
                 ['Detalle de pago', c.detalle_pago],
                 ['Plazo', c.plazo],
@@ -3108,11 +3117,19 @@
                 acciones.style.margin = '0';
                 const btnPreparar = document.createElement('button');
                 btnPreparar.className = 'btn-nota';
-                btnPreparar.innerHTML = '<i class="fas fa-pen-to-square"></i> Preparar oferta';
-                btnPreparar.title = 'Abre la carta para que la dejes lista y generes los links (revisión del propietario y del cliente)';
+                btnPreparar.innerHTML = '<i class="fas fa-pen-to-square"></i> Oferta de compra';
+                btnPreparar.title = 'El comprador le ofrece al propietario. Abre la carta para dejarla lista y generar los links (revisión del propietario y firma del cliente)';
                 btnPreparar.onclick = () => {
                     const base = ((window.SITE_CONFIG && window.SITE_CONFIG.SITE_URL) || location.origin).replace(/\/$/, '');
                     window.open(`${base}/carta-oferta.html?agente=1&borrador=${b.id}`, '_blank');
+                };
+                const btnPrepararVenta = document.createElement('button');
+                btnPrepararVenta.className = 'btn-nota';
+                btnPrepararVenta.innerHTML = '<i class="fas fa-file-export"></i> Oferta de venta';
+                btnPrepararVenta.title = 'El propietario le ofrece al comprador y firma él. Abre la carta para dejarla lista y generar el link de firma del propietario';
+                btnPrepararVenta.onclick = () => {
+                    const base = ((window.SITE_CONFIG && window.SITE_CONFIG.SITE_URL) || location.origin).replace(/\/$/, '');
+                    window.open(`${base}/carta-oferta.html?agente=1&emisor=PROPIETARIO&borrador=${b.id}`, '_blank');
                 };
                 const btnLink = document.createElement('button');
                 btnLink.className = 'btn-nota';
@@ -3124,6 +3141,7 @@
                 btn.innerHTML = '<i class="fas fa-trash"></i>';
                 btn.onclick = () => eliminarBorradorOferta(b.id, b.nombre);
                 acciones.appendChild(btnPreparar);
+                acciones.appendChild(btnPrepararVenta);
                 acciones.appendChild(btnLink);
                 acciones.appendChild(btn);
                 row.appendChild(acciones);

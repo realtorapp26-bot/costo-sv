@@ -26,7 +26,7 @@
 import { guardarLead } from '../lib/guardarLead.js';
 import { guardarKyc } from '../lib/guardarKyc.js';
 import { guardarContrato } from '../lib/guardarContrato.js';
-import { guardarCarta } from '../lib/guardarCarta.js';
+import { guardarCarta, TIPOS_CARTA } from '../lib/guardarCarta.js';
 import { obtenerContrato } from '../lib/obtenerContrato.js';
 
 export default async function handler(req, res) {
@@ -59,11 +59,12 @@ export default async function handler(req, res) {
   try {
     const body = req.body || {};
 
-    // Carta firmada (oferta / aceptación / contraoferta): va a su propio
-    // archivo, como los contratos. No crea lead ni contacto -- el pipeline
-    // de leads es para interesados que llegan del sitio, no para documentos.
+    // Carta firmada (oferta de compra o de venta, aceptación, contraoferta):
+    // va a su propio archivo, como los contratos. No crea lead ni contacto --
+    // el pipeline de leads es para interesados que llegan del sitio, no para
+    // documentos.
     if (body.carta) {
-      if (!['oferta', 'aceptacion', 'contraoferta'].includes(body.carta.tipo)) {
+      if (!TIPOS_CARTA.includes(body.carta.tipo)) {
         res.status(400).json({ error: 'Tipo de carta inválido' });
         return;
       }

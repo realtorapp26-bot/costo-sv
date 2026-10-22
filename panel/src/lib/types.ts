@@ -201,7 +201,7 @@ export interface Propiedad {
   fecha_publicacion: string | null;
 }
 
-export type CartaTipo = 'oferta' | 'aceptacion' | 'contraoferta';
+export type CartaTipo = 'oferta' | 'oferta_venta' | 'aceptacion' | 'contraoferta';
 
 export interface GastosCierre {
   transferTax: number;
@@ -210,9 +210,10 @@ export interface GastosCierre {
   grandTotal: number;
 }
 
-// Archivo de cartas generadas y firmadas (ofertas de compradores,
-// aceptaciones y contraofertas de propietarios). Las inserta el servidor
-// desde /api/lead; el panel solo lee y borra.
+// Archivo de cartas generadas y firmadas: ofertas de compra (las firma el
+// comprador), ofertas de venta (las firma el propietario y van dirigidas al
+// comprador), aceptaciones y contraofertas. Las inserta el servidor desde
+// /api/lead; el panel solo lee y borra.
 export interface Carta {
   id: string;
   numero: string;
@@ -222,11 +223,14 @@ export interface Carta {
   cliente_nombre: string | null;
   cliente_documento: string | null;
   propietario_nombre: string | null;
+  propietario_documento: string | null;
   propiedad_municipio: string | null;
   propiedad_departamento: string | null;
   propiedad_direccion: string | null;
   monto: number | null;
   precio_lista: number | null;
+  vigencia: string | null;
+  sujeto_venta_previa: boolean | null;
   forma_pago: string | null;
   detalle_pago: string | null;
   plazo: string | null;

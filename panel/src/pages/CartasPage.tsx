@@ -10,6 +10,13 @@ function money(v: number | null | undefined) {
   return 'US$ ' + Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// La vigencia es una fecha sin hora ("2026-11-05"): se fija al mediodía para
+// que la zona horaria no la corra un día hacia atrás.
+function fechaSola(v: string | null | undefined) {
+  if (!v) return null;
+  return new Date(v + 'T12:00:00').toLocaleDateString('es-SV');
+}
+
 async function abrirPdf(path: string) {
   try {
     const url = await ofertaSignedUrl(path);
@@ -41,8 +48,8 @@ export function CartasPage() {
       <div>
         <h1 className="font-serif text-2xl font-bold text-navy">Cartas</h1>
         <p className="text-sm text-slate-500">
-          Archivo de las cartas generadas y firmadas: ofertas de compradores, aceptaciones y contraofertas
-          de propietarios. Cada una guarda sus términos y el PDF firmado.
+          Archivo de las cartas generadas y firmadas: ofertas de compra, ofertas de venta de propietarios,
+          aceptaciones y contraofertas. Cada una guarda sus términos y el PDF firmado.
         </p>
       </div>
 
@@ -177,6 +184,7 @@ function DetalleCarta({ carta: c }: { carta: Carta }) {
     .join(', ');
   const bienes = Array.isArray(c.bienes) ? c.bienes : [];
   const g = c.gastos_cierre;
+  const deVenta = c.tipo === 'oferta_venta';
 
   return (
     <div className="space-y-4">
@@ -187,12 +195,22 @@ function DetalleCarta({ carta: c }: { carta: Carta }) {
           label="Idioma del documento"
           valor={c.idioma === 'en' ? 'Inglés + anexo en español' : 'Español'}
         />
-        <Fila label="Cliente" valor={c.cliente_nombre} />
+        <Fila label={deVenta ? 'Dirigida a (comprador)' : 'Cliente'} valor={c.cliente_nombre} />
         <Fila label="Documento del cliente" valor={c.cliente_documento} />
-        <Fila label="Propietario" valor={c.propietario_nombre} />
+        <Fila label={deVenta ? 'Propietario que firma' : 'Propietario'} valor={c.propietario_nombre} />
+        <Fila label="Documento del propietario" valor={c.propietario_documento} />
         <Fila label="Inmueble" valor={inmueble || null} />
         <Fila label="Monto" valor={money(c.monto)} />
         <Fila label="Precio de lista" valor={c.precio_lista != null ? money(c.precio_lista) : null} />
+        <Fila label="Vigencia de la oferta" valor={fechaSola(c.vigencia)} />
+        <Fila
+          label="Sujeta a venta previa"
+          valor={
+            c.sujeto_venta_previa
+              ? 'Sí — se sigue publicando hasta que haya una reserva depositada'
+              : null
+          }
+        />
         <Fila label="Forma de pago" valor={c.forma_pago} />
         <Fila label="Detalle de pago" valor={c.detalle_pago} />
         <Fila label="Plazo" valor={c.plazo} />

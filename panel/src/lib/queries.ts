@@ -352,7 +352,7 @@ export function useDeleteContratoBorrador() {
   });
 }
 
-// ---------- Archivo de cartas (ofertas / aceptaciones / contraofertas) ----------
+// ---------- Archivo de cartas (ofertas de compra y de venta / aceptaciones / contraofertas) ----------
 // Las inserta el servidor desde /api/lead con service_role; acá solo se
 // leen y se borran. El PDF vive en el bucket "ofertas" bajo "cartas/".
 export function useCartas() {

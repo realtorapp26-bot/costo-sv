@@ -77,8 +77,8 @@
         <div class="container">
             <div>
                 <div class="co-brand">Guerrero Properties</div>
-                <h1>Carta de Oferta</h1>
-                <p>Oferta de compra o alquiler de inmueble <span class="en">/ Offer to purchase or rent a property</span></p>
+                <h1 id="headerTitle">Carta de Oferta</h1>
+                <p id="headerSubtitle">Oferta de compra o alquiler de inmueble <span class="en">/ Offer to purchase or rent a property</span></p>
             </div>
         </div>
     </header>
@@ -95,16 +95,14 @@
             <ul id="errorList"></ul>
         </div>
 
-        <div class="co-note d-none" id="revisionBanner" style="background:#eef2ff;border-color:#c7d2fe;">
-            <strong>Revisión del propietario.</strong> Esta es la oferta que se le va a enviar al comprador para que la complete y firme.
-            Revisá el precio, la forma de pago y los bienes incluidos. Si algo no está correcto, avisale a tu agente antes de que se envíe.
-            <span class="en"><strong>Owner review.</strong> This is the offer that will be sent to the buyer to complete and sign. Please review the price, payment method and included items. If anything is not correct, let your agent know before it is sent.</span>
-        </div>
+        <!-- Contenido puesto por carta-oferta.js (cambia según quién emite la
+             carta y en qué orden van los idiomas). -->
+        <div class="co-note d-none" id="revisionBanner" style="background:#eef2ff;border-color:#c7d2fe;"></div>
 
         <form id="offerForm" novalidate>
             <div class="co-card d-none" id="agenteCard" style="border-color:#0b2d5c;">
-                <h2>Preparar el link para el cliente</h2>
-                <p class="hint">Modo agente. Llená abajo todo lo que quieras dejar listo (inmueble, precio, forma de pago, bienes incluidos) y después apretá el botón: se copia un link que le abre al cliente la carta ya con todo eso puesto. Él solo pone su nombre, su documento y firma.</p>
+                <h2 id="agenteTitle">Preparar el link para el cliente</h2>
+                <p class="hint" id="agenteHint">Modo agente. Llená abajo todo lo que quieras dejar listo (inmueble, precio, forma de pago, bienes incluidos) y después apretá el botón: se copia un link que le abre al cliente la carta ya con todo eso puesto. Él solo pone su nombre, su documento y firma.</p>
                 <div class="co-sign-actions" style="justify-content:flex-start;gap:10px;flex-wrap:wrap;">
                     <button type="button" class="co-btn-clear" id="copiarLinkRevision" style="font-weight:600;">1. Copiar link de revisión (propietario)</button>
                     <button type="button" class="co-btn-clear" id="copiarLinkCliente" style="font-weight:600;">2. Copiar link para el cliente</button>
@@ -118,7 +116,7 @@
                 <p class="hint">Elegí un borrador para precargar las condiciones repetidas, o dejalo en blanco. <span class="en">Pick a draft to preload the repeated conditions, or leave it blank.</span></p>
                 <div class="co-field">
                     <select id="borrador_select">
-                        <option value="">— Empezar en blanco / Start blank —</option>
+                        <option value="" data-es="— Empezar en blanco" data-en="— Start blank">— Empezar en blanco / Start blank —</option>
                     </select>
                 </div>
             </div>
@@ -126,19 +124,27 @@
             <div class="co-card">
                 <h2>Revisá la información <span class="en">/ Review the information</span></h2>
                 <div class="co-grid">
+                    <div class="co-field full" id="issuerWrap">
+                        <label for="letter_issuer">Dirección de la carta <span class="en">/ Direction of the letter</span></label>
+                        <select id="letter_issuer" name="letter_issuer">
+                            <option value="COMPRADOR" data-es="Del comprador al propietario — oferta de compra" data-en="From the buyer to the owner — offer to purchase">Del comprador al propietario — oferta de compra</option>
+                            <option value="PROPIETARIO" data-es="Del propietario al comprador — oferta de venta" data-en="From the owner to the buyer — offer to sell">Del propietario al comprador — oferta de venta</option>
+                        </select>
+                        <div class="co-help">Define quién ofrece y quién firma la carta. <span class="en">Sets who makes the offer and who signs the letter.</span></div>
+                    </div>
                     <div class="co-field">
                         <label for="document_language">Idioma del documento <span class="en">/ Document language</span></label>
                         <select id="document_language" name="document_language">
-                            <option value="es">Español</option>
-                            <option value="en">Inglés + anexo en español</option>
+                            <option value="es" data-es="Español" data-en="Spanish only">Español</option>
+                            <option value="en" data-es="Inglés + anexo en español" data-en="English + Spanish annex">Inglés + anexo en español</option>
                         </select>
                     </div>
                     <div class="co-field">
                         <label for="offer_type">Tipo de oferta <span class="en">/ Offer type</span></label>
                         <select id="offer_type" name="offer_type" required>
-                            <option value="">Seleccioná una opción / Select an option</option>
-                            <option value="VENTA">Venta / Sale</option>
-                            <option value="ALQUILER">Alquiler / Rental</option>
+                            <option value="" data-es="Seleccioná una opción" data-en="Select an option">Seleccioná una opción / Select an option</option>
+                            <option value="VENTA" data-es="Venta" data-en="Sale">Venta / Sale</option>
+                            <option value="ALQUILER" data-es="Alquiler" data-en="Rental">Alquiler / Rental</option>
                         </select>
                     </div>
                     <div class="co-field full">
@@ -149,25 +155,31 @@
             </div>
 
             <div class="co-card" id="clienteCard">
-                <h2>Datos del cliente <span class="en">/ Client details</span></h2>
+                <h2 id="clienteCardTitle">Datos del cliente <span class="en">/ Client details</span></h2>
+                <p class="hint d-none" id="clienteCardHint"></p>
                 <div class="co-grid">
+                    <div class="co-field full d-none" id="recipientWrap">
+                        <label for="recipient_name">Dirigida a (comprador) <span class="en">/ Addressed to (buyer)</span></label>
+                        <input type="text" id="recipient_name" name="recipient_name" autocomplete="off">
+                        <div class="co-help">Nombre de la persona a quien el propietario le ofrece el inmueble. <span class="en">Name of the person the owner is offering the property to.</span></div>
+                    </div>
                     <div class="co-field full">
-                        <label for="full_name">Nombre completo <span class="en">/ Full name</span></label>
+                        <label for="full_name" id="fullNameLabel">Nombre completo <span class="en">/ Full name</span></label>
                         <input type="text" id="full_name" name="full_name" autocomplete="name" required>
                     </div>
                     <div class="co-field">
                         <label for="document_type">Tipo de documento <span class="en">/ ID type</span></label>
                         <select id="document_type" name="document_type" required>
-                            <option value="">Seleccioná / Select</option>
+                            <option value="" data-es="Seleccioná" data-en="Select">Seleccioná / Select</option>
                             <option value="DUI">DUI</option>
                             <option value="NIT">NIT</option>
-                            <option value="PASAPORTE">Pasaporte / Passport</option>
+                            <option value="PASAPORTE" data-es="Pasaporte" data-en="Passport">Pasaporte / Passport</option>
                         </select>
                     </div>
                     <div class="co-field full">
                         <label for="document_number">Número de documento <span class="en">/ ID number</span></label>
                         <input type="text" id="document_number" name="document_number" required>
-                        <div class="co-help">DUI: 9 dígitos · NIT: 14 dígitos · Pasaporte: 6 a 20 caracteres alfanuméricos.</div>
+                        <div class="co-help">DUI: 9 dígitos · NIT: 14 dígitos · Pasaporte: 6 a 20 caracteres alfanuméricos. <span class="en">DUI: 9 digits · NIT: 14 digits · Passport: 6 to 20 alphanumeric characters.</span></div>
                     </div>
                 </div>
             </div>
@@ -196,11 +208,16 @@
                     <div class="co-field">
                         <label for="list_price">Precio de lista autorizado (US$) <span class="en">/ Authorized list price</span></label>
                         <input type="number" id="list_price" name="list_price" min="0" step="0.01">
-                        <div class="co-help">Opcional. El precio que el propietario autorizó para la venta. Si lo ponés, la carta muestra la diferencia con la oferta.</div>
+                        <div class="co-help">Opcional. El precio que el propietario autorizó para la venta. Si lo ponés, la carta muestra la diferencia con la oferta. <span class="en">Optional. The price the owner authorized for the sale. If you enter it, the letter shows the difference against the offer.</span></div>
                     </div>
                     <div class="co-field">
-                        <label for="amount_number">Monto ofrecido (US$) <span class="en">/ Offered amount</span></label>
+                        <label for="amount_number" id="amountNumberLabel">Monto ofrecido (US$) <span class="en">/ Offered amount</span></label>
                         <input type="number" id="amount_number" name="amount_number" min="1" step="0.01" required>
+                    </div>
+                    <div class="co-field d-none" id="validityWrap">
+                        <label for="offer_validity">Vigencia de la oferta <span class="en">/ Offer valid until</span></label>
+                        <input type="date" id="offer_validity" name="offer_validity">
+                        <div class="co-help">Hasta cuándo se mantiene este precio. Si lo dejás vacío, la carta no menciona fecha límite. <span class="en">How long this price is held. If left blank, the letter states no deadline.</span></div>
                     </div>
                     <div class="co-field">
                         <label for="offer_date_view">Fecha automática de la oferta <span class="en">/ Automatic date</span></label>
@@ -209,7 +226,7 @@
                     <div class="co-field full">
                         <label for="amount_words">Monto en letras (español) <span class="en">/ Amount in words (Spanish)</span></label>
                         <input type="text" id="amount_words" name="amount_words" readonly>
-                        <div class="co-help">Se completa automáticamente.</div>
+                        <div class="co-help">Se completa automáticamente. <span class="en">Filled in automatically.</span></div>
                     </div>
                     <div class="co-field full d-none" id="amountWordsEnglishWrap">
                         <label for="amount_words_english">Monto en letras (inglés) <span class="en">/ Amount in words</span></label>
@@ -221,6 +238,14 @@
                     <label for="firm_price" style="margin:0;font-weight:500;">
                         Precio cerrado y definitivo entre las partes; no se agregarán costos adicionales al monto pactado.
                         <span class="en" style="display:block;color:#94a3b8;font-weight:500;margin-top:4px;">Firm and final price between the parties; no additional costs will be added to the agreed amount.</span>
+                    </label>
+                </div>
+                <div class="co-check d-none" id="priorSaleWrap">
+                    <input type="checkbox" id="subject_prior_sale" checked>
+                    <label for="subject_prior_sale" style="margin:0;font-weight:500;">
+                        Sujeta a venta previa: la aceptación de esta oferta no suspende la publicidad ni la promoción del inmueble,
+                        que continuarán hasta que exista una reserva efectiva depositada a favor del propietario.
+                        <span class="en" style="display:block;color:#94a3b8;font-weight:500;margin-top:4px;">Subject to prior sale: acceptance of this offer does not suspend the advertising or marketing of the property, which continue until an effective reservation deposit has been made in favor of the owner.</span>
                     </label>
                 </div>
             </div>
@@ -251,7 +276,7 @@
 
             <div class="co-card d-none" id="inventoryCard">
                 <h2>Bienes incluidos <span class="en">/ Items included</span></h2>
-                <p class="hint">Según el borrador elegido. Desmarcá lo que no quieras incluir en tu oferta. <span class="en">From the selected draft. Uncheck anything you don't want included in your offer.</span></p>
+                <p class="hint" id="inventoryHint">Según el borrador elegido. Desmarcá lo que no quieras incluir en tu oferta. <span class="en">From the selected draft. Uncheck anything you don't want included in your offer.</span></p>
                 <div id="inventoryItemsWrap" class="co-inventory-list"></div>
             </div>
 
@@ -275,10 +300,10 @@
                     <div class="co-field">
                         <label for="payment_method">Forma de pago <span class="en">/ Payment method</span></label>
                         <select id="payment_method" name="payment_method">
-                            <option value="">Seleccioná / Select</option>
-                            <option value="Contado">Contado / Cash</option>
-                            <option value="Crédito">Crédito / Financing</option>
-                            <option value="Mixto">Mixto / Mixed</option>
+                            <option value="" data-es="Seleccioná" data-en="Select">Seleccioná / Select</option>
+                            <option value="Contado" data-es="Contado" data-en="Cash">Contado / Cash</option>
+                            <option value="Crédito" data-es="Crédito" data-en="Financing">Crédito / Financing</option>
+                            <option value="Mixto" data-es="Mixto" data-en="Mixed">Mixto / Mixed</option>
                         </select>
                     </div>
                     <div class="co-field full">
@@ -298,7 +323,7 @@
 
             <div class="co-card" id="firmaCard">
                 <h2>Firma <span class="en">/ Signature</span></h2>
-                <p class="hint">Firma del cliente. La fecha y hora se agregan automáticamente. <span class="en">/ Client's signature. The date and time are added automatically.</span></p>
+                <p class="hint" id="firmaHint">Firma del cliente. La fecha y hora se agregan automáticamente. <span class="en">/ Client's signature. The date and time are added automatically.</span></p>
                 <div class="co-sign-wrap">
                     <canvas id="signaturePad"></canvas>
                 </div>
