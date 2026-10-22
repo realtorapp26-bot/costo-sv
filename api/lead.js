@@ -65,6 +65,12 @@ export default async function handler(req, res) {
     // un solo lugar y se puede abrir desde el archivo de cartas o desde el
     // lead. Se silencia el aviso del lead para no mandar dos por Telegram.
     if (body.carta) {
+      // Se valida ANTES de crear el lead: si la carta viniera mal, antes
+      // quedaba un lead huérfano en el CRM.
+      if (!['oferta', 'aceptacion', 'contraoferta'].includes(body.carta.tipo)) {
+        res.status(400).json({ error: 'Tipo de carta inválido' });
+        return;
+      }
       const lead = await guardarLead({ ...body, pdf_base64: undefined, sin_telegram: true }, serviceKey);
       const carta = await guardarCarta({ ...body, lead_id: lead.leadId }, serviceKey);
       res.status(200).json({ ...lead, ...carta });
