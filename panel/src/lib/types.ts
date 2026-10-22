@@ -200,3 +200,39 @@ export interface Propiedad {
   id_externo: string | null;
   fecha_publicacion: string | null;
 }
+
+export type CartaTipo = 'oferta' | 'aceptacion' | 'contraoferta';
+
+export interface GastosCierre {
+  transferTax: number;
+  cnrFee: number;
+  total: number;
+  grandTotal: number;
+}
+
+// Archivo de cartas generadas y firmadas (ofertas de compradores,
+// aceptaciones y contraofertas de propietarios). Las inserta el servidor
+// desde /api/lead; el panel solo lee y borra.
+export interface Carta {
+  id: string;
+  numero: string;
+  tipo: CartaTipo;
+  transaccion: 'VENTA' | 'ALQUILER';
+  idioma: string;
+  cliente_nombre: string | null;
+  cliente_documento: string | null;
+  propietario_nombre: string | null;
+  propiedad_municipio: string | null;
+  propiedad_departamento: string | null;
+  propiedad_direccion: string | null;
+  monto: number | null;
+  precio_lista: number | null;
+  forma_pago: string | null;
+  detalle_pago: string | null;
+  plazo: string | null;
+  bienes: string[] | null;
+  gastos_cierre: GastosCierre | null;
+  notas: string | null;
+  pdf_path: string | null;
+  created_at: string;
+}

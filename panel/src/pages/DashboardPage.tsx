@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { nombreDe } from '../lib/usuarios';
-import { useContratos, useKyc, useLeads } from '../lib/queries';
+import { useCartas, useContratos, useKyc, useLeads } from '../lib/queries';
 import { ESTADOS, ESTADO_LABEL } from '../lib/enums';
 import { esHoy, diasDesde } from '../lib/format';
 import { Badge, Button, Card, StatCard } from '../components/ui';
@@ -13,6 +13,7 @@ export function DashboardPage() {
   const { data: leads = [], isLoading } = useLeads();
   const { data: casosKyc = [], isLoading: cargandoKyc } = useKyc();
   const { data: contratos = [], isLoading: cargandoContratos } = useContratos();
+  const { data: cartas = [], isLoading: cargandoCartas } = useCartas();
 
   const nuevosHoy = leads.filter((l) => esHoy(l.created_at)).length;
   const seguimiento = leads.filter((l) => ['nuevo', 'contactado'].includes(l.estado)).length;
@@ -88,6 +89,14 @@ export function DashboardPage() {
               value={cargandoContratos ? '…' : contratosPendientes}
               icon="fas fa-file-contract"
               tono={contratosPendientes > 0 ? 'amber' : 'navy'}
+            />
+          </Link>
+          <Link to="/cartas">
+            <StatCard
+              label="Cartas archivadas"
+              value={cargandoCartas ? '…' : cartas.length}
+              icon="fas fa-envelope-open-text"
+              tono="navy"
             />
           </Link>
         </div>

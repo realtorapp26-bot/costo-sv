@@ -1,4 +1,4 @@
-import type { Categoria, ContratoEstado, Estado, Interes, KycClienteTipo, KycEstado, Origen, TipoContrato, TipoListado } from './types';
+import type { CartaTipo, Categoria, ContratoEstado, Estado, Interes, KycClienteTipo, KycEstado, Origen, TipoContrato, TipoListado } from './types';
 
 export const ESTADOS: Estado[] = ['nuevo', 'contactado', 'calificado', 'perdido', 'cerrado'];
 export const ORIGENES: Origen[] = ['whatsapp', 'formulario_web', 'facebook_ads', 'marketplace', 'referido', 'otro'];
@@ -137,4 +137,18 @@ export const CONTRATO_ESTADO_CLASE: Record<ContratoEstado, string> = {
 export const TIPO_LISTADO_LABEL: Record<TipoListado, string> = {
   exclusivo: 'Exclusivo',
   no_exclusivo: 'No exclusivo',
+};
+
+export const CARTA_TIPOS: CartaTipo[] = ['oferta', 'aceptacion', 'contraoferta'];
+
+export const CARTA_TIPO_LABEL: Record<CartaTipo, string> = {
+  oferta: 'Oferta',
+  aceptacion: 'Aceptación',
+  contraoferta: 'Contraoferta',
+};
+
+export const CARTA_TIPO_CLASE: Record<CartaTipo, string> = {
+  oferta: 'bg-blue-100 text-blue-800',
+  aceptacion: 'bg-emerald-100 text-emerald-800',
+  contraoferta: 'bg-amber-100 text-amber-800',
 };

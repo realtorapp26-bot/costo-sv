@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from './supabase';
-import type { CamposContratoBorrador, ContratoBorrador, ContratoComercializacion, ContratoEstado, Estado, Interes, ItemInventario, KycClienteTipo, KycEstado, KycSolicitud, LeadConContacto, Origen, Propiedad, TipoListado } from './types';
+import type { CamposContratoBorrador, Carta, ContratoBorrador, ContratoComercializacion, ContratoEstado, Estado, Interes, ItemInventario, KycClienteTipo, KycEstado, KycSolicitud, LeadConContacto, Origen, Propiedad, TipoListado } from './types';
 
 const LEAD_COLS_BASE =
   'id,origen,interes,propiedad_referencia,estado,notas,created_at,contactos(nombre,telefono,correo)';
@@ -349,5 +349,34 @@ export function useDeleteContratoBorrador() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['contrato-borradores'] }),
+  });
+}
+
+// ---------- Archivo de cartas (ofertas / aceptaciones / contraofertas) ----------
+// Las inserta el servidor desde /api/lead con service_role; acá solo se
+// leen y se borran. El PDF vive en el bucket "ofertas" bajo "cartas/".
+export function useCartas() {
+  return useQuery({
+    queryKey: ['cartas'],
+    queryFn: async (): Promise<Carta[]> => {
+      const { data, error } = await supabase
+        .from('cartas')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 15_000,
+  });
+}
+
+export function useDeleteCarta() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('cartas').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['cartas'] }),
   });
 }
