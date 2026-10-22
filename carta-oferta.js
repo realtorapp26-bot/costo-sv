@@ -39,6 +39,10 @@
   var firmPrice = el('firm_price');
   var inventoryCard = el('inventoryCard');
   var inventoryItemsWrap = el('inventoryItemsWrap');
+  // Título del listado. Por defecto "Bienes incluidos", pero un borrador puede
+  // cambiarlo (p. ej. "Lo que incluye Golden Lake") para listar generalidades
+  // de un proyecto y no solo muebles.
+  var itemsTitle = el('items_title');
   var closingCostsCard = el('closingCostsCard');
   var ccTransferTax = el('cc_transfer_tax');
   var ccCnrFee = el('cc_cnr_fee');
@@ -731,11 +735,12 @@
     y = pageBreakIfNeeded(pdf, y, 700);
 
     if (values.includedItems && values.includedItems.length) {
-      y = paragraph(pdf,
-        deProp
-          ? (isEnglish ? 'The owner includes the following items together with the property:' : 'El propietario incluye los siguientes bienes junto con el inmueble:')
-          : (isEnglish ? 'This offer includes the following items together with the property:' : 'Esta oferta incluye los siguientes bienes junto con el inmueble:'),
-        x, y, width, { fontSize: 11, minFontSize: 9.8, lineHeight: 15, maxLines: 2 });
+      var encabezadoItems = values.itemsTitle
+        ? values.itemsTitle + ':'
+        : (deProp
+            ? (isEnglish ? 'The owner includes the following items together with the property:' : 'El propietario incluye los siguientes bienes junto con el inmueble:')
+            : (isEnglish ? 'This offer includes the following items together with the property:' : 'Esta oferta incluye los siguientes bienes junto con el inmueble:'));
+      y = paragraph(pdf, encabezadoItems, x, y, width, { fontSize: 11, minFontSize: 9.8, lineHeight: 15, maxLines: 2 });
       y += 4;
       values.includedItems.forEach(function (it) {
         y = paragraph(pdf, '• ' + it, x + 10, y, width - 10, { fontSize: 10.4, minFontSize: 9.2, lineHeight: 13.8, maxLines: 2 });
@@ -950,6 +955,7 @@
       paymentDetails: val('payment_details'),
       additionalNotes: val('additional_notes'),
       firmPrice: !!firmPrice.checked,
+      itemsTitle: itemsTitle.value.trim(),
       includedItems: collectIncludedItems(),
       signatureData: signatureData,
       signDate: now.dateInput,
@@ -1039,6 +1045,18 @@
   }
 
   // ---------- bienes incluidos (checklist a partir del borrador) ----------
+  function aplicarTituloItems(titulo) {
+    itemsTitle.value = titulo || '';
+    if (titulo) {
+      // Sale del registro bilingüe: el título a medida lo escribe el agente y
+      // no tiene par español/inglés que invertir (si no, al cambiar el idioma
+      // volvería al título por defecto).
+      BILINGUES.delete(el('inventoryTitle'));
+      el('inventoryTitle').textContent = titulo;
+    } else {
+      setBilingue('inventoryTitle', 'Bienes incluidos', 'Items included');
+    }
+  }
   function renderInventoryItems(items) {
     inventoryItemsWrap.innerHTML = '';
     items = items || [];
@@ -1080,6 +1098,7 @@
     if (campos.payment_method) paymentMethod.value = campos.payment_method;
     paymentDetails.value = campos.payment_details || '';
     additionalNotes.value = campos.notas_adicionales || '';
+    aplicarTituloItems(campos.titulo_inventario || '');
     renderInventoryItems(campos.inventario || []);
   }
   function cargarBorradores() {
@@ -1147,6 +1166,7 @@
     if (q.get('plazo')) rentalTerm.value = q.get('plazo');
     if (q.get('condiciones')) ownerConditions.value = q.get('condiciones');
     if (q.get('notas')) additionalNotes.value = q.get('notas');
+    if (q.get('tituloitems')) aplicarTituloItems(q.get('tituloitems'));
     if (q.get('cerrado')) firmPrice.checked = q.get('cerrado') === '1';
     var lista = (q.get('lista') || '').replace(/[^0-9.]/g, '');
     if (lista) listPrice.value = lista;
@@ -1226,6 +1246,7 @@
     if (rentalTerm.value.trim()) p.set('plazo', rentalTerm.value.trim());
     if (ownerConditions.value.trim()) p.set('condiciones', ownerConditions.value.trim());
     if (additionalNotes.value.trim()) p.set('notas', additionalNotes.value.trim());
+    if (itemsTitle.value.trim()) p.set('tituloitems', itemsTitle.value.trim());
     p.set('cerrado', firmPrice.checked ? '1' : '0');
     var marcados = [];
     inventoryItemsWrap.querySelectorAll('input[type=checkbox]').forEach(function (cb, i) {

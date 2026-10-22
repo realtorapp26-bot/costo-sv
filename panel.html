@@ -1240,6 +1240,10 @@
                         <textarea id="oferta-b-notas"></textarea>
                     </div>
                     <div class="full">
+                        <label>Título del listado (opcional)</label>
+                        <input type="text" id="oferta-b-titulo-items" placeholder="Por defecto: Bienes incluidos. Ej: Lo que incluye Golden Lake">
+                    </div>
+                    <div class="full">
                         <label>Bienes incluidos en la venta (el cliente podrá desmarcar lo que no quiera)</label>
                         <div id="oferta-b-inventario-rows"></div>
                         <button type="button" class="btn-nota" onclick="agregarFilaInventarioOferta()">+ Agregar artículo</button>
@@ -3213,6 +3217,7 @@
             document.getElementById('oferta-b-forma-pago').value = b.payment_method || '';
             document.getElementById('oferta-b-fondos').value = b.payment_details || '';
             document.getElementById('oferta-b-notas').value = b.notas_adicionales || '';
+            document.getElementById('oferta-b-titulo-items').value = b.titulo_inventario || '';
             document.getElementById('oferta-b-inventario-rows').innerHTML = '';
             (Array.isArray(b.inventario) ? b.inventario : []).forEach(it => agregarFilaInventarioOferta(it));
             document.getElementById('oferta-b-titulo').textContent = 'Editando: ' + (b.nombre || '');
@@ -3229,7 +3234,7 @@
         function limpiarFormularioBorradorOferta() {
             ['oferta-b-nombre', 'oferta-b-ciudad', 'oferta-b-municipio', 'oferta-b-departamento',
              'oferta-b-direccion', 'oferta-b-precio-lista', 'oferta-b-plazo', 'oferta-b-condiciones',
-             'oferta-b-fondos', 'oferta-b-notas']
+             'oferta-b-fondos', 'oferta-b-notas', 'oferta-b-titulo-items']
                 .forEach(id => document.getElementById(id).value = '');
             document.getElementById('oferta-b-forma-pago').value = '';
             document.getElementById('oferta-b-tipo').value = '';
@@ -3266,6 +3271,7 @@
                         payment_method: document.getElementById('oferta-b-forma-pago').value || null,
                         payment_details: document.getElementById('oferta-b-fondos').value.trim() || null,
                         notas_adicionales: document.getElementById('oferta-b-notas').value.trim() || null,
+                        titulo_inventario: document.getElementById('oferta-b-titulo-items').value.trim() || null,
                         inventario: leerInventarioOferta(),
                     }),
                 });
