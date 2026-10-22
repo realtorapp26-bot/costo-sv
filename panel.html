@@ -1179,7 +1179,7 @@
             </div>
 
             <div class="panel">
-                <h2>Nuevo borrador</h2>
+                <h2 id="oferta-b-titulo">Nuevo borrador</h2>
                 <label>Se precargan en carta-oferta.html cuando el cliente (o vos) elija este borrador. Dejá en blanco lo que no aplique.</label>
                 <div class="form-grid">
                     <div class="full">
@@ -1246,7 +1246,8 @@
                     </div>
                 </div>
                 <div class="actions-row" style="justify-content: flex-end; margin-top: 12px;">
-                    <button class="btn-action btn-primary" type="button" onclick="crearBorradorOferta()">Guardar borrador</button>
+                    <button class="btn-nota" type="button" id="oferta-b-cancelar" style="display:none;" onclick="cancelarEdicionBorradorOferta()">Cancelar edición</button>
+                    <button class="btn-action btn-primary" type="button" id="oferta-b-guardar" onclick="crearBorradorOferta()">Guardar borrador</button>
                 </div>
             </div>
         </div>
@@ -3132,6 +3133,11 @@
                     const base = ((window.SITE_CONFIG && window.SITE_CONFIG.SITE_URL) || location.origin).replace(/\/$/, '');
                     window.open(`${base}/carta-oferta.html?agente=1&emisor=PROPIETARIO&borrador=${b.id}`, '_blank');
                 };
+                const btnEditar = document.createElement('button');
+                btnEditar.className = 'btn-nota';
+                btnEditar.innerHTML = '<i class="fas fa-pen"></i> Editar';
+                btnEditar.title = 'Completar o corregir los datos de este borrador';
+                btnEditar.onclick = () => editarBorradorOferta(b.id);
                 const btnLink = document.createElement('button');
                 btnLink.className = 'btn-nota';
                 btnLink.innerHTML = '<i class="fas fa-link"></i> Copiar link';
@@ -3143,6 +3149,7 @@
                 btn.onclick = () => eliminarBorradorOferta(b.id, b.nombre);
                 acciones.appendChild(btnPreparar);
                 acciones.appendChild(btnPrepararVenta);
+                acciones.appendChild(btnEditar);
                 acciones.appendChild(btnLink);
                 acciones.appendChild(btn);
                 row.appendChild(acciones);
@@ -3150,7 +3157,7 @@
             });
         }
 
-        function agregarFilaInventarioOferta() {
+        function agregarFilaInventarioOferta(valores) {
             const cont = document.getElementById('oferta-b-inventario-rows');
             const fila = document.createElement('div');
             fila.className = 'inventario-fila';
@@ -3160,6 +3167,11 @@
                 <input type="text" placeholder="Cant." class="inv-cant">
                 <button type="button" onclick="this.closest('.inventario-fila').remove()"><i class="fas fa-trash"></i></button>
             `;
+            if (valores) {
+                fila.querySelector('.inv-item').value = valores.item || '';
+                fila.querySelector('.inv-desc').value = valores.descripcion || '';
+                fila.querySelector('.inv-cant').value = valores.cantidad || '';
+            }
             cont.appendChild(fila);
         }
         function leerInventarioOferta() {
@@ -3181,13 +3193,66 @@
             );
         }
 
+        // Si hay un id acá, el formulario de abajo está editando ese borrador
+        // en vez de creando uno nuevo.
+        let ofertaBorradorEditandoId = null;
+
+        function editarBorradorOferta(id) {
+            const b = ofertaBorradoresData.find(x => x.id === id);
+            if (!b) return;
+            ofertaBorradorEditandoId = id;
+            document.getElementById('oferta-b-nombre').value = b.nombre || '';
+            document.getElementById('oferta-b-tipo').value = b.tipo_oferta || '';
+            document.getElementById('oferta-b-ciudad').value = b.ciudad_emision || '';
+            document.getElementById('oferta-b-municipio').value = b.propiedad_municipio || '';
+            document.getElementById('oferta-b-departamento').value = b.propiedad_departamento || '';
+            document.getElementById('oferta-b-direccion').value = b.propiedad_direccion || '';
+            document.getElementById('oferta-b-precio-lista').value = b.precio_lista != null ? b.precio_lista : '';
+            document.getElementById('oferta-b-plazo').value = b.rental_term || '';
+            document.getElementById('oferta-b-condiciones').value = b.owner_conditions || '';
+            document.getElementById('oferta-b-forma-pago').value = b.payment_method || '';
+            document.getElementById('oferta-b-fondos').value = b.payment_details || '';
+            document.getElementById('oferta-b-notas').value = b.notas_adicionales || '';
+            document.getElementById('oferta-b-inventario-rows').innerHTML = '';
+            (Array.isArray(b.inventario) ? b.inventario : []).forEach(it => agregarFilaInventarioOferta(it));
+            document.getElementById('oferta-b-titulo').textContent = 'Editando: ' + (b.nombre || '');
+            document.getElementById('oferta-b-guardar').textContent = 'Guardar cambios';
+            document.getElementById('oferta-b-cancelar').style.display = '';
+            document.getElementById('oferta-b-titulo').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function cancelarEdicionBorradorOferta() {
+            ofertaBorradorEditandoId = null;
+            limpiarFormularioBorradorOferta();
+        }
+
+        function limpiarFormularioBorradorOferta() {
+            ['oferta-b-nombre', 'oferta-b-ciudad', 'oferta-b-municipio', 'oferta-b-departamento',
+             'oferta-b-direccion', 'oferta-b-precio-lista', 'oferta-b-plazo', 'oferta-b-condiciones',
+             'oferta-b-fondos', 'oferta-b-notas']
+                .forEach(id => document.getElementById(id).value = '');
+            document.getElementById('oferta-b-forma-pago').value = '';
+            document.getElementById('oferta-b-tipo').value = '';
+            document.getElementById('oferta-b-inventario-rows').innerHTML = '';
+            document.getElementById('oferta-b-titulo').textContent = 'Nuevo borrador';
+            document.getElementById('oferta-b-guardar').textContent = 'Guardar borrador';
+            document.getElementById('oferta-b-cancelar').style.display = 'none';
+        }
+
         async function crearBorradorOferta() {
             const nombre = document.getElementById('oferta-b-nombre').value.trim();
             if (!nombre) { alert('Ingresá un nombre para el borrador.'); return; }
+            const editando = ofertaBorradorEditandoId;
             try {
                 const headers = await CostoSVAuth.authHeaders();
-                const res = await fetch(`${SUPA_URL}/rest/v1/oferta_borradores`, {
-                    method: 'POST', headers: { ...headers, Prefer: 'return=minimal' },
+                const res = await fetch(
+                    editando
+                        ? `${SUPA_URL}/rest/v1/oferta_borradores?id=eq.${editando}`
+                        : `${SUPA_URL}/rest/v1/oferta_borradores`, {
+                    // return=representation para poder detectar el caso en que
+                    // RLS filtra la fila y el PATCH no cambia nada en silencio.
+                    method: editando ? 'PATCH' : 'POST',
+                    headers: { ...headers, Prefer: editando ? 'return=representation' : 'return=minimal' },
                     body: JSON.stringify({
                         nombre,
                         tipo_oferta: document.getElementById('oferta-b-tipo').value || null,
@@ -3205,13 +3270,14 @@
                     }),
                 });
                 if (!res.ok) throw new Error('No se pudo guardar el borrador (' + res.status + ')');
-                ['oferta-b-nombre', 'oferta-b-ciudad', 'oferta-b-municipio', 'oferta-b-departamento',
-                 'oferta-b-direccion', 'oferta-b-precio-lista', 'oferta-b-plazo', 'oferta-b-condiciones',
-                 'oferta-b-fondos', 'oferta-b-notas']
-                    .forEach(id => document.getElementById(id).value = '');
-                document.getElementById('oferta-b-forma-pago').value = '';
-                document.getElementById('oferta-b-tipo').value = '';
-                document.getElementById('oferta-b-inventario-rows').innerHTML = '';
+                if (editando) {
+                    const filas = await res.json().catch(() => []);
+                    if (!Array.isArray(filas) || !filas.length) {
+                        throw new Error('No se guardó el cambio: falta correr el SQL que habilita editar borradores. Pedíselo a Claude.');
+                    }
+                }
+                ofertaBorradorEditandoId = null;
+                limpiarFormularioBorradorOferta();
                 await cargarBorradoresOferta();
             } catch (ex) {
                 alert(ex.message);

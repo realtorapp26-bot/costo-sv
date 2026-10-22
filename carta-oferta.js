@@ -1112,6 +1112,8 @@
           toggleOfferType();
           toggleDocumentLanguage();
           syncAmountWords();
+          // Recién acá se sabe qué quedó definido por el borrador.
+          modoSimple();
         }
       }
     }).catch(function () {});
@@ -1208,9 +1210,90 @@
         'Link de revisión copiado. Mandáselo primero al propietario: lo ve completo, de solo lectura, sin poder firmar ni modificar.');
     });
     el('copiarLinkCliente').addEventListener('click', function () {
-      copiar(construirLinkCliente(),
-        'Link del cliente copiado. Mandáselo recién cuando el propietario haya dado el visto bueno: el cliente solo pone su nombre, su documento y firma.');
+      // simple=1: al que firma se le esconde todo lo que ya quedó definido acá.
+      copiar(construirLinkCliente() + '&simple=1',
+        delPropietario()
+          ? 'Link de firma copiado. Mandáselo al propietario: ve de solo lectura todo lo que dejaste armado y solo elige el monto, revisa los bienes incluidos, pone su nombre y documento, y firma.'
+          : 'Link del cliente copiado. Mandáselo recién cuando el propietario haya dado el visto bueno: el cliente solo pone su nombre, su documento y firma.');
     });
+  }
+
+  // ---------- modo simple: el que firma solo ve lo que le toca ----------
+  // Con ?simple=1 todo lo que el agente ya dejó definido se muestra en una
+  // tarjeta de solo lectura y su campo se esconde. La regla es "esconder lo
+  // que ya tiene valor": si el agente se olvidó de algo obligatorio, ese
+  // campo queda visible para que el que firma lo pueda completar y no se
+  // trabe con un error sobre un campo que no ve.
+  function filaResumen(etiquetaEs, etiquetaEn, valor) {
+    if (!valor) return '';
+    return '<div class="co-resumen-row"><div class="co-resumen-k">' +
+      bilingue(etiquetaEs, etiquetaEn) + '</div><div class="co-resumen-v">' + valor + '</div></div>';
+  }
+  function modoSimple() {
+    if (new URLSearchParams(window.location.search).get('simple') !== '1') return;
+    var esProp = delPropietario();
+    var isSale = offerType.value === 'VENTA';
+    var dinero = function (v) { return v ? 'US$ ' + formatMoney(Number(v)) : ''; };
+
+    var inmueble = [el('property_address').value, el('property_municipality').value, el('property_department').value]
+      .map(function (s) { return (s || '').trim(); }).filter(Boolean).join(', ');
+    var pago = paymentMethod.value
+      ? paymentMethod.value + (paymentDetails.value.trim() ? '. ' + paymentDetails.value.trim() : '')
+      : '';
+    var vigencia = esProp && offerValidity.value ? (fechaLarga(offerValidity.value) || {}) : {};
+
+    var html = '';
+    html += filaResumen('Tipo de oferta', 'Offer type',
+      offerType.value === 'ALQUILER' ? bilingue('Alquiler', 'Rental') : (isSale ? bilingue('Venta', 'Sale') : ''));
+    if (esProp) html += filaResumen('Dirigida a', 'Addressed to', recipientName.value.trim());
+    html += filaResumen('Inmueble', 'Property', inmueble);
+    html += filaResumen('Ciudad de emisión', 'Place of issue', el('issue_city').value.trim() || 'San Salvador');
+    html += filaResumen('Precio de lista autorizado', 'Authorized list price', dinero(listPrice.value));
+    html += filaResumen('Forma de pago', 'Payment method', pago);
+    html += filaResumen('Plazo de alquiler', 'Rental term', rentalTerm.value.trim());
+    html += filaResumen('Condiciones al propietario', 'Conditions to the owner', ownerConditions.value.trim());
+    html += filaResumen('Vigencia de la oferta', 'Offer valid until', vigencia.es ? (ordenIngles() ? vigencia.en : vigencia.es) : '');
+    if (esProp && isSale && subjectPriorSale.checked) {
+      html += filaResumen('Sujeta a venta previa', 'Subject to prior sale',
+        bilingue('Sí, se sigue publicando hasta que haya reserva depositada', 'Yes, marketing continues until a reservation deposit is made'));
+    }
+    if (firmPrice.checked) {
+      html += filaResumen('Precio cerrado', 'Firm price', bilingue('Sí, sin costos adicionales al monto pactado', 'Yes, no additional costs over the agreed amount'));
+    }
+    html += filaResumen('Notas adicionales', 'Additional notes', additionalNotes.value.trim());
+    html += filaResumen('Idioma del documento', 'Document language',
+      documentLanguage.value === 'en' ? bilingue('Inglés + anexo en español', 'English + Spanish annex') : bilingue('Español', 'Spanish'));
+
+    el('resumenRows').innerHTML = html;
+    el('resumenCard').classList.toggle('d-none', !html);
+
+    // Esconder solo lo que ya está resuelto.
+    el('borradorCard').classList.add('d-none');
+    additionalNotes.closest('.co-card').classList.add('d-none');
+    // Esa tarjeta lleva también el idioma y la dirección de la carta: solo se
+    // esconde si el tipo de oferta ya vino resuelto (si no, el que firma no
+    // tendría cómo elegirlo y la validación lo trabaría).
+    if (offerType.value) el('issue_city').closest('.co-card').classList.add('d-none');
+    if (inmueble && el('property_address').value.trim() && el('property_municipality').value.trim() && el('property_department').value.trim()) {
+      el('property_address').closest('.co-card').classList.add('d-none');
+    }
+    if (isSale && paymentMethod.value && paymentDetails.value.trim()) saleFields.classList.add('d-none');
+    if (!isSale && rentalTerm.value.trim() && ownerConditions.value.trim()) rentalFields.classList.add('d-none');
+    if (listPrice.value) listPrice.closest('.co-field').classList.add('d-none');
+    if (esProp) {
+      recipientWrap.classList.add('d-none');
+      validityWrap.classList.add('d-none');
+      priorSaleWrap.classList.add('d-none');
+    }
+    el('firmPriceWrap').classList.add('d-none');
+    offerDateView.closest('.co-field').classList.add('d-none');
+
+    // Ya no quedan "partes" en esa tarjeta: solo los datos del que firma.
+    setBilingue('clienteCardTitle', 'Tus datos', 'Your details');
+    el('clienteCardHint').classList.remove('d-none');
+    setBilingue('clienteCardHint',
+      'Poné tu nombre y tu número de documento tal como aparecen en tu identificación.',
+      'Enter your name and ID number exactly as they appear on your identification document.');
   }
 
   // ---------- modo revisión: el propietario ve la oferta, no la firma ----------
@@ -1244,6 +1327,7 @@
   syncAmountWords();
   initCanvas();
   modoAgente();
+  modoSimple();
   modoRevision();
   cargarBorradores();
   setInterval(refreshOfferDate, 60000);

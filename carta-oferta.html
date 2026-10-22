@@ -68,6 +68,12 @@
         .co-generate.loading .co-spin { display: block; }
         @keyframes co-rot { to { transform: rotate(360deg); } }
         .co-note { font-size: .8rem; color: #64748b; background: #f1f5f9; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; }
+        .co-resumen { display: flex; flex-direction: column; gap: 2px; }
+        .co-resumen-row { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid #e8edf4; font-size: .86rem; }
+        .co-resumen-row:last-child { border-bottom: 0; }
+        .co-resumen-k { flex: 0 0 42%; color: #94a3b8; font-weight: 500; }
+        .co-resumen-v { flex: 1; color: #1e293b; font-weight: 600; }
+        @media (max-width: 620px) { .co-resumen-row { flex-direction: column; gap: 2px; } .co-resumen-k { flex: none; } }
         .d-none { display: none !important; }
         @media (max-width: 620px) { .co-grid { grid-template-columns: 1fr; } }
     </style>
@@ -109,6 +115,14 @@
                 </div>
                 <div class="co-help" id="agenteAviso" style="margin-top:8px;"></div>
                 <textarea id="agenteLink" class="d-none" readonly rows="2" style="margin-top:8px;font-size:.78rem;"></textarea>
+            </div>
+
+            <!-- Modo simple (?simple=1): lo que el agente ya dejó definido se
+                 muestra acá de solo lectura, y su campo se oculta. -->
+            <div class="co-card d-none" id="resumenCard" style="background:#f8fafc;">
+                <h2 id="resumenTitulo">Ya está completado por tu agente <span class="en">/ Already filled in by your agent</span></h2>
+                <p class="hint" id="resumenHint">Revisalo. Abajo solo tenés que poner lo tuyo. <span class="en">Please review it. Below you only need to add your part.</span></p>
+                <div id="resumenRows" class="co-resumen"></div>
             </div>
 
             <div class="co-card" id="borradorCard">
