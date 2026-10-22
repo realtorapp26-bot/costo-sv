@@ -548,8 +548,10 @@
     pdf.setTextColor(15, 23, 42);
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(11.1);
-    pdf.text(values.fullName, x + 70, signatureTop + 42);
-    pdf.text(values.documentNumber, x + 70, signatureTop + 64);
+    // 70pt alcanzaba para "DUI:"/"NIT:" pero no para "PASAPORTE:", que es más
+    // ancha y quedaba pegada al número.
+    pdf.text(values.fullName, x + 86, signatureTop + 42);
+    pdf.text(values.documentNumber, x + 86, signatureTop + 64);
     pdf.text(values.signDate, x + 332, signatureTop + 20);
     pdf.text(values.signTime, x + 332, signatureTop + 42);
 
@@ -747,13 +749,14 @@
     items.forEach(function (it) {
       var row = document.createElement('label');
       row.className = 'co-inventory-item';
-      var label = it.item || '';
       var cant = it.cantidad ? ' (' + it.cantidad + ')' : '';
+      var label = ((it.item || it.descripcion || '') + cant).trim();
       row.innerHTML =
         '<input type="checkbox" checked>' +
-        '<span>' + label + cant +
-        (it.descripcion ? '<span class="co-inventory-desc">' + it.descripcion + '</span>' : '') +
+        '<span>' + label +
+        (it.item && it.descripcion ? '<span class="co-inventory-desc">' + it.descripcion + '</span>' : '') +
         '</span>';
+      row.querySelector('input').dataset.label = label;
       inventoryItemsWrap.appendChild(row);
     });
   }
@@ -761,9 +764,7 @@
     var boxes = inventoryItemsWrap.querySelectorAll('input[type=checkbox]');
     var out = [];
     boxes.forEach(function (cb) {
-      if (!cb.checked) return;
-      var text = cb.parentElement.querySelector('span').childNodes[0].textContent.trim();
-      out.push(text);
+      if (cb.checked && cb.dataset.label) out.push(cb.dataset.label);
     });
     return out;
   }
