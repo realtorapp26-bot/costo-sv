@@ -890,6 +890,28 @@
           origen: 'formulario_web', interes: 'vender', propiedad_referencia: v.propertyAddress, notas: resumen,
           actividad: { tipo: 'nota', detalle: resumen },
           pdf_base64: pdfBase64 || undefined,
+          // Archiva la carta con sus términos, para poder consultarla después
+          // desde el panel y no solo tener el PDF colgado del lead.
+          carta: {
+            tipo: v.letterMode === 'ACEPTACION' ? 'aceptacion' : 'contraoferta',
+            transaccion: v.transactionType,
+            idioma: v.documentLanguage,
+            cliente_nombre: v.interestedName,
+            cliente_documento: v.interestedDocumentType + ' ' + v.interestedDocumentNumber,
+            propietario_nombre: v.ownerName,
+            propiedad_municipio: v.propertyMunicipality,
+            propiedad_departamento: v.propertyDepartment,
+            propiedad_direccion: v.propertyAddress,
+            monto: monto,
+            forma_pago: v.paymentMethod || null,
+            detalle_pago: v.paymentDetails || null,
+            plazo: v.rentalTerm || null,
+            gastos_cierre: (v.letterMode === 'ACEPTACION' && v.transactionType === 'VENTA')
+              ? closingCosts(v.acceptedAmountNumber) : null,
+            notas: v.letterMode === 'CONTRAOFERTA'
+              ? ('Contraoferta: ' + v.counterofferText + (v.additionalNotes ? ' — ' + v.additionalNotes : ''))
+              : (v.additionalNotes || null),
+          },
         }),
       });
     }).catch(function (e) { console.error('registro carta de respuesta:', e); });

@@ -303,6 +303,7 @@
                 <button class="tab-btn" id="btn-tab-leads" onclick="cambiarTab('leads')">📋 Leads</button>
                 <button class="tab-btn" id="btn-tab-kyc" onclick="cambiarTab('kyc')">🛡️ KYC</button>
                 <button class="tab-btn" id="btn-tab-contratos" onclick="cambiarTab('contratos')">📄 Contratos</button>
+                <button class="tab-btn" id="btn-tab-cartas" onclick="cambiarTab('cartas')">✉️ Cartas</button>
                 <button class="tab-btn" id="btn-tab-metricas" onclick="cambiarTab('metricas')">📊 Métricas</button>
                 <button class="tab-btn" id="btn-tab-testimonios" onclick="cambiarTab('testimonios')">⭐ Testimonios</button>
             </div>
@@ -805,6 +806,40 @@
             </table>
         </div>
 
+        <!-- ===== TAB: CARTAS ===== -->
+        <div class="tab-panel" id="tab-cartas">
+            <p class="empty-hint" style="margin-bottom:12px;">
+                Archivo de las cartas generadas y firmadas: ofertas de compradores, aceptaciones y contraofertas de propietarios.
+                Cada una guarda sus términos y el PDF firmado.
+            </p>
+
+            <div class="filters-bar">
+                <span class="filter-label">Tipo</span>
+                <select id="carta-filtro-tipo" class="estado-select" onchange="renderCartas()">
+                    <option value="">Todas</option>
+                    <option value="oferta">Ofertas</option>
+                    <option value="aceptacion">Aceptaciones</option>
+                    <option value="contraoferta">Contraofertas</option>
+                </select>
+            </div>
+
+            <table class="leads-table">
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Tipo</th>
+                        <th>Cliente</th>
+                        <th>Propietario</th>
+                        <th>Inmueble</th>
+                        <th>Monto</th>
+                        <th>Fecha</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="cartas-body"></tbody>
+            </table>
+        </div>
+
         <!-- ===== TAB: METRICAS ===== -->
         <div class="tab-panel" id="tab-metricas">
             <div class="kpi-row">
@@ -1109,6 +1144,20 @@
                     <button class="btn-action btn-secondary" type="button" onclick="cerrarModalNuevoContrato()">Cancelar</button>
                     <button class="btn-action btn-primary" type="button" id="btn-crear-contrato" onclick="crearContrato()">Crear contrato</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: Detalle de una carta ===== -->
+    <div class="modal-overlay" id="modal-carta" onclick="if (event.target === this) cerrarModalCarta()">
+        <div class="modal-box" style="max-width: 680px;">
+            <div class="modal-box-head">
+                <h3 style="margin:0;" id="carta-detalle-titulo">Carta</h3>
+                <button type="button" class="modal-box-cerrar" onclick="cerrarModalCarta()" aria-label="Cerrar">✕</button>
+            </div>
+            <div class="panel" id="carta-detalle-cuerpo"></div>
+            <div class="actions-row" style="justify-content: flex-end; margin-top: 12px;">
+                <button class="btn-action btn-primary" type="button" id="carta-detalle-pdf">Ver PDF firmado</button>
             </div>
         </div>
     </div>
@@ -2915,6 +2964,113 @@
             }
         }
 
+        // ---------- Archivo de cartas (ofertas / aceptaciones / contraofertas) ----------
+        let cartasData = [];
+        const CARTA_ETIQUETA = { oferta: 'Oferta', aceptacion: 'Aceptación', contraoferta: 'Contraoferta' };
+
+        async function cargarCartas() {
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/cartas?select=*&order=created_at.desc`, { headers });
+                if (!res.ok) throw new Error('No se pudieron cargar las cartas (' + res.status + ')');
+                cartasData = await res.json();
+            } catch (ex) {
+                cartasData = [];
+                console.error('cargarCartas:', ex);
+            }
+            renderCartas();
+        }
+
+        function renderCartas() {
+            const tbody = document.getElementById('cartas-body');
+            if (!tbody) return;
+            const filtro = document.getElementById('carta-filtro-tipo').value;
+            const filas = cartasData.filter(c => !filtro || c.tipo === filtro);
+            if (!filas.length) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-hint">Todavía no hay cartas archivadas. Se guardan solas cada vez que alguien genera una carta de oferta o de respuesta.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = filas.map(c => `
+                <tr>
+                    <td>${c.numero || ''}</td>
+                    <td>${CARTA_ETIQUETA[c.tipo] || c.tipo}</td>
+                    <td>${c.cliente_nombre || '—'}</td>
+                    <td>${c.propietario_nombre || '—'}</td>
+                    <td>${c.propiedad_direccion || '—'}</td>
+                    <td>${c.monto != null ? 'US$ ' + Number(c.monto).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'}</td>
+                    <td>${new Date(c.created_at).toLocaleDateString('es-SV')}</td>
+                    <td>
+                        <button class="btn-nota" title="Ver qué se firmó" onclick="abrirModalCarta('${c.id}')"><i class="fas fa-eye"></i></button>
+                        ${c.pdf_path ? `<button class="btn-nota" title="Ver PDF firmado" onclick="descargarOferta('${c.pdf_path}', this)"><i class="fas fa-file-arrow-down"></i></button>` : ''}
+                        <button class="btn-eliminar-lead" title="Eliminar del archivo" onclick="eliminarCarta('${c.id}')"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function abrirModalCarta(id) {
+            const c = cartasData.find(x => x.id === id);
+            if (!c) return;
+            const money = (v) => v != null ? 'US$ ' + Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
+            const filas = [
+                ['Número', c.numero],
+                ['Tipo', CARTA_ETIQUETA[c.tipo] || c.tipo],
+                ['Operación', c.transaccion === 'ALQUILER' ? 'Alquiler' : 'Venta'],
+                ['Idioma del documento', c.idioma === 'en' ? 'Inglés + anexo en español' : 'Español'],
+                ['Cliente', c.cliente_nombre],
+                ['Documento del cliente', c.cliente_documento],
+                ['Propietario', c.propietario_nombre],
+                ['Inmueble', [c.propiedad_direccion, c.propiedad_municipio, c.propiedad_departamento].filter(Boolean).join(', ')],
+                ['Monto', money(c.monto)],
+                ['Precio de lista', c.precio_lista != null ? money(c.precio_lista) : null],
+                ['Forma de pago', c.forma_pago],
+                ['Detalle de pago', c.detalle_pago],
+                ['Plazo', c.plazo],
+                ['Notas', c.notas],
+                ['Fecha', new Date(c.created_at).toLocaleString('es-SV')],
+            ].filter(([, v]) => v);
+
+            const bienes = Array.isArray(c.bienes) ? c.bienes : [];
+            const g = c.gastos_cierre;
+            document.getElementById('carta-detalle-titulo').textContent =
+                (CARTA_ETIQUETA[c.tipo] || c.tipo) + ' · ' + (c.numero || '');
+            document.getElementById('carta-detalle-cuerpo').innerHTML = `
+                <table class="leads-table"><tbody>
+                    ${filas.map(([k, v]) => `<tr><th style="text-align:left;width:40%;">${k}</th><td>${v}</td></tr>`).join('')}
+                </tbody></table>
+                ${bienes.length ? `<h2 style="margin-top:16px;">Bienes incluidos</h2><ul>${bienes.map(b => `<li>${b}</li>`).join('')}</ul>` : ''}
+                ${g ? `<h2 style="margin-top:16px;">Gastos de cierre estimados</h2>
+                    <table class="leads-table"><tbody>
+                        <tr><th style="text-align:left;width:40%;">Impuesto de transferencia</th><td>${money(g.transferTax)}</td></tr>
+                        <tr><th style="text-align:left;">Derechos de registro CNR</th><td>${money(g.cnrFee)}</td></tr>
+                        <tr><th style="text-align:left;">Total gastos de cierre</th><td>${money(g.total)}</td></tr>
+                        <tr><th style="text-align:left;">Total a preparar</th><td>${money(g.grandTotal)}</td></tr>
+                    </tbody></table>` : ''}
+            `;
+            const btnPdf = document.getElementById('carta-detalle-pdf');
+            btnPdf.style.display = c.pdf_path ? '' : 'none';
+            btnPdf.onclick = () => descargarOferta(c.pdf_path, btnPdf);
+            document.getElementById('modal-carta').classList.add('show');
+        }
+        function cerrarModalCarta() {
+            document.getElementById('modal-carta').classList.remove('show');
+        }
+
+        async function eliminarCarta(id) {
+            const c = cartasData.find(x => x.id === id);
+            if (!confirm(`¿Eliminar del archivo la carta ${c ? c.numero : ''}? El PDF firmado también deja de estar accesible desde acá. No se puede deshacer.`)) return;
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/cartas?id=eq.${id}`, {
+                    method: 'DELETE', headers: { ...headers, Prefer: 'return=minimal' },
+                });
+                if (!res.ok) throw new Error('No se pudo eliminar (' + res.status + ')');
+                await cargarCartas();
+            } catch (ex) {
+                alert(ex.message);
+            }
+        }
+
         // ---------- Borradores de Carta de Oferta ----------
         let ofertaBorradoresData = [];
 
@@ -3210,6 +3366,7 @@
             cargarLeads();
             cargarKyc();
             cargarContratos();
+            cargarCartas();
             cargarUsoIA();
             cargarTestimonios();
         });

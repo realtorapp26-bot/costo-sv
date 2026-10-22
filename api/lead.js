@@ -26,6 +26,7 @@
 import { guardarLead } from '../lib/guardarLead.js';
 import { guardarKyc } from '../lib/guardarKyc.js';
 import { guardarContrato } from '../lib/guardarContrato.js';
+import { guardarCarta } from '../lib/guardarCarta.js';
 import { obtenerContrato } from '../lib/obtenerContrato.js';
 
 export default async function handler(req, res) {
@@ -57,6 +58,19 @@ export default async function handler(req, res) {
 
   try {
     const body = req.body || {};
+
+    // Carta firmada (oferta / aceptación / contraoferta): se registra el lead
+    // igual que antes, pero el PDF lo sube y lo archiva guardarCarta, que
+    // además deja el mismo path colgado del lead. Así el documento queda en
+    // un solo lugar y se puede abrir desde el archivo de cartas o desde el
+    // lead. Se silencia el aviso del lead para no mandar dos por Telegram.
+    if (body.carta) {
+      const lead = await guardarLead({ ...body, pdf_base64: undefined, sin_telegram: true }, serviceKey);
+      const carta = await guardarCarta({ ...body, lead_id: lead.leadId }, serviceKey);
+      res.status(200).json({ ...lead, ...carta });
+      return;
+    }
+
     const resultado = body.contrato_id
       ? await guardarContrato(body, serviceKey)
       : body.kyc_caso_id

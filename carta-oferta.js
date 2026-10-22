@@ -715,6 +715,26 @@
           propiedad_referencia: v.propertyAddress, notas: resumen,
           actividad: { tipo: 'nota', detalle: resumen },
           pdf_base64: pdfBase64 || undefined,
+          // Archiva la carta con sus términos, para poder consultarla después
+          // desde el panel y no solo tener el PDF colgado del lead.
+          carta: {
+            tipo: 'oferta',
+            transaccion: v.offerType,
+            idioma: v.documentLanguage,
+            cliente_nombre: v.fullName,
+            cliente_documento: v.documentType + ' ' + v.documentNumber,
+            propiedad_municipio: v.propertyMunicipality,
+            propiedad_departamento: v.propertyDepartment,
+            propiedad_direccion: v.propertyAddress,
+            monto: v.amountNumber,
+            precio_lista: v.listPrice || null,
+            forma_pago: v.paymentMethod || null,
+            detalle_pago: v.paymentDetails || null,
+            plazo: v.rentalTerm || null,
+            bienes: v.includedItems,
+            gastos_cierre: v.offerType === 'VENTA' ? closingCosts(v.amountNumber) : null,
+            notas: v.additionalNotes || null,
+          },
         }),
       });
     }).catch(function (e) { console.error('registro carta de oferta:', e); });
