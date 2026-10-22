@@ -28,6 +28,9 @@
   var englishConsentWrap = el('englishConsentWrap');
   var additionalNotes = el('additional_notes');
   var borradorSelect = el('borrador_select');
+  var firmPrice = el('firm_price');
+  var inventoryCard = el('inventoryCard');
+  var inventoryItemsWrap = el('inventoryItemsWrap');
   var errorBox = el('errorBox');
   var errorList = el('errorList');
   var canvas = el('signaturePad');
@@ -374,6 +377,15 @@
       isEnglish ? (isSale ? 'Offered purchase price' : 'Offered rental price') : (isSale ? 'Precio de compra ofrecido' : 'Precio de alquiler ofrecido'),
       language);
 
+    if (values.firmPrice) {
+      pdf.setTextColor(11, 45, 92);
+      y = paragraph(pdf,
+        isEnglish ? 'This price is firm and final for the buyer; no additional costs will be added.' : 'Este precio es cerrado y definitivo para el comprador; no se agregarán costos adicionales.',
+        x, y, width, { fontSize: 10.8, minFontSize: 9.6, fontStyle: 'bold', lineHeight: 14.6, maxLines: 2 });
+      pdf.setTextColor(15, 23, 42);
+      y += 10;
+    }
+
     if (!isSale) {
       y = paragraph(pdf, (isEnglish ? 'Offered rental term: ' : 'Plazo de alquiler ofrecido: ') + values.rentalTerm + '.', x, y, width, { fontSize: 11.2, minFontSize: 10, lineHeight: 15.2, maxLines: 3 });
       y += 8;
@@ -386,6 +398,17 @@
         : 'Forma de pago: ' + values.paymentMethod + '. ' + values.paymentDetails;
       y = paragraph(pdf, (isEnglish ? 'The funds will be delivered as follows: ' : 'Los fondos serán entregados de la siguiente manera: ') + paymentText, x, y, width, { fontSize: 11.2, minFontSize: 9.6, lineHeight: 15.6, maxLines: 7 });
       y += 14;
+    }
+
+    if (values.includedItems && values.includedItems.length) {
+      y = paragraph(pdf,
+        isEnglish ? 'This offer includes the following items together with the property:' : 'Esta oferta incluye los siguientes bienes junto con el inmueble:',
+        x, y, width, { fontSize: 11, minFontSize: 9.8, lineHeight: 15, maxLines: 2 });
+      y += 4;
+      values.includedItems.forEach(function (it) {
+        y = paragraph(pdf, '• ' + it, x + 10, y, width - 10, { fontSize: 10.4, minFontSize: 9.2, lineHeight: 13.8, maxLines: 2 });
+      });
+      y += 10;
     }
 
     if (values.additionalNotes) {
@@ -557,6 +580,8 @@
       paymentMethod: paymentMethod.value,
       paymentDetails: val('payment_details'),
       additionalNotes: val('additional_notes'),
+      firmPrice: !!firmPrice.checked,
+      includedItems: collectIncludedItems(),
       signatureData: signatureData,
       signDate: now.dateInput,
       signDateLong: now.dateLong,
@@ -629,6 +654,35 @@
     }
   }
 
+  // ---------- bienes incluidos (checklist a partir del borrador) ----------
+  function renderInventoryItems(items) {
+    inventoryItemsWrap.innerHTML = '';
+    items = items || [];
+    inventoryCard.classList.toggle('d-none', items.length === 0);
+    items.forEach(function (it) {
+      var row = document.createElement('label');
+      row.className = 'co-inventory-item';
+      var label = it.item || '';
+      var cant = it.cantidad ? ' (' + it.cantidad + ')' : '';
+      row.innerHTML =
+        '<input type="checkbox" checked>' +
+        '<span>' + label + cant +
+        (it.descripcion ? '<span class="co-inventory-desc">' + it.descripcion + '</span>' : '') +
+        '</span>';
+      inventoryItemsWrap.appendChild(row);
+    });
+  }
+  function collectIncludedItems() {
+    var boxes = inventoryItemsWrap.querySelectorAll('input[type=checkbox]');
+    var out = [];
+    boxes.forEach(function (cb) {
+      if (!cb.checked) return;
+      var text = cb.parentElement.querySelector('span').childNodes[0].textContent.trim();
+      out.push(text);
+    });
+    return out;
+  }
+
   // ---------- borradores (lectura pública, sin login -- los crea Walter
   // desde el panel; esta página solo lee para precargar) ----------
   function aplicarBorrador(campos) {
@@ -637,6 +691,7 @@
     if (campos.payment_method) paymentMethod.value = campos.payment_method;
     paymentDetails.value = campos.payment_details || '';
     additionalNotes.value = campos.notas_adicionales || '';
+    renderInventoryItems(campos.inventario || []);
   }
   function cargarBorradores() {
     var cfg = window.SITE_CONFIG || {};
@@ -653,6 +708,7 @@
       borradorSelect.addEventListener('change', function () {
         var b = borradores.find(function (x) { return x.id === borradorSelect.value; });
         if (b) aplicarBorrador(b);
+        else renderInventoryItems([]);
       });
     }).catch(function () {});
   }

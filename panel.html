@@ -1160,6 +1160,11 @@
                         <label>Notas adicionales</label>
                         <textarea id="oferta-b-notas"></textarea>
                     </div>
+                    <div class="full">
+                        <label>Bienes incluidos en la venta (el cliente podrá desmarcar lo que no quiera)</label>
+                        <div id="oferta-b-inventario-rows"></div>
+                        <button type="button" class="btn-nota" onclick="agregarFilaInventarioOferta()">+ Agregar artículo</button>
+                    </div>
                 </div>
                 <div class="actions-row" style="justify-content: flex-end; margin-top: 12px;">
                     <button class="btn-action btn-primary" type="button" onclick="crearBorradorOferta()">Guardar borrador</button>
@@ -2923,6 +2928,26 @@
             });
         }
 
+        function agregarFilaInventarioOferta() {
+            const cont = document.getElementById('oferta-b-inventario-rows');
+            const fila = document.createElement('div');
+            fila.className = 'inventario-fila';
+            fila.innerHTML = `
+                <input type="text" placeholder="Artículo" class="inv-item">
+                <input type="text" placeholder="Descripción / ubicación" class="inv-desc">
+                <input type="text" placeholder="Cant." class="inv-cant">
+                <button type="button" onclick="this.closest('.inventario-fila').remove()"><i class="fas fa-trash"></i></button>
+            `;
+            cont.appendChild(fila);
+        }
+        function leerInventarioOferta() {
+            return Array.from(document.querySelectorAll('#oferta-b-inventario-rows .inventario-fila')).map(fila => ({
+                item: fila.querySelector('.inv-item').value.trim(),
+                descripcion: fila.querySelector('.inv-desc').value.trim(),
+                cantidad: fila.querySelector('.inv-cant').value.trim(),
+            })).filter(f => f.item || f.descripcion);
+        }
+
         async function crearBorradorOferta() {
             const nombre = document.getElementById('oferta-b-nombre').value.trim();
             if (!nombre) { alert('Ingresá un nombre para el borrador.'); return; }
@@ -2937,12 +2962,14 @@
                         payment_method: document.getElementById('oferta-b-forma-pago').value || null,
                         payment_details: document.getElementById('oferta-b-fondos').value.trim() || null,
                         notas_adicionales: document.getElementById('oferta-b-notas').value.trim() || null,
+                        inventario: leerInventarioOferta(),
                     }),
                 });
                 if (!res.ok) throw new Error('No se pudo guardar el borrador (' + res.status + ')');
                 ['oferta-b-nombre', 'oferta-b-plazo', 'oferta-b-condiciones', 'oferta-b-fondos', 'oferta-b-notas']
                     .forEach(id => document.getElementById(id).value = '');
                 document.getElementById('oferta-b-forma-pago').value = '';
+                document.getElementById('oferta-b-inventario-rows').innerHTML = '';
                 await cargarBorradoresOferta();
             } catch (ex) {
                 alert(ex.message);

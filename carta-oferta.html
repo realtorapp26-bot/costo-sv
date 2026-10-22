@@ -47,6 +47,10 @@
         .co-btn-clear { background: none; border: 1px solid #e2e8f0; border-radius: 8px; padding: 7px 14px; font: inherit; font-size: .82rem; cursor: pointer; color: #475569; }
         .co-check { display: flex; gap: 10px; align-items: flex-start; font-size: .86rem; color: #334155; margin-top: 4px; }
         .co-check input { width: auto; margin-top: 3px; }
+        .co-inventory-list { display: flex; flex-direction: column; gap: 10px; }
+        .co-inventory-item { display: flex; gap: 10px; align-items: flex-start; font-size: .86rem; color: #334155; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; }
+        .co-inventory-item input { width: auto; margin-top: 3px; }
+        .co-inventory-item .co-inventory-desc { display: block; color: #94a3b8; font-size: .78rem; margin-top: 2px; }
         .co-errors { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; }
         .co-errors h3 { color: #b91c1c; font-size: .95rem; margin: 0 0 8px; }
         .co-errors ul { margin: 0; padding-left: 18px; color: #7f1d1d; font-size: .85rem; }
@@ -204,6 +208,19 @@
                         <input type="text" id="amount_words_english" name="amount_words_english" readonly>
                     </div>
                 </div>
+                <div class="co-check" id="firmPriceWrap">
+                    <input type="checkbox" id="firm_price">
+                    <label for="firm_price" style="margin:0;font-weight:500;">
+                        Precio cerrado y definitivo, sin costos adicionales para el comprador.
+                        <span class="en" style="display:block;color:#94a3b8;font-weight:500;margin-top:4px;">Firm and final price, with no additional costs for the buyer.</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="co-card d-none" id="inventoryCard">
+                <h2>Bienes incluidos en la venta <span class="en">/ Items included in the sale</span></h2>
+                <p class="hint">Según el borrador elegido. Desmarcá lo que no quieras incluir en tu oferta. <span class="en">From the selected draft. Uncheck anything you don't want included in your offer.</span></p>
+                <div id="inventoryItemsWrap" class="co-inventory-list"></div>
             </div>
 
             <div class="co-card d-none" id="rentalFields">
