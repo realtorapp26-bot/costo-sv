@@ -372,6 +372,17 @@
     });
     return y + height;
   }
+  // Mismos cálculos que carta-oferta.js: Ley de Impuesto sobre Transferencia
+  // de Bienes Raíces (3% sobre el excedente de US$28,571.43) y Ley de
+  // Aranceles del Registro de la Propiedad Raíz e Hipotecas, Art. 48 y 50-A
+  // (US$0.63 por cada cien o fracción, mínimo US$8.86, máximo US$5,400).
+  function closingCosts(price) {
+    price = Number(price || 0);
+    var transferTax = price > 28571.43 ? (price - 28571.43) * 0.03 : 0;
+    var cnrFee = price > 0 ? Math.min(5400, Math.max(8.86, Math.ceil(price / 100) * 0.63)) : 0;
+    var total = transferTax + cnrFee;
+    return { transferTax: transferTax, cnrFee: cnrFee, total: total, grandTotal: price + total };
+  }
   function termsCard(pdf, rows, x, y, width) {
     var padding = 12, labelWidth = 142, fontSize = 9.2, lineHeight = 11.5;
     var valueWidth = width - (padding * 2) - labelWidth;
@@ -578,6 +589,24 @@
           { label: isEnglish ? 'Payment Details' : 'Detalles del pago', value: values.paymentDetails },
         ], cardX, y, cardWidth);
         y += 6;
+
+        var cc = closingCosts(values.acceptedAmountNumber);
+        y = ensureSpace(pdf, y, 150, title, language);
+        y = sectionLabel(pdf, isEnglish ? 'Estimated Closing Costs (payable by the buyer)' : 'Gastos de cierre estimados (a cargo del comprador)', x, y);
+        y = termsCard(pdf, [
+          { label: isEnglish ? 'Transfer Tax' : 'Impuesto de transferencia', value: 'US$ ' + formatMoney(cc.transferTax) },
+          { label: isEnglish ? 'CNR Registration Fee' : 'Derechos de registro CNR', value: 'US$ ' + formatMoney(cc.cnrFee) },
+          { label: isEnglish ? 'Total Closing Costs' : 'Total gastos de cierre', value: 'US$ ' + formatMoney(cc.total), bold: true },
+          { label: isEnglish ? 'Total to Prepare' : 'Total a preparar', value: 'US$ ' + formatMoney(cc.grandTotal) + (isEnglish ? ' (price + costs)' : ' (precio + gastos)'), bold: true },
+        ], cardX, y, cardWidth);
+        y += 4;
+        y = paragraph(pdf,
+          isEnglish
+            ? 'These registration costs are not included in the agreed price and are payable by the buyer. The amounts are informational and may vary according to the deed, notary, and registry or tax validation.'
+            : 'Estos gastos de inscripción no están incluidos en el precio pactado y corren por cuenta del comprador. Los montos son informativos y pueden variar según la escritura, el notario y la validación registral o tributaria.',
+          x, y, width, { fontSize: 8.6, minFontSize: 8, lineHeight: 11.4, maxLines: 4 });
+        y += 6;
+
         y = paragraph(pdf,
           isEnglish
             ? 'I EXPRESSLY AUTHORIZE GUERRERO PROPERTIES to communicate this acceptance to the interested party and to continue coordinating the eventual formalization of the transaction.'
