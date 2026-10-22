@@ -526,31 +526,33 @@
       x, y, width, { fontSize: 11.2, minFontSize: 10, lineHeight: 15.4, maxLines: 5 });
     y += 20;
 
-    // Si el contenido de arriba (sobre todo las notas adicionales) empujó
-    // demasiado, "signatureTop" de abajo deja de crecer con "y" apenas
-    // y+90 pasa de 710 (queda fijo en 710) -- pasado ese punto la fecha
-    // (dibujada en "y") y la firma terminan solapadas. Hay que pasar a una
-    // página nueva ANTES de llegar ahí, no cuando ya se desbordó.
-    if (y > 600) { pdf.addPage(); y = 80; }
+    // El bloque de fecha + firma mide ~170pt. Si no entra completo en lo que
+    // queda de página, se pasa entero a la siguiente. Antes la firma estaba
+    // clavada al fondo (Math.min(710, ...)), así que cuando el texto terminaba
+    // arriba quedaba un vacío enorme entre la fecha y la firma.
+    var ALTO_BLOQUE_FIRMA = 170;
+    if (y + ALTO_BLOQUE_FIRMA > pageH - 52) { pdf.addPage(); y = 80; }
 
     pdf.setTextColor(15, 23, 42);
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(11.2);
     pdf.text(isEnglish ? values.issueCity + ', on ' + values.signDateLongEnglish + '.' : values.issueCity + ', a ' + values.signDateLong + '.', x, y);
 
-    // Más espacio entre el cuerpo del texto y la firma, y firma más grande
-    // y proporcional (antes 144x44 fijo, se veía chica y podía estirarse).
-    var signatureTop = Math.min(710, Math.max(y + 90, 675));
+    // Dos columnas del mismo ancho repartidas sobre el ancho real del
+    // contenido: a la izquierda la firma, a la derecha fecha y hora.
+    var signatureTop = y + 90;
+    var colW = (width - 40) / 2;
+    var rightX = x + colW + 40;
     pdf.setDrawColor(110, 122, 144);
-    pdf.line(x, signatureTop, x + 220, signatureTop);
+    pdf.line(x, signatureTop, x + colW, signatureTop);
     if (values.signatureData) {
       try {
         var sigProps = pdf.getImageProperties(values.signatureData);
         var sigRatio = sigProps.width / sigProps.height;
-        var sw = Math.min(190, 58 * sigRatio);
+        var sw = Math.min(colW - 20, 58 * sigRatio);
         var sh = sw / sigRatio;
         if (sh > 58) { sh = 58; sw = sh * sigRatio; }
-        pdf.addImage(values.signatureData, 'PNG', x + 10, signatureTop - sh - 10, sw, sh);
+        pdf.addImage(values.signatureData, 'PNG', x + (colW - sw) / 2, signatureTop - sh - 10, sw, sh);
       } catch (e) {}
     }
     pdf.setTextColor(11, 45, 92);
@@ -559,8 +561,8 @@
     pdf.text(isEnglish ? 'SIGNATURE:' : 'FIRMA:', x, signatureTop + 20);
     pdf.text(isEnglish ? 'NAME:' : 'NOMBRE:', x, signatureTop + 42);
     pdf.text((isEnglish && values.documentType === 'PASAPORTE' ? 'PASSPORT' : values.documentType.toUpperCase()) + ':', x, signatureTop + 64);
-    pdf.text(isEnglish ? 'DATE:' : 'FECHA:', x + 278, signatureTop + 20);
-    pdf.text(isEnglish ? 'TIME:' : 'HORA:', x + 278, signatureTop + 42);
+    pdf.text(isEnglish ? 'DATE:' : 'FECHA:', rightX, signatureTop + 20);
+    pdf.text(isEnglish ? 'TIME:' : 'HORA:', rightX, signatureTop + 42);
     pdf.setTextColor(15, 23, 42);
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(11.1);
@@ -568,8 +570,8 @@
     // ancha y quedaba pegada al número.
     pdf.text(values.fullName, x + 86, signatureTop + 42);
     pdf.text(values.documentNumber, x + 86, signatureTop + 64);
-    pdf.text(values.signDate, x + 332, signatureTop + 20);
-    pdf.text(values.signTime, x + 332, signatureTop + 42);
+    pdf.text(values.signDate, rightX + 56, signatureTop + 20);
+    pdf.text(values.signTime, rightX + 56, signatureTop + 42);
 
     pdf.setTextColor(100, 116, 139);
     pdf.setFont('helvetica', 'italic');

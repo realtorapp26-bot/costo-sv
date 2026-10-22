@@ -486,10 +486,12 @@
     var isEnglish = language === 'en';
     var pageH = pdf.internal.pageSize.getHeight();
     var x = 64;
-    // Más separación entre el cuerpo del texto y la fecha/firma, y la firma
-    // se dibuja más grande (antes tope de 36pt de alto, se veía chica).
-    var dateY = Math.max(contentY + 24, 580);
-    var signatureLineY = Math.max(dateY + 70, 668);
+    var width = pdf.internal.pageSize.getWidth() - 128;
+    // La fecha y la firma siguen al contenido. Antes estaban clavadas en 580 y
+    // 668, así que cuando el texto terminaba arriba quedaba un hueco enorme
+    // entre el cuerpo y la firma.
+    var dateY = contentY + 24;
+    var signatureLineY = dateY + 70;
     if (signatureLineY + 60 > pageH - 24) {
       pdf.addPage();
       drawPageHeader(pdf, title, true, language);
@@ -500,19 +502,22 @@
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(9.8);
     pdf.text(isEnglish ? (values.issueCity + ', on ' + values.signDateLongEnglish + '.') : (values.issueCity + ', a ' + values.signDateLong + '.'), x, dateY);
+    // Dos columnas parejas sobre el ancho real: firma a la izquierda,
+    // fecha y hora a la derecha.
+    var colW = (width - 40) / 2;
     pdf.setDrawColor(139, 152, 171);
-    pdf.line(x, signatureLineY, x + 220, signatureLineY);
+    pdf.line(x, signatureLineY, x + colW, signatureLineY);
     if (values.signatureData) {
       try {
         var props = pdf.getImageProperties(values.signatureData);
         var ratio = props.width / props.height;
-        var sw = Math.min(190, 58 * ratio);
+        var sw = Math.min(colW - 20, 58 * ratio);
         var sh = sw / ratio;
         if (sh > 58) { sh = 58; sw = sh * ratio; }
-        pdf.addImage(values.signatureData, 'PNG', x + 14, signatureLineY - sh - 10, sw, sh, 'ownerSignature', 'FAST');
+        pdf.addImage(values.signatureData, 'PNG', x + (colW - sw) / 2, signatureLineY - sh - 10, sw, sh, 'ownerSignature', 'FAST');
       } catch (e) {}
     }
-    var rightX = x + 300;
+    var rightX = x + colW + 40;
     pdf.setTextColor(11, 45, 92);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(8.4);
