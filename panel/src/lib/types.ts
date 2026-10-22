@@ -203,6 +203,37 @@ export interface Propiedad {
 
 export type CartaTipo = 'oferta' | 'oferta_venta' | 'aceptacion' | 'contraoferta';
 
+// Plantilla reusable de una propiedad para la carta de oferta: precarga el
+// inmueble, el precio de lista, la forma de pago y el listado de bienes o
+// generalidades. La lectura es pública (carta-oferta.html la usa sin login);
+// crear, editar y borrar es solo del panel.
+export interface ItemInventarioOferta {
+  item: string;
+  descripcion: string;
+  cantidad: string;
+}
+
+export interface OfertaBorrador {
+  id: string;
+  nombre: string;
+  tipo_oferta: 'VENTA' | 'ALQUILER' | null;
+  ciudad_emision: string | null;
+  propiedad_municipio: string | null;
+  propiedad_departamento: string | null;
+  propiedad_direccion: string | null;
+  precio_lista: number | null;
+  rental_term: string | null;
+  owner_conditions: string | null;
+  payment_method: string | null;
+  payment_details: string | null;
+  notas_adicionales: string | null;
+  titulo_inventario: string | null;
+  inventario: ItemInventarioOferta[] | null;
+  created_at: string;
+}
+
+export type NuevoOfertaBorrador = Omit<OfertaBorrador, 'id' | 'created_at'>;
+
 export interface GastosCierre {
   transferTax: number;
   cnrFee: number;

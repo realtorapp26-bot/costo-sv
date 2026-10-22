@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from './supabase';
-import type { CamposContratoBorrador, Carta, ContratoBorrador, ContratoComercializacion, ContratoEstado, Estado, Interes, ItemInventario, KycClienteTipo, KycEstado, KycSolicitud, LeadConContacto, Origen, Propiedad, TipoListado } from './types';
+import type { CamposContratoBorrador, Carta, ContratoBorrador, ContratoComercializacion, ContratoEstado, Estado, Interes, ItemInventario, KycClienteTipo, KycEstado, KycSolicitud, LeadConContacto, NuevoOfertaBorrador, OfertaBorrador, Origen, Propiedad, TipoListado } from './types';
 
 const LEAD_COLS_BASE =
   'id,origen,interes,propiedad_referencia,estado,notas,created_at,contactos(nombre,telefono,correo)';
@@ -378,5 +378,66 @@ export function useDeleteCarta() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['cartas'] }),
+  });
+}
+
+// ---------- Borradores de carta de oferta ----------
+// Plantilla por propiedad: precarga el inmueble, el precio de lista, la forma
+// de pago y el listado de bienes o generalidades en carta-oferta.html.
+export function useOfertaBorradores() {
+  return useQuery({
+    queryKey: ['oferta-borradores'],
+    queryFn: async (): Promise<OfertaBorrador[]> => {
+      const { data, error } = await supabase
+        .from('oferta_borradores')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 30_000,
+  });
+}
+
+export function useCreateOfertaBorrador() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (v: NuevoOfertaBorrador): Promise<OfertaBorrador> => {
+      const { data, error } = await supabase.from('oferta_borradores').insert(v).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['oferta-borradores'] }),
+  });
+}
+
+export function useUpdateOfertaBorrador() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, campos }: { id: string; campos: NuevoOfertaBorrador }) => {
+      // select() para detectar el caso en que RLS filtra la fila y el update
+      // no cambia nada sin devolver error.
+      const { data, error } = await supabase
+        .from('oferta_borradores')
+        .update(campos)
+        .eq('id', id)
+        .select();
+      if (error) throw error;
+      if (!data || !data.length) {
+        throw new Error('No se guardó el cambio: falta la política que permite editar borradores en Supabase.');
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['oferta-borradores'] }),
+  });
+}
+
+export function useDeleteOfertaBorrador() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('oferta_borradores').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['oferta-borradores'] }),
   });
 }

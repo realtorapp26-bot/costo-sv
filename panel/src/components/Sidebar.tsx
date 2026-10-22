@@ -42,6 +42,7 @@ const GROUPS: Group[] = [
         href: `${SITE}/carta-oferta.html?agente=1&emisor=PROPIETARIO`,
       },
       { label: 'Carta de respuesta', icon: 'fas fa-reply', href: `${SITE}/carta-respuesta.html` },
+      { label: 'Borradores de oferta', icon: 'fas fa-layer-group', to: '/borradores' },
       { label: 'Calculadoras', icon: 'fas fa-calculator', soon: true },
     ],
   },

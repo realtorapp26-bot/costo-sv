@@ -10,6 +10,7 @@ import { PropiedadesPage } from './pages/PropiedadesPage';
 import { KycPage } from './pages/KycPage';
 import { ContratosPage } from './pages/ContratosPage';
 import { CartasPage } from './pages/CartasPage';
+import { BorradoresPage } from './pages/BorradoresPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 
 const queryClient = new QueryClient({
@@ -39,6 +40,7 @@ export default function App() {
               <Route path="/kyc" element={<KycPage />} />
               <Route path="/contratos" element={<ContratosPage />} />
               <Route path="/cartas" element={<CartasPage />} />
+              <Route path="/borradores" element={<BorradoresPage />} />
               <Route path="/comisiones" element={<PlaceholderPage titulo="Comisiones" />} />
               <Route path="/calculadoras" element={<PlaceholderPage titulo="Calculadoras" />} />
             </Route>
