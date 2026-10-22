@@ -43,6 +43,11 @@ export function DashboardPage() {
             <i className="fas fa-file-signature" /> Carta de oferta
           </Button>
         </a>
+        <a href={`${SITE}/carta-oferta.html?agente=1&emisor=PROPIETARIO`} target="_blank" rel="noopener">
+          <Button variant="outline">
+            <i className="fas fa-file-export" /> Oferta de venta
+          </Button>
+        </a>
         <a href={`${SITE}/carta-respuesta.html`} target="_blank" rel="noopener">
           <Button variant="outline">
             <i className="fas fa-reply" /> Carta de respuesta

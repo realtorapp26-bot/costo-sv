@@ -35,6 +35,12 @@ const GROUPS: Group[] = [
     title: 'Herramientas',
     items: [
       { label: 'Carta de oferta', icon: 'fas fa-file-signature', href: `${SITE}/carta-oferta.html` },
+      {
+        label: 'Oferta de venta',
+        icon: 'fas fa-file-export',
+        // Dirección inversa: la firma el propietario y va dirigida al comprador.
+        href: `${SITE}/carta-oferta.html?agente=1&emisor=PROPIETARIO`,
+      },
       { label: 'Carta de respuesta', icon: 'fas fa-reply', href: `${SITE}/carta-respuesta.html` },
       { label: 'Calculadoras', icon: 'fas fa-calculator', soon: true },
     ],
