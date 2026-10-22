@@ -1135,6 +1135,30 @@
                         <label>Nombre del borrador</label>
                         <input type="text" id="oferta-b-nombre" placeholder="Ej: Alquiler amueblado estándar">
                     </div>
+                    <div>
+                        <label>Tipo de oferta</label>
+                        <select id="oferta-b-tipo">
+                            <option value="">— Sin definir —</option>
+                            <option value="VENTA">Venta</option>
+                            <option value="ALQUILER">Alquiler</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Ciudad de emisión</label>
+                        <input type="text" id="oferta-b-ciudad" placeholder="San Salvador">
+                    </div>
+                    <div>
+                        <label>Municipio del inmueble</label>
+                        <input type="text" id="oferta-b-municipio">
+                    </div>
+                    <div>
+                        <label>Departamento del inmueble</label>
+                        <input type="text" id="oferta-b-departamento">
+                    </div>
+                    <div class="full">
+                        <label>Dirección del inmueble</label>
+                        <input type="text" id="oferta-b-direccion">
+                    </div>
                     <div class="full">
                         <label>Precio de lista autorizado (US$)</label>
                         <input type="number" id="oferta-b-precio-lista" min="0" step="0.01" placeholder="Ej: 365000">
@@ -2923,11 +2947,21 @@
                 const row = document.createElement('div');
                 row.style.cssText = 'display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm);';
                 row.innerHTML = `<span>${b.nombre}</span>`;
+                const acciones = document.createElement('div');
+                acciones.className = 'actions-row';
+                acciones.style.margin = '0';
+                const btnLink = document.createElement('button');
+                btnLink.className = 'btn-nota';
+                btnLink.innerHTML = '<i class="fas fa-link"></i> Copiar link';
+                btnLink.title = 'Link de la carta de oferta ya precargada con este borrador';
+                btnLink.onclick = () => copiarLinkBorradorOferta(b.id, btnLink);
                 const btn = document.createElement('button');
                 btn.className = 'btn-eliminar-lead';
                 btn.innerHTML = '<i class="fas fa-trash"></i>';
                 btn.onclick = () => eliminarBorradorOferta(b.id, b.nombre);
-                row.appendChild(btn);
+                acciones.appendChild(btnLink);
+                acciones.appendChild(btn);
+                row.appendChild(acciones);
                 cont.appendChild(row);
             });
         }
@@ -2952,6 +2986,17 @@
             })).filter(f => f.item || f.descripcion);
         }
 
+        function copiarLinkBorradorOferta(id) {
+            const b = ofertaBorradoresData.find(x => x.id === id);
+            if (!b) return;
+            const base = ((window.SITE_CONFIG && window.SITE_CONFIG.SITE_URL) || location.origin).replace(/\/$/, '');
+            const url = `${base}/carta-oferta.html?borrador=${id}`;
+            navigator.clipboard.writeText(url).then(
+                () => alert('Link copiado:\n\n' + url + '\n\nMandáselo al cliente: le llega la carta ya con el inmueble y las condiciones de "' + b.nombre + '" cargadas. Él solo pone sus datos, el monto que ofrece y firma.'),
+                () => prompt('Copiá el link:', url)
+            );
+        }
+
         async function crearBorradorOferta() {
             const nombre = document.getElementById('oferta-b-nombre').value.trim();
             if (!nombre) { alert('Ingresá un nombre para el borrador.'); return; }
@@ -2961,6 +3006,11 @@
                     method: 'POST', headers: { ...headers, Prefer: 'return=minimal' },
                     body: JSON.stringify({
                         nombre,
+                        tipo_oferta: document.getElementById('oferta-b-tipo').value || null,
+                        ciudad_emision: document.getElementById('oferta-b-ciudad').value.trim() || null,
+                        propiedad_municipio: document.getElementById('oferta-b-municipio').value.trim() || null,
+                        propiedad_departamento: document.getElementById('oferta-b-departamento').value.trim() || null,
+                        propiedad_direccion: document.getElementById('oferta-b-direccion').value.trim() || null,
                         precio_lista: Number(document.getElementById('oferta-b-precio-lista').value) || null,
                         rental_term: document.getElementById('oferta-b-plazo').value.trim() || null,
                         owner_conditions: document.getElementById('oferta-b-condiciones').value.trim() || null,
@@ -2971,9 +3021,12 @@
                     }),
                 });
                 if (!res.ok) throw new Error('No se pudo guardar el borrador (' + res.status + ')');
-                ['oferta-b-nombre', 'oferta-b-precio-lista', 'oferta-b-plazo', 'oferta-b-condiciones', 'oferta-b-fondos', 'oferta-b-notas']
+                ['oferta-b-nombre', 'oferta-b-ciudad', 'oferta-b-municipio', 'oferta-b-departamento',
+                 'oferta-b-direccion', 'oferta-b-precio-lista', 'oferta-b-plazo', 'oferta-b-condiciones',
+                 'oferta-b-fondos', 'oferta-b-notas']
                     .forEach(id => document.getElementById(id).value = '');
                 document.getElementById('oferta-b-forma-pago').value = '';
+                document.getElementById('oferta-b-tipo').value = '';
                 document.getElementById('oferta-b-inventario-rows').innerHTML = '';
                 await cargarBorradoresOferta();
             } catch (ex) {

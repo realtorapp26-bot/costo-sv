@@ -789,6 +789,11 @@
   // ---------- borradores (lectura pública, sin login -- los crea Walter
   // desde el panel; esta página solo lee para precargar) ----------
   function aplicarBorrador(campos) {
+    if (campos.tipo_oferta) { offerType.value = campos.tipo_oferta; toggleOfferType(); }
+    if (campos.ciudad_emision) el('issue_city').value = campos.ciudad_emision;
+    if (campos.propiedad_municipio) el('property_municipality').value = campos.propiedad_municipio;
+    if (campos.propiedad_departamento) el('property_department').value = campos.propiedad_departamento;
+    if (campos.propiedad_direccion) el('property_address').value = campos.propiedad_direccion;
     listPrice.value = campos.precio_lista != null ? campos.precio_lista : '';
     rentalTerm.value = campos.rental_term || '';
     ownerConditions.value = campos.owner_conditions || '';
@@ -814,6 +819,13 @@
         if (b) aplicarBorrador(b);
         else renderInventoryItems([]);
       });
+      // Link que manda el agente ya con el borrador aplicado: el cliente solo
+      // pone sus datos, el monto y firma.
+      var pedido = new URLSearchParams(window.location.search).get('borrador');
+      if (pedido) {
+        var b = borradores.find(function (x) { return x.id === pedido; });
+        if (b) { borradorSelect.value = b.id; aplicarBorrador(b); }
+      }
     }).catch(function () {});
   }
 
