@@ -697,26 +697,15 @@
     });
   }
 
-  // Pasa por /api/lead (server-side, clave service_role) en vez de escribir
-  // directo a Supabase con la clave anon — inmune a políticas RLS rotas o a
-  // fallas de Supabase que afecten la validación de JWT del rol anon.
+  // Archiva la carta en su propia sección del panel (no crea lead: el
+  // pipeline de leads es para interesados que llegan del sitio). Pasa por
+  // /api/lead, que escribe con la clave service_role del lado del servidor.
   function registrarEnCRM(v, pdfBlob) {
-    var resumen = 'Carta de oferta (' + (v.offerType === 'VENTA' ? 'venta' : 'alquiler') + ') — US$ ' + formatMoney(v.amountNumber) +
-      ' — ' + v.propertyAddress +
-      ' — Cliente: ' + v.fullName + ' (' + v.documentType + ' ' + v.documentNumber + ')' +
-      (v.offerType === 'VENTA' ? ' — Forma de pago: ' + v.paymentMethod : ' — Plazo: ' + v.rentalTerm);
-
     (pdfBlob ? blobToBase64(pdfBlob) : Promise.resolve(null)).then(function (pdfBase64) {
       return fetch('/api/lead', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          nombre: v.fullName, telefono: '', correo: '',
-          origen: 'formulario_web', interes: v.offerType === 'VENTA' ? 'comprar' : 'otro',
-          propiedad_referencia: v.propertyAddress, notas: resumen,
-          actividad: { tipo: 'nota', detalle: resumen },
           pdf_base64: pdfBase64 || undefined,
-          // Archiva la carta con sus términos, para poder consultarla después
-          // desde el panel y no solo tener el PDF colgado del lead.
           carta: {
             tipo: 'oferta',
             transaccion: v.offerType,

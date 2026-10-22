@@ -59,21 +59,15 @@ export default async function handler(req, res) {
   try {
     const body = req.body || {};
 
-    // Carta firmada (oferta / aceptación / contraoferta): se registra el lead
-    // igual que antes, pero el PDF lo sube y lo archiva guardarCarta, que
-    // además deja el mismo path colgado del lead. Así el documento queda en
-    // un solo lugar y se puede abrir desde el archivo de cartas o desde el
-    // lead. Se silencia el aviso del lead para no mandar dos por Telegram.
+    // Carta firmada (oferta / aceptación / contraoferta): va a su propio
+    // archivo, como los contratos. No crea lead ni contacto -- el pipeline
+    // de leads es para interesados que llegan del sitio, no para documentos.
     if (body.carta) {
-      // Se valida ANTES de crear el lead: si la carta viniera mal, antes
-      // quedaba un lead huérfano en el CRM.
       if (!['oferta', 'aceptacion', 'contraoferta'].includes(body.carta.tipo)) {
         res.status(400).json({ error: 'Tipo de carta inválido' });
         return;
       }
-      const lead = await guardarLead({ ...body, pdf_base64: undefined, sin_telegram: true }, serviceKey);
-      const carta = await guardarCarta({ ...body, lead_id: lead.leadId }, serviceKey);
-      res.status(200).json({ ...lead, ...carta });
+      res.status(200).json(await guardarCarta(body, serviceKey));
       return;
     }
 

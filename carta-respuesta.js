@@ -872,26 +872,13 @@
   // directo a Supabase con la clave anon — inmune a políticas RLS rotas o a
   // fallas de Supabase que afecten la validación de JWT del rol anon.
   function registrarEnCRM(v, pdfBlob) {
-    var modo = v.letterMode === 'ACEPTACION' ? 'Aceptación' : 'Contraoferta';
-    var op = v.transactionType === 'VENTA' ? 'venta' : 'alquiler';
     var monto = v.letterMode === 'ACEPTACION' ? v.acceptedAmountNumber : v.originalAmountNumber;
-    var resumen = 'Carta de respuesta — ' + modo + ' (' + op + ') — US$ ' + formatMoney(monto) +
-      ' — ' + v.propertyAddress +
-      ' — Propietario: ' + v.ownerName +
-      (v.ownerPhone ? ' (Tel: ' + v.ownerPhone + ')' : '') +
-      ' — Interesado: ' + v.interestedName +
-      (v.letterMode === 'CONTRAOFERTA' ? ' — Contraoferta: ' + v.counterofferText : (v.transactionType === 'VENTA' ? ' — Forma de pago: ' + v.paymentMethod : ' — Plazo: ' + v.rentalTerm));
 
     (pdfBlob ? blobToBase64(pdfBlob) : Promise.resolve(null)).then(function (pdfBase64) {
       return fetch('/api/lead', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          nombre: v.ownerName, telefono: v.ownerPhone || '', correo: v.ownerEmail || '',
-          origen: 'formulario_web', interes: 'vender', propiedad_referencia: v.propertyAddress, notas: resumen,
-          actividad: { tipo: 'nota', detalle: resumen },
           pdf_base64: pdfBase64 || undefined,
-          // Archiva la carta con sus términos, para poder consultarla después
-          // desde el panel y no solo tener el PDF colgado del lead.
           carta: {
             tipo: v.letterMode === 'ACEPTACION' ? 'aceptacion' : 'contraoferta',
             transaccion: v.transactionType,
