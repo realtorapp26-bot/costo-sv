@@ -31,6 +31,11 @@
   var firmPrice = el('firm_price');
   var inventoryCard = el('inventoryCard');
   var inventoryItemsWrap = el('inventoryItemsWrap');
+  var closingCostsCard = el('closingCostsCard');
+  var ccTransferTax = el('cc_transfer_tax');
+  var ccCnrFee = el('cc_cnr_fee');
+  var ccTotal = el('cc_total');
+  var ccGrandTotal = el('cc_grand_total');
   var errorBox = el('errorBox');
   var errorList = el('errorList');
   var canvas = el('signaturePad');
@@ -150,6 +155,25 @@
     return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
   }
 
+  // ---------- gastos de cierre (impuesto de transferencia + derechos CNR) ----------
+  // Ley de Impuesto sobre Transferencia de Bienes Raíces: 3% sobre el excedente
+  // de US$28,571.43 (equivalente a los ¢250,000 de la ley, umbral exento).
+  // Ley de Aranceles del Registro de la Propiedad Raíz e Hipotecas, Art. 48 y
+  // 50-A: compraventas US$0.63 por cada cien dólares o fracción, con un
+  // mínimo de US$8.86 y un máximo de US$5,400.00.
+  var TRANSFER_TAX_THRESHOLD = 28571.43;
+  var TRANSFER_TAX_RATE = 0.03;
+  var CNR_RATE_PER_HUNDRED = 0.63;
+  var CNR_MIN = 8.86;
+  var CNR_MAX = 5400;
+  function closingCosts(price) {
+    price = Number(price || 0);
+    var transferTax = price > TRANSFER_TAX_THRESHOLD ? (price - TRANSFER_TAX_THRESHOLD) * TRANSFER_TAX_RATE : 0;
+    var cnrFee = price > 0 ? Math.min(CNR_MAX, Math.max(CNR_MIN, Math.ceil(price / 100) * CNR_RATE_PER_HUNDRED)) : 0;
+    var total = transferTax + cnrFee;
+    return { transferTax: transferTax, cnrFee: cnrFee, total: total, grandTotal: price + total };
+  }
+
   // ---------- documento ----------
   function normalizeDocumentNumber() {
     var type = (documentType.value || '').toUpperCase();
@@ -178,6 +202,16 @@
     var isRental = offerType.value === 'ALQUILER';
     saleFields.classList.toggle('d-none', !isSale);
     rentalFields.classList.toggle('d-none', !isRental);
+    closingCostsCard.classList.toggle('d-none', !isSale);
+    refreshClosingCosts();
+  }
+  function refreshClosingCosts() {
+    if (offerType.value !== 'VENTA') return;
+    var c = closingCosts(amountNumber.value);
+    ccTransferTax.textContent = 'US$ ' + formatMoney(c.transferTax);
+    ccCnrFee.textContent = 'US$ ' + formatMoney(c.cnrFee);
+    ccTotal.textContent = 'US$ ' + formatMoney(c.total);
+    ccGrandTotal.textContent = 'US$ ' + formatMoney(c.grandTotal);
   }
   function toggleDocumentLanguage() {
     var isEn = documentLanguage.value === 'en';
@@ -308,6 +342,38 @@
     pdf.text(fit.lines, x + 14, y + 40);
     return y + boxHeight + 16;
   }
+  function closingCostsBox(pdf, amount, x, y, width, language) {
+    var isEnglish = language === 'en';
+    var c = closingCosts(amount);
+    var rows = [
+      [isEnglish ? 'Property transfer tax (alcabala)' : 'Impuesto de transferencia (alcabala)', c.transferTax],
+      [isEnglish ? 'CNR registration fee' : 'Derechos de registro CNR', c.cnrFee],
+      [isEnglish ? 'Total closing costs' : 'Total gastos de cierre', c.total],
+      [isEnglish ? 'Total to prepare (price + costs)' : 'Total a preparar (precio + gastos)', c.grandTotal],
+    ];
+    var rowHeight = 20;
+    var boxHeight = 34 + rows.length * rowHeight;
+    pdf.setFillColor(248, 250, 252);
+    pdf.setDrawColor(219, 228, 239);
+    pdf.roundedRect(x, y, width, boxHeight, 14, 14, 'FD');
+    pdf.setTextColor(11, 45, 92);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(10.6);
+    pdf.text(isEnglish ? 'Estimated closing costs, payable by the buyer (not included in the price above)' : 'Gastos de cierre estimados, a cargo del comprador (no incluidos en el precio anterior)', x + 14, y + 18);
+    var rowY = y + 38;
+    rows.forEach(function (row, i) {
+      var isTotal = i >= 2;
+      pdf.setFont('helvetica', isTotal ? 'bold' : 'normal');
+      pdf.setFontSize(9.8);
+      pdf.setTextColor(15, 23, 42);
+      pdf.text(row[0], x + 14, rowY);
+      pdf.setTextColor(11, 45, 92);
+      pdf.text('US$ ' + formatMoney(row[1]), x + width - 14, rowY, { align: 'right' });
+      rowY += rowHeight;
+    });
+    pdf.setTextColor(15, 23, 42);
+    return y + boxHeight + 16;
+  }
   function addHeader(pdf, documentTitle, subtitle) {
     var pageW = pdf.internal.pageSize.getWidth();
     pdf.setFillColor(229, 57, 53);
@@ -337,6 +403,17 @@
   }
   function translatedPaymentMethod(v) {
     return ({ 'Contado': 'Cash', 'Crédito': 'Financing', 'Mixto': 'Mixed' })[v] || v;
+  }
+  // Este archivo no usa el patrón de paginación robusto (ensureSpace) de
+  // carta-respuesta.js/kyc-cliente.js -- layout fijo de una sola página con
+  // un solo "pdf.addPage()" antes de la firma. Con bloques de contenido
+  // variable (notas, bienes incluidos, gastos de cierre) el texto puede
+  // acumular más altura que la página física y quedar dibujado FUERA del
+  // área visible (se pierde en silencio, sin error). Por eso se llama a este
+  // helper después de cada bloque grande, no solo una vez antes de la firma.
+  function pageBreakIfNeeded(pdf, y, limit) {
+    if (y > (limit == null ? 700 : limit)) { pdf.addPage(); return 80; }
+    return y;
   }
 
   function renderOfferPage(pdf, values, language) {
@@ -380,10 +457,15 @@
     if (values.firmPrice) {
       pdf.setTextColor(11, 45, 92);
       y = paragraph(pdf,
-        isEnglish ? 'This price is firm and final for the buyer; no additional costs will be added.' : 'Este precio es cerrado y definitivo para el comprador; no se agregarán costos adicionales.',
+        isEnglish ? 'This price is firm and final between the parties; no additional costs will be added to the agreed amount.' : 'Este precio es cerrado y definitivo entre las partes; no se agregarán costos adicionales al monto pactado.',
         x, y, width, { fontSize: 10.8, minFontSize: 9.6, fontStyle: 'bold', lineHeight: 14.6, maxLines: 2 });
       pdf.setTextColor(15, 23, 42);
       y += 10;
+    }
+
+    if (isSale) {
+      y = closingCostsBox(pdf, values.amountNumber, x, y, width, language);
+      y = pageBreakIfNeeded(pdf, y, 700);
     }
 
     if (!isSale) {
@@ -399,6 +481,7 @@
       y = paragraph(pdf, (isEnglish ? 'The funds will be delivered as follows: ' : 'Los fondos serán entregados de la siguiente manera: ') + paymentText, x, y, width, { fontSize: 11.2, minFontSize: 9.6, lineHeight: 15.6, maxLines: 7 });
       y += 14;
     }
+    y = pageBreakIfNeeded(pdf, y, 700);
 
     if (values.includedItems && values.includedItems.length) {
       y = paragraph(pdf,
@@ -407,6 +490,7 @@
       y += 4;
       values.includedItems.forEach(function (it) {
         y = paragraph(pdf, '• ' + it, x + 10, y, width - 10, { fontSize: 10.4, minFontSize: 9.2, lineHeight: 13.8, maxLines: 2 });
+        y = pageBreakIfNeeded(pdf, y, 760);
       });
       y += 10;
     }
@@ -417,6 +501,7 @@
         x, y, width, { fontSize: 10.8, minFontSize: 9.4, lineHeight: 14.8, maxLines: 5 });
       y += 14;
     }
+    y = pageBreakIfNeeded(pdf, y, 700);
 
     y = paragraph(pdf,
       isEnglish
@@ -732,7 +817,7 @@
   offerType.addEventListener('change', toggleOfferType);
   documentType.addEventListener('change', function () { normalizeDocumentNumber(); });
   documentNumber.addEventListener('blur', normalizeDocumentNumber);
-  amountNumber.addEventListener('input', syncAmountWords);
+  amountNumber.addEventListener('input', function () { syncAmountWords(); refreshClosingCosts(); });
   generateBtn.addEventListener('click', generar);
 
   prefill();
