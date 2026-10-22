@@ -210,6 +210,54 @@
     setVis(originalAmountWordsEnglishWrap, isEn && isCounter);
     setVis(englishConsentWrap, isEn);
     if (!isEn) { englishConsent.checked = false; englishConsent.classList.remove('is-invalid'); }
+    aplicarOrdenIdiomas();
+  }
+
+  // ---------- orden de los idiomas en el formulario ----------
+  // Mismo criterio que carta-oferta.js: en el HTML cada rótulo está escrito
+  // "Español <span class="en">/ English</span>", y si el documento se emite
+  // en inglés se invierte el par, porque quien lo llena es extranjero. Los
+  // pares se guardan la primera vez que se ven para poder ir y volver.
+  var BILINGUES = new Map();
+  function ordenIngles() { return documentLanguage.value === 'en'; }
+
+  function capturarBilingues() {
+    Array.prototype.forEach.call(document.querySelectorAll('span.en'), function (span) {
+      var host = span.parentElement;
+      if (!host || BILINGUES.has(host)) return;
+      var es = '';
+      Array.prototype.forEach.call(host.childNodes, function (nodo) {
+        if (nodo === span) return;
+        es += nodo.nodeType === 1 ? nodo.outerHTML : (nodo.textContent || '');
+      });
+      var crudo = span.innerHTML;
+      BILINGUES.set(host, {
+        es: es.trim(),
+        en: crudo.replace(/^\s*\/\s*/, '').trim(),
+        style: span.getAttribute('style') || '',
+        barra: /^\s*\//.test(crudo) && window.getComputedStyle(span).display !== 'block',
+      });
+    });
+  }
+  function aplicarOrdenIdiomas() {
+    BILINGUES.forEach(function (p, host) {
+      var primero = ordenIngles() ? p.en : p.es;
+      var segundo = ordenIngles() ? p.es : p.en;
+      if (!segundo) { host.innerHTML = primero; return; }
+      host.innerHTML = primero + ' <span class="en"' + (p.style ? ' style="' + p.style + '"' : '') + '>' +
+        (p.barra ? '/ ' : '') + segundo + '</span>';
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('option[data-en]'), function (op) {
+      var es = op.dataset.es || '';
+      var en = op.dataset.en || '';
+      op.textContent = ordenIngles() ? en + ' / ' + es : es + ' / ' + en;
+    });
+    btnTxt.textContent = ordenIngles() ? 'Generate response letter (PDF)' : 'Generar carta de respuesta (PDF)';
+    btnTxtEn.textContent = '/ ' + (ordenIngles() ? 'Generar carta de respuesta (PDF)' : 'Generate letter');
+  }
+  // Mensajes de validación en el mismo orden que el resto del formulario.
+  function bilingue(es, en) {
+    return ordenIngles() ? en + ' / ' + es : es + ' / ' + en;
   }
 
   // ---------- firma (canvas) ----------
@@ -769,44 +817,44 @@
     var isSale = transactionType.value === 'VENTA';
     var isRental = transactionType.value === 'ALQUILER';
 
-    if (!val('owner_name')) bad(form.elements['owner_name'], 'Ingresá el nombre del propietario o vendedor.');
-    if (!val('interested_name')) bad(form.elements['interested_name'], 'Ingresá el nombre del interesado.');
-    if (!interestedDocumentType.value) bad(interestedDocumentType, 'Seleccioná el tipo de documento del interesado.');
-    if (!validDoc(interestedDocumentType, interestedDocumentNumber)) bad(interestedDocumentNumber, 'El número de documento del interesado no tiene un formato válido.');
-    if (!val('property_municipality')) bad(form.elements['property_municipality'], 'Ingresá el municipio del inmueble.');
-    if (!val('property_department')) bad(form.elements['property_department'], 'Ingresá el departamento del inmueble.');
-    if (!val('property_address')) bad(form.elements['property_address'], 'Ingresá la dirección del inmueble.');
+    if (!val('owner_name')) bad(form.elements['owner_name'], bilingue('Ingresá el nombre del propietario o vendedor.', 'Enter the owner or seller name.'));
+    if (!val('interested_name')) bad(form.elements['interested_name'], bilingue('Ingresá el nombre del interesado.', 'Enter the interested party name.'));
+    if (!interestedDocumentType.value) bad(interestedDocumentType, bilingue('Seleccioná el tipo de documento del interesado.', 'Select the interested party ID type.'));
+    if (!validDoc(interestedDocumentType, interestedDocumentNumber)) bad(interestedDocumentNumber, bilingue('El número de documento del interesado no tiene un formato válido.', 'The interested party ID number is not in a valid format.'));
+    if (!val('property_municipality')) bad(form.elements['property_municipality'], bilingue('Ingresá el municipio del inmueble.', 'Enter the property municipality.'));
+    if (!val('property_department')) bad(form.elements['property_department'], bilingue('Ingresá el departamento del inmueble.', 'Enter the property state or department.'));
+    if (!val('property_address')) bad(form.elements['property_address'], bilingue('Ingresá la dirección del inmueble.', 'Enter the property address.'));
 
     if (isAcc) {
       var acc = Number(val('accepted_amount_number'));
-      if (!isFinite(acc) || acc <= 0) bad(acceptedAmountNumber, 'Ingresá un monto aceptado válido.');
-      else if (!val('accepted_amount_words')) bad(acceptedAmountNumber, 'No se pudo generar el monto aceptado en letras.');
+      if (!isFinite(acc) || acc <= 0) bad(acceptedAmountNumber, bilingue('Ingresá un monto aceptado válido.', 'Enter a valid accepted amount.'));
+      else if (!val('accepted_amount_words')) bad(acceptedAmountNumber, bilingue('No se pudo generar el monto aceptado en letras.', 'The accepted amount in words could not be generated.'));
       if (isSale) {
-        if (!['Contado', 'Crédito', 'Mixto'].includes(paymentMethod.value)) bad(paymentMethod, 'Seleccioná la forma de pago.');
-        if (!val('payment_details')) bad(paymentDetails, 'Detallá cómo recibirá el pago.');
+        if (!['Contado', 'Crédito', 'Mixto'].includes(paymentMethod.value)) bad(paymentMethod, bilingue('Seleccioná la forma de pago.', 'Select the payment method.'));
+        if (!val('payment_details')) bad(paymentDetails, bilingue('Detallá cómo recibirá el pago.', 'Describe how you will receive the payment.'));
       }
-      if (isRental && !val('rental_term')) bad(rentalTerm, 'Indicá el plazo de alquiler.');
+      if (isRental && !val('rental_term')) bad(rentalTerm, bilingue('Indicá el plazo de alquiler.', 'Enter the rental term.'));
     }
 
     if (isCounter) {
       var age = Number(val('owner_age'));
-      if (!Number.isInteger(age) || age < 18 || age > 120) bad(form.elements['owner_age'], 'Ingresá una edad válida del propietario (18 a 120).');
-      if (!val('owner_district')) bad(form.elements['owner_district'], 'Ingresá el distrito de domicilio del propietario.');
-      if (!val('owner_municipality')) bad(form.elements['owner_municipality'], 'Ingresá el municipio de domicilio del propietario.');
-      if (!val('owner_department')) bad(form.elements['owner_department'], 'Ingresá el departamento de domicilio del propietario.');
-      if (!ownerDocumentType.value) bad(ownerDocumentType, 'Seleccioná el tipo de documento del propietario.');
-      if (!validDoc(ownerDocumentType, ownerDocumentNumber)) bad(ownerDocumentNumber, 'El número de documento del propietario no tiene un formato válido.');
-      if (!val('property_district')) bad(el('property_district'), 'Ingresá el distrito del inmueble.');
+      if (!Number.isInteger(age) || age < 18 || age > 120) bad(form.elements['owner_age'], bilingue('Ingresá una edad válida del propietario (18 a 120).', 'Enter a valid owner age (18 to 120).'));
+      if (!val('owner_district')) bad(form.elements['owner_district'], bilingue('Ingresá el distrito de domicilio del propietario.', 'Enter the owner home district.'));
+      if (!val('owner_municipality')) bad(form.elements['owner_municipality'], bilingue('Ingresá el municipio de domicilio del propietario.', 'Enter the owner home municipality.'));
+      if (!val('owner_department')) bad(form.elements['owner_department'], bilingue('Ingresá el departamento de domicilio del propietario.', 'Enter the owner home state or department.'));
+      if (!ownerDocumentType.value) bad(ownerDocumentType, bilingue('Seleccioná el tipo de documento del propietario.', 'Select the owner ID type.'));
+      if (!validDoc(ownerDocumentType, ownerDocumentNumber)) bad(ownerDocumentNumber, bilingue('El número de documento del propietario no tiene un formato válido.', 'The owner ID number is not in a valid format.'));
+      if (!val('property_district')) bad(el('property_district'), bilingue('Ingresá el distrito del inmueble.', 'Enter the property district.'));
       var orig = Number(val('original_amount_number'));
-      if (!isFinite(orig) || orig <= 0) bad(originalAmountNumber, 'Ingresá el monto de la oferta recibida.');
-      else if (!val('original_amount_words')) bad(originalAmountNumber, 'No se pudo generar el monto recibido en letras.');
-      if (!val('counteroffer_text')) bad(counterofferText, 'Escribí el texto de la contraoferta.');
+      if (!isFinite(orig) || orig <= 0) bad(originalAmountNumber, bilingue('Ingresá el monto de la oferta recibida.', 'Enter the amount of the offer received.'));
+      else if (!val('original_amount_words')) bad(originalAmountNumber, bilingue('No se pudo generar el monto recibido en letras.', 'The received amount in words could not be generated.'));
+      if (!val('counteroffer_text')) bad(counterofferText, bilingue('Escribí el texto de la contraoferta.', 'Write the counteroffer text.'));
     }
 
-    if (documentLanguage.value === 'en' && !englishConsent.checked) bad(englishConsent, 'Tenés que aceptar que el documento incluye la versión en inglés y su anexo en español.');
+    if (documentLanguage.value === 'en' && !englishConsent.checked) bad(englishConsent, bilingue('Tenés que aceptar que el documento incluye la versión en inglés y su anexo en español.', 'You must accept that the document includes the English version and its Spanish annex.'));
 
     var signatureData = getCleanSignatureData();
-    if (!hasSignature || !signatureData) errors.push('La firma del propietario es obligatoria.');
+    if (!hasSignature || !signatureData) errors.push(bilingue('La firma del propietario es obligatoria.', 'The owner signature is required.'));
 
     if (errors.length) {
       showErrors(Array.from(new Set(errors)));
@@ -907,7 +955,7 @@
   // ---------- generar ----------
   function generar() {
     if (!window.jspdf || !window.jspdf.jsPDF) {
-      showErrors(['No se pudo cargar el generador de PDF. Recargá la página e intentá de nuevo.']);
+      showErrors([bilingue('No se pudo cargar el generador de PDF. Recargá la página e intentá de nuevo.', 'The PDF generator could not be loaded. Reload the page and try again.')]);
       return;
     }
     var values = collectValues();
@@ -990,6 +1038,9 @@
   originalAmountNumber.addEventListener('input', syncAmountFields);
   generateBtn.addEventListener('click', generar);
 
+  // Antes de cualquier toggle: guardar los pares español/inglés de los
+  // rótulos tal como vienen en el HTML.
+  capturarBilingues();
   prefill();
   toggleFormMode();
   refreshDate();
