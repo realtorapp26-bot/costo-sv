@@ -201,7 +201,7 @@ export interface Propiedad {
   fecha_publicacion: string | null;
 }
 
-export type CartaTipo = 'oferta' | 'oferta_venta' | 'aceptacion' | 'contraoferta';
+export type CartaTipo = 'oferta' | 'oferta_venta' | 'presentacion' | 'aceptacion' | 'contraoferta';
 
 // Plantilla reusable de una propiedad para la carta de oferta: precarga el
 // inmueble, el precio de lista, la forma de pago y el listado de bienes o

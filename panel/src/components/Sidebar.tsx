@@ -43,6 +43,12 @@ const GROUPS: Group[] = [
         // Dirección inversa: la firma el propietario y va dirigida al comprador.
         href: `${SITE}/carta-oferta.html?agente=1&emisor=PROPIETARIO`,
       },
+      {
+        // Carta "a quien interese" sobre un proyecto, firmada por el asesor.
+        label: 'Carta de presentación',
+        icon: 'fas fa-file-lines',
+        href: `${SITE}/carta-oferta.html?agente=1&emisor=ASESOR`,
+      },
       { label: 'Carta de respuesta', icon: 'fas fa-reply', href: `${SITE}/carta-respuesta.html` },
       { label: 'Borradores de oferta', icon: 'fas fa-layer-group', to: '/borradores' },
       { label: 'Calculadoras', icon: 'fas fa-calculator', soon: true },

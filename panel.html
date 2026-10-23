@@ -331,6 +331,7 @@
                                  botones de link. El link sin agente=1 es el que se le manda al cliente. -->
                             <a class="herr-mini" href="carta-oferta.html?agente=1" target="_blank" rel="noopener" title="El comprador le ofrece al propietario">Oferta de compra</a>
                             <a class="herr-mini" href="carta-oferta.html?agente=1&amp;emisor=PROPIETARIO" target="_blank" rel="noopener" title="El propietario le ofrece al comprador y firma él">Oferta de venta</a>
+                            <a class="herr-mini" href="carta-oferta.html?agente=1&amp;emisor=ASESOR" target="_blank" rel="noopener" title="Carta a quien interese sobre un proyecto, la firmás vos como asesor">A quien interese</a>
                             <button class="herr-mini" type="button" onclick="copiarLinkHerramienta('carta-oferta.html', 'la carta de oferta', 'el cliente')">Copiar link</button>
                             <button class="herr-mini" type="button" onclick="abrirModalBorradoresOferta()">Borradores</button>
                         </div>
@@ -830,6 +831,7 @@
                     <option value="">Todas</option>
                     <option value="oferta">Ofertas de compra</option>
                     <option value="oferta_venta">Ofertas de venta</option>
+                    <option value="presentacion">Cartas de presentación</option>
                     <option value="aceptacion">Aceptaciones</option>
                     <option value="contraoferta">Contraofertas</option>
                 </select>
@@ -2986,6 +2988,7 @@
         const CARTA_ETIQUETA = {
             oferta: 'Oferta de compra',
             oferta_venta: 'Oferta de venta',
+            presentacion: 'Presentación',
             aceptacion: 'Aceptación',
             contraoferta: 'Contraoferta',
         };

@@ -143,6 +143,7 @@
                         <select id="letter_issuer" name="letter_issuer">
                             <option value="COMPRADOR" data-es="Del comprador al propietario — oferta de compra" data-en="From the buyer to the owner — offer to purchase">Del comprador al propietario — oferta de compra</option>
                             <option value="PROPIETARIO" data-es="Del propietario al comprador — oferta de venta" data-en="From the owner to the buyer — offer to sell">Del propietario al comprador — oferta de venta</option>
+                            <option value="ASESOR" data-es="A quien interese — carta de presentación que firma el asesor" data-en="To whom it may concern — letter of introduction signed by the agent">A quien interese — carta de presentación que firma el asesor</option>
                         </select>
                         <div class="co-help">Define quién ofrece y quién firma la carta. <span class="en">Sets who makes the offer and who signs the letter.</span></div>
                     </div>
@@ -173,9 +174,14 @@
                 <p class="hint d-none" id="clienteCardHint"></p>
                 <div class="co-grid">
                     <div class="co-field full d-none" id="recipientWrap">
-                        <label for="recipient_name">Dirigida a (comprador) <span class="en">/ Addressed to (buyer)</span></label>
+                        <label for="recipient_name" id="recipientLabel">Dirigida a (comprador) <span class="en">/ Addressed to (buyer)</span></label>
                         <input type="text" id="recipient_name" name="recipient_name" autocomplete="off">
-                        <div class="co-help">Nombre de la persona a quien el propietario le ofrece el inmueble. <span class="en">Name of the person the owner is offering the property to.</span></div>
+                        <div class="co-help" id="recipientHelp">Nombre de la persona a quien el propietario le ofrece el inmueble. <span class="en">Name of the person the owner is offering the property to.</span></div>
+                    </div>
+                    <div class="co-field full d-none" id="issuerRoleWrap">
+                        <label for="issuer_role">Cargo de quien firma <span class="en">/ Signer's role</span></label>
+                        <input type="text" id="issuer_role" name="issuer_role" value="Asesor inmobiliario de RE/MAX Elite">
+                        <div class="co-help">Aparece en la carta junto a tu nombre. <span class="en">Appears in the letter next to your name.</span></div>
                     </div>
                     <div class="co-field full">
                         <label for="full_name" id="fullNameLabel">Nombre completo <span class="en">/ Full name</span></label>

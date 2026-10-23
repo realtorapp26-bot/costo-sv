@@ -13,6 +13,8 @@
   var letterIssuer = el('letter_issuer');
   var recipientName = el('recipient_name');
   var recipientWrap = el('recipientWrap');
+  var issuerRole = el('issuer_role');
+  var issuerRoleWrap = el('issuerRoleWrap');
   var offerValidity = el('offer_validity');
   var validityWrap = el('validityWrap');
   var subjectPriorSale = el('subject_prior_sale');
@@ -102,6 +104,10 @@
   // original). PROPIETARIO: el dueño le ofrece en venta al comprador y firma
   // él (oferta de venta) -- misma carta, partes invertidas.
   function delPropietario() { return letterIssuer.value === 'PROPIETARIO'; }
+  // ASESOR: carta de presentación "a quien interese" que firma el agente.
+  // No hay partes ni negociación: describe lo que ofrece un proyecto y vale
+  // como constancia informativa, no como oferta vinculante.
+  function delAsesor() { return letterIssuer.value === 'ASESOR'; }
 
   // ---------- monto a letras (español) ----------
   function numberToSpanish(n) {
@@ -326,52 +332,83 @@
   // Reescribe los rótulos del formulario según quién emite la carta. El PDF
   // se reescribe aparte, en renderOfferPage().
   function textoBoton() {
+    if (delAsesor()) return 'Generar carta de presentación (PDF)';
     return delPropietario() ? 'Generar carta de oferta de venta (PDF)' : 'Generar carta de oferta (PDF)';
   }
   function textoBotonEn() {
+    if (delAsesor()) return 'Generate letter of introduction (PDF)';
     return delPropietario() ? 'Generate offer to sell (PDF)' : 'Generate offer letter (PDF)';
   }
   function toggleLetterIssuer() {
     var esProp = delPropietario();
+    var esAsesor = delAsesor();
     var isSale = offerType.value !== 'ALQUILER';
-    recipientWrap.classList.toggle('d-none', !esProp);
-    validityWrap.classList.toggle('d-none', !esProp);
+    recipientWrap.classList.toggle('d-none', !esProp && !esAsesor);
+    issuerRoleWrap.classList.toggle('d-none', !esAsesor);
+    validityWrap.classList.toggle('d-none', !esProp && !esAsesor);
     priorSaleWrap.classList.toggle('d-none', !esProp || !isSale);
-    if (esProp && !offerValidity.value) offerValidity.value = isoHoyMas(15);
+    if ((esProp || esAsesor) && !offerValidity.value) offerValidity.value = isoHoyMas(15);
+    if (esAsesor && !recipientName.value.trim()) recipientName.value = 'A quien interese';
 
     el('headerTitle').textContent = ordenIngles()
-      ? (esProp ? 'Offer to Sell' : 'Offer Letter')
-      : (esProp ? 'Carta de Oferta de Venta' : 'Carta de Oferta');
+      ? (esAsesor ? 'To Whom It May Concern' : esProp ? 'Offer to Sell' : 'Offer Letter')
+      : (esAsesor ? 'Carta de Presentación' : esProp ? 'Carta de Oferta de Venta' : 'Carta de Oferta');
     setBilingue('headerSubtitle',
-      esProp ? 'Oferta del propietario al comprador' : 'Oferta de compra o alquiler de inmueble',
-      esProp ? 'Owner\'s offer to the buyer' : 'Offer to purchase or rent a property');
+      esAsesor ? 'Constancia del asesor sobre lo que ofrece el proyecto'
+        : esProp ? 'Oferta del propietario al comprador' : 'Oferta de compra o alquiler de inmueble',
+      esAsesor ? 'Agent\'s statement of what the project offers'
+        : esProp ? 'Owner\'s offer to the buyer' : 'Offer to purchase or rent a property');
     setBilingue('clienteCardTitle',
-      esProp ? 'Partes' : 'Datos del cliente',
-      esProp ? 'Parties' : 'Client details');
-    el('clienteCardHint').classList.toggle('d-none', !esProp);
-    if (esProp) {
+      esAsesor ? 'Quien firma' : esProp ? 'Partes' : 'Datos del cliente',
+      esAsesor ? 'Signed by' : esProp ? 'Parties' : 'Client details');
+    el('clienteCardHint').classList.toggle('d-none', !esProp && !esAsesor);
+    if (esAsesor) {
+      setBilingue('clienteCardHint',
+        'Esta carta la firmás vos como asesor. No tiene comprador ni vendedor: describe lo que ofrece el proyecto.',
+        'You sign this letter as the agent. It has no buyer or seller: it states what the project offers.');
+    } else if (esProp) {
       setBilingue('clienteCardHint',
         'Quien firma esta carta es el propietario. El comprador solo la recibe.',
         'The owner is the one signing this letter. The buyer only receives it.');
     }
+    setBilingue('recipientLabel',
+      esAsesor ? 'Dirigida a' : 'Dirigida a (comprador)',
+      esAsesor ? 'Addressed to' : 'Addressed to (buyer)');
+    setBilingue('recipientHelp',
+      esAsesor
+        ? 'Dejalo en "A quien interese" o poné el nombre de tu cliente.'
+        : 'Nombre de la persona a quien el propietario le ofrece el inmueble.',
+      esAsesor
+        ? 'Leave it as "To whom it may concern" or enter your client\'s name.'
+        : 'Name of the person the owner is offering the property to.');
     setBilingue('fullNameLabel',
-      esProp ? 'Nombre completo del propietario' : 'Nombre completo',
-      esProp ? 'Owner\'s full name' : 'Full name');
+      esAsesor ? 'Tu nombre completo' : esProp ? 'Nombre completo del propietario' : 'Nombre completo',
+      esAsesor ? 'Your full name' : esProp ? 'Owner\'s full name' : 'Full name');
     setBilingue('amountNumberLabel',
-      esProp ? 'Precio ofrecido al comprador (US$)' : 'Monto ofrecido (US$)',
-      esProp ? 'Price offered to the buyer' : 'Offered amount');
+      esAsesor ? 'Precio de referencia (US$, opcional)'
+        : esProp ? 'Precio ofrecido al comprador (US$)' : 'Monto ofrecido (US$)',
+      esAsesor ? 'Reference price (US$, optional)'
+        : esProp ? 'Price offered to the buyer' : 'Offered amount');
     setBilingue('inventoryHint',
-      esProp
+      esAsesor
+        ? 'Según el borrador elegido. Desmarcá lo que no quieras mencionar en la carta.'
+        : esProp
         ? 'Según el borrador elegido. Desmarcá lo que no vaya incluido en la venta.'
         : 'Según el borrador elegido. Desmarcá lo que no quieras incluir en tu oferta.',
-      esProp
+      esAsesor
+        ? 'From the selected draft. Uncheck anything you don\'t want to mention in the letter.'
+        : esProp
         ? 'From the selected draft. Uncheck anything not included in the sale.'
         : 'From the selected draft. Uncheck anything you don\'t want included in your offer.');
     setBilingue('firmaHint',
-      esProp
+      esAsesor
+        ? 'Tu firma. La fecha y hora se agregan automáticamente.'
+        : esProp
         ? 'Firma del propietario. La fecha y hora se agregan automáticamente.'
         : 'Firma del cliente. La fecha y hora se agregan automáticamente.',
-      esProp
+      esAsesor
+        ? 'Your signature. The date and time are added automatically.'
+        : esProp
         ? 'Owner\'s signature. The date and time are added automatically.'
         : 'Client\'s signature. The date and time are added automatically.');
     setBilingue('revisionBanner',
@@ -383,14 +420,21 @@
         : '<strong>Owner review.</strong> This is the offer that will be sent to the buyer to complete and sign. Please review the price, payment method and included items. If anything is not correct, let your agent know before it is sent.',
       false);
 
-    // El modo agente lo usa Walter: queda siempre en español.
+    // El modo agente lo usa Walter: queda siempre en español. En la carta de
+    // presentación no hay link que mandar (la firma él), así que los botones
+    // se esconden y queda solo el selector de borrador.
     if (el('agenteTitle')) {
-      el('agenteTitle').textContent = esProp
+      el('agenteTitle').textContent = esAsesor
+        ? 'Zona del agente — carta de presentación'
+        : esProp
         ? 'Zona del agente — oferta de venta'
         : 'Zona del agente — oferta de compra';
-      el('agenteHint').textContent = esProp
+      el('agenteHint').textContent = esAsesor
+        ? 'Esto solo lo ves vos. Elegí el proyecto, revisá los puntos que querés mencionar, firmá abajo y descargá el PDF para mandárselo a tu cliente.'
+        : esProp
         ? 'Esto solo lo ves vos. Elegí el borrador, completá abajo el trato (a quién va dirigida, vigencia, bienes) y copiá el link: al propietario le llega todo puesto de solo lectura y solo elige el monto, revisa los bienes y firma.'
         : 'Esto solo lo ves vos. Elegí el borrador, completá abajo todo lo que quieras dejar listo (inmueble, precio, forma de pago, bienes) y copiá el link: al cliente le llega todo puesto y solo pone lo suyo y firma.';
+      el('copiarLinkRevision').parentElement.classList.toggle('d-none', esAsesor);
       el('copiarLinkRevision').textContent = esProp
         ? '1. Copiar link de vista previa (solo lectura)'
         : '1. Copiar link de revisión (propietario)';
@@ -515,9 +559,11 @@
   }
   function amountBox(pdf, values, x, y, width, title, language) {
     var w = language === 'en' ? values.amountWordsEnglish : values.amountWords;
-    var text = language === 'en'
-      ? 'Offered amount: (IN WORDS) ' + w + ' (US$ ' + formatMoney(values.amountNumber) + ')'
-      : 'Monto ofrecido: (LETRAS) ' + w + ' (US$ ' + formatMoney(values.amountNumber) + ')';
+    // En la carta de presentación no hay oferta: el monto es de referencia.
+    var etiqueta = values.issuer === 'ASESOR'
+      ? (language === 'en' ? 'Amount: (IN WORDS) ' : 'Monto: (LETRAS) ')
+      : (language === 'en' ? 'Offered amount: (IN WORDS) ' : 'Monto ofrecido: (LETRAS) ');
+    var text = etiqueta + w + ' (US$ ' + formatMoney(values.amountNumber) + ')';
     var fit = fitText(pdf, text, width - 28, { fontSize: 11.7, minFontSize: 9.8, maxLines: values.offerType === 'VENTA' ? 5 : 4 });
     var boxHeight = Math.max(74, 26 + fit.lines.length * fit.lineHeight);
     pdf.setFillColor(248, 250, 252);
@@ -615,10 +661,15 @@
     var isEnglish = language === 'en';
     var isSale = values.offerType === 'VENTA';
     var deProp = values.issuer === 'PROPIETARIO';
-    var documentTitle = deProp
+    var deAsesor = values.issuer === 'ASESOR';
+    var documentTitle = deAsesor
+      ? (isEnglish ? 'TO WHOM IT MAY CONCERN' : 'A QUIEN INTERESE')
+      : deProp
       ? (isEnglish ? (isSale ? 'OFFER TO SELL' : 'OFFER TO LEASE') : (isSale ? 'CARTA DE OFERTA DE VENTA' : 'CARTA DE OFERTA DE ALQUILER'))
       : (isEnglish ? 'OFFER LETTER' : 'CARTA DE OFERTA');
-    var subtitle = deProp
+    var subtitle = deAsesor
+      ? (isEnglish ? 'Letter of introduction issued by the real estate agent' : 'Carta de presentación emitida por el asesor inmobiliario')
+      : deProp
       ? (isEnglish
           ? (isSale ? 'Owner\'s offer to sell to the buyer' : 'Owner\'s offer to lease to the tenant')
           : (isSale ? 'Oferta del propietario al comprador' : 'Oferta del propietario al arrendatario'))
@@ -636,7 +687,7 @@
     }
 
     pdf.setTextColor(15, 23, 42);
-    if (deProp && values.recipientName) {
+    if ((deProp || deAsesor) && values.recipientName) {
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(11.2);
       pdf.text((isEnglish ? 'Addressed to: ' : 'Dirigida a: ') + values.recipientName, x, y);
@@ -646,7 +697,12 @@
 
     var docEnIngles = values.documentType === 'PASAPORTE' ? 'passport' : values.documentType;
     var declaracion;
-    if (deProp) {
+    if (deAsesor) {
+      var cargo = values.issuerRole || (isEnglish ? 'real estate agent' : 'asesor inmobiliario');
+      declaracion = isEnglish
+        ? 'I, ' + values.fullName + ', holder of my ' + docEnIngles + ' number ' + values.documentNumber + ', acting as ' + cargo + ', hereby state that the property and the development described below offer the conditions set out in this letter.'
+        : 'Yo, ' + values.fullName + ', portador de mi ' + values.documentType + ' número ' + values.documentNumber + ', en mi calidad de ' + cargo + ', hago constar que el inmueble y el desarrollo que se describen a continuación ofrecen las condiciones detalladas en la presente carta.';
+    } else if (deProp) {
       declaracion = isEnglish
         ? 'I, ' + values.fullName + ', holder of my ' + docEnIngles + ' number ' + values.documentNumber + ', acting as the owner of the property described below, hereby offer to ' + (isSale ? 'sell' : 'lease') + ' it to ' + (values.recipientName || 'the interested party') + '. The property has the following characteristics:'
         : 'Yo, ' + values.fullName + ', portador de mi ' + values.documentType + ' número ' + values.documentNumber + ', en mi calidad de propietario del inmueble que se describe a continuación, ofrezco ' + (isSale ? 'en venta' : 'en alquiler') + ' dicho inmueble a ' + (values.recipientName || 'la parte interesada') + '. El inmueble cuenta con las siguientes características:';
@@ -663,12 +719,29 @@
     y = fieldRow(pdf, 3, isEnglish ? 'Property address' : 'Dirección del inmueble', values.propertyAddress, x, y, width, 3);
 
     y += 6;
-    var amountLabel = deProp
+    var amountLabel = deAsesor
+      ? (isEnglish ? 'Reference price' : 'Precio de referencia')
+      : deProp
       ? (isEnglish ? (isSale ? 'Offered sale price' : 'Offered rental price') : (isSale ? 'Precio de venta ofrecido' : 'Precio de alquiler ofrecido'))
       : (isEnglish ? (isSale ? 'Offered purchase price' : 'Offered rental price') : (isSale ? 'Precio de compra ofrecido' : 'Precio de alquiler ofrecido'));
-    y = amountBox(pdf, values, x, y, width, amountLabel, language);
+    // En la carta de presentación el precio es opcional: si no se puso, no se
+    // dibuja la caja del monto ni los gastos de cierre.
+    var hayMonto = Number(values.amountNumber) > 0;
+    if (hayMonto) y = amountBox(pdf, values, x, y, width, amountLabel, language);
 
-    if (values.listPrice > 0) {
+    if (deAsesor && values.listPrice > 0) {
+      var textoLista = isEnglish
+        ? 'Project list price: US$ ' + formatMoney(values.listPrice) + '.' +
+          (hayMonto && values.listPrice > values.amountNumber
+            ? ' Current promotional price: US$ ' + formatMoney(values.amountNumber) + '.'
+            : '')
+        : 'Precio de lista del proyecto: US$ ' + formatMoney(values.listPrice) + '.' +
+          (hayMonto && values.listPrice > values.amountNumber
+            ? ' Precio promocional vigente: US$ ' + formatMoney(values.amountNumber) + '.'
+            : '');
+      y = paragraph(pdf, textoLista, x, y, width, { fontSize: 10.8, minFontSize: 9.6, lineHeight: 14.6, maxLines: 3 });
+      y += 10;
+    } else if (!deAsesor && values.listPrice > 0) {
       var diff = values.listPrice - values.amountNumber;
       var listText;
       if (deProp) {
@@ -707,7 +780,7 @@
       y += 10;
     }
 
-    if (isSale) {
+    if (isSale && hayMonto) {
       y = closingCostsBox(pdf, values.amountNumber, x, y, width, language);
       y = pageBreakIfNeeded(pdf, y, 700);
     }
@@ -718,15 +791,21 @@
       y = paragraph(pdf, (isEnglish ? 'Conditions or requests to the property owner: ' : 'Condiciones o solicitudes al propietario: ') + values.ownerConditions, x, y, width, { fontSize: 10.8, minFontSize: 9.4, lineHeight: 14.8, maxLines: 4 });
       y += 14;
     }
-    if (isSale) {
-      var paymentText = deProp
+    if (isSale && values.paymentMethod) {
+      var paymentText = deAsesor
+        ? (isEnglish
+            ? 'Payment terms: ' + translatedPaymentMethod(values.paymentMethod) + '. ' + values.paymentDetails
+            : 'Condiciones de pago: ' + values.paymentMethod + '. ' + values.paymentDetails)
+        : deProp
         ? (isEnglish
             ? 'Required payment method: ' + translatedPaymentMethod(values.paymentMethod) + '. ' + values.paymentDetails
             : 'Forma de pago requerida: ' + values.paymentMethod + '. ' + values.paymentDetails)
         : (isEnglish
             ? 'Payment method: ' + translatedPaymentMethod(values.paymentMethod) + '. ' + values.paymentDetails
             : 'Forma de pago: ' + values.paymentMethod + '. ' + values.paymentDetails);
-      var paymentLead = deProp
+      var paymentLead = deAsesor
+        ? ''
+        : deProp
         ? (isEnglish ? 'The payment shall be made as follows: ' : 'El pago deberá realizarse de la siguiente manera: ')
         : (isEnglish ? 'The funds will be delivered as follows: ' : 'Los fondos serán entregados de la siguiente manera: ');
       y = paragraph(pdf, paymentLead + paymentText, x, y, width, { fontSize: 11.2, minFontSize: 9.6, lineHeight: 15.6, maxLines: 7 });
@@ -737,7 +816,9 @@
     if (values.includedItems && values.includedItems.length) {
       var encabezadoItems = values.itemsTitle
         ? values.itemsTitle + ':'
-        : (deProp
+        : (deAsesor
+            ? (isEnglish ? 'The development offers the following:' : 'El desarrollo ofrece lo siguiente:')
+            : deProp
             ? (isEnglish ? 'The owner includes the following items together with the property:' : 'El propietario incluye los siguientes bienes junto con el inmueble:')
             : (isEnglish ? 'This offer includes the following items together with the property:' : 'Esta oferta incluye los siguientes bienes junto con el inmueble:'));
       y = paragraph(pdf, encabezadoItems, x, y, width, { fontSize: 11, minFontSize: 9.8, lineHeight: 15, maxLines: 2 });
@@ -759,15 +840,28 @@
 
     // Condiciones propias de la oferta del propietario: hasta cuándo sostiene
     // el precio y que seguir publicando el inmueble no lo contradice.
-    if (deProp && values.validityLong) {
+    if ((deProp || deAsesor) && values.validityLong) {
       pdf.setTextColor(11, 45, 92);
       y = paragraph(pdf,
-        isEnglish
-          ? 'This offer is valid until ' + values.validityLong.en + ', after which it expires without any further formality.'
-          : 'Esta oferta es válida hasta el ' + values.validityLong.es + ', fecha después de la cual queda sin efecto sin necesidad de trámite alguno.',
+        deAsesor
+          ? (isEnglish
+              ? 'The prices and conditions stated in this letter are valid until ' + values.validityLong.en + '.'
+              : 'Los precios y condiciones indicados en esta carta tienen vigencia hasta el ' + values.validityLong.es + '.')
+          : (isEnglish
+              ? 'This offer is valid until ' + values.validityLong.en + ', after which it expires without any further formality.'
+              : 'Esta oferta es válida hasta el ' + values.validityLong.es + ', fecha después de la cual queda sin efecto sin necesidad de trámite alguno.'),
         x, y, width, { fontSize: 10.8, minFontSize: 9.6, fontStyle: 'bold', lineHeight: 14.6, maxLines: 3 });
       pdf.setTextColor(15, 23, 42);
       y += 10;
+    }
+    // La carta de presentación no es una oferta: hay que decirlo en el texto.
+    if (deAsesor) {
+      y = paragraph(pdf,
+        isEnglish
+          ? 'This letter is informational and does not constitute a binding offer or a commitment to sell. Prices, availability and conditions of the development may change without prior notice, and any transaction remains subject to the corresponding contractual documents.'
+          : 'La presente carta tiene carácter informativo y no constituye una oferta vinculante ni un compromiso de venta. Los precios, la disponibilidad y las condiciones del desarrollo pueden variar sin previo aviso, y toda operación queda sujeta a los documentos contractuales correspondientes.',
+        x, y, width, { fontSize: 10.8, minFontSize: 9.4, lineHeight: 14.6, maxLines: 6 });
+      y += 12;
     }
     if (deProp && values.subjectPriorSale) {
       y = paragraph(pdf,
@@ -780,7 +874,11 @@
     y = pageBreakIfNeeded(pdf, y, 700);
 
     y = paragraph(pdf,
-      deProp
+      deAsesor
+        ? (isEnglish
+            ? 'This letter is issued at the request of the interested party, for whatever purposes they deem appropriate. I remain available to expand on any of the information stated above.'
+            : 'Se extiende la presente carta a solicitud de la parte interesada, para los fines que estime convenientes. Quedo a disposición para ampliar cualquiera de los puntos aquí detallados.')
+        : deProp
         ? (isEnglish
             ? 'I also expressly authorize GUERRERO PROPERTIES to deliver this offer to the party named above in order to receive a response accepting or rejecting it. GUERRERO PROPERTIES acts solely as an intermediary and is not empowered to accept offers, modify their conditions, or sign contracts on my behalf.'
             : 'Así mismo, autorizo expresamente a GUERRERO PROPERTIES para que entregue la presente oferta a la parte antes indicada, a efectos de recibir respuesta de aceptación o rechazo. GUERRERO PROPERTIES actúa únicamente como intermediario y no está facultada para aceptar ofertas, modificar sus condiciones ni firmar contratos en mi nombre.')
@@ -794,7 +892,8 @@
     // queda de página, se pasa entero a la siguiente. Antes la firma estaba
     // clavada al fondo (Math.min(710, ...)), así que cuando el texto terminaba
     // arriba quedaba un vacío enorme entre la fecha y la firma.
-    var ALTO_BLOQUE_FIRMA = 170;
+    // La carta de presentación lleva una línea más (el cargo de quien firma).
+    var ALTO_BLOQUE_FIRMA = deAsesor && values.issuerRole ? 192 : 170;
     if (y + ALTO_BLOQUE_FIRMA > pageH - 52) { pdf.addPage(); y = 80; }
 
     pdf.setTextColor(15, 23, 42);
@@ -834,6 +933,14 @@
     // ancha y quedaba pegada al número.
     pdf.text(values.fullName, x + 86, signatureTop + 42);
     pdf.text(values.documentNumber, x + 86, signatureTop + 64);
+    if (deAsesor && values.issuerRole) {
+      pdf.setTextColor(11, 45, 92);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(isEnglish ? 'ROLE:' : 'CARGO:', x, signatureTop + 86);
+      pdf.setTextColor(15, 23, 42);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(values.issuerRole, x + 86, signatureTop + 86);
+    }
     pdf.text(values.signDate, rightX + 56, signatureTop + 20);
     pdf.text(values.signTime, rightX + 56, signatureTop + 42);
 
@@ -891,6 +998,7 @@
     englishConsent.classList.remove('is-invalid');
 
     var esProp = delPropietario();
+    var esAsesor = delAsesor();
     if (!offerType.value) bad(offerType, bilingue('Seleccioná venta o alquiler.', 'Select sale or rental.'));
     if (!val('full_name')) bad(form.elements['full_name'], esProp
       ? bilingue('Ingresá el nombre completo del propietario.', "Enter the owner's full name.")
@@ -902,23 +1010,33 @@
     if (!val('property_department')) bad(form.elements['property_department'], bilingue('Ingresá el departamento del inmueble.', "Enter the property's state or department."));
     if (!val('property_address')) bad(form.elements['property_address'], bilingue('Ingresá la dirección del inmueble.', "Enter the property's address."));
 
+    // En la carta de presentación el precio y la forma de pago son
+    // opcionales: puede describir un proyecto sin cotizar nada.
     var amount = Number(val('amount_number'));
-    if (!isFinite(amount) || amount <= 0) bad(amountNumber, bilingue('Ingresá un monto válido en dólares.', 'Enter a valid amount in US dollars.'));
-    else if (!val('amount_words')) bad(amountNumber, bilingue('No se pudo generar el monto en letras.', 'The amount in words could not be generated.'));
+    if (esAsesor) {
+      if (val('amount_number') && (!isFinite(amount) || amount <= 0)) {
+        bad(amountNumber, bilingue('El precio de referencia no es válido.', 'The reference price is not valid.'));
+      }
+    } else if (!isFinite(amount) || amount <= 0) {
+      bad(amountNumber, bilingue('Ingresá un monto válido en dólares.', 'Enter a valid amount in US dollars.'));
+    } else if (!val('amount_words')) {
+      bad(amountNumber, bilingue('No se pudo generar el monto en letras.', 'The amount in words could not be generated.'));
+    }
 
     var isSale = offerType.value === 'VENTA';
     var isRental = offerType.value === 'ALQUILER';
-    if (isSale) {
+    if (isSale && !esAsesor) {
       if (!['Contado', 'Crédito', 'Mixto'].includes(paymentMethod.value)) bad(paymentMethod, bilingue('Seleccioná la forma de pago.', 'Select the payment method.'));
       if (!val('payment_details')) bad(paymentDetails, bilingue('Detallá la entrega de fondos.', 'Describe how the funds will be delivered.'));
     }
-    if (isRental) {
+    if (isRental && !esAsesor) {
       if (!val('rental_term')) bad(rentalTerm, bilingue('Indicá el plazo de alquiler.', 'Enter the rental term.'));
       if (!val('owner_conditions')) bad(ownerConditions, bilingue('Indicá las condiciones o solicitudes al propietario.', 'Enter the conditions or requests to the owner.'));
     }
     if (documentLanguage.value === 'en' && !englishConsent.checked) bad(englishConsent, bilingue('Tenés que aceptar que el PDF incluye la versión en inglés y su anexo en español.', 'You must accept that the PDF includes the English version and its Spanish annex.'));
-    if (!hasSignature || !signatureData) errors.push(esProp
-      ? bilingue('La firma del propietario es obligatoria.', "The owner's signature is required.")
+    if (!hasSignature || !signatureData) errors.push(
+      esAsesor ? bilingue('Falta tu firma.', 'Your signature is required.')
+      : esProp ? bilingue('La firma del propietario es obligatoria.', "The owner's signature is required.")
       : bilingue('La firma del cliente es obligatoria.', "The client's signature is required."));
 
     if (errors.length) {
@@ -929,12 +1047,13 @@
     }
 
     var now = nowParts();
-    var vigencia = esProp ? fechaLarga(offerValidity.value) : null;
+    var vigencia = (esProp || esAsesor) ? fechaLarga(offerValidity.value) : null;
     return {
       documentLanguage: documentLanguage.value,
       offerType: offerType.value,
-      issuer: esProp ? 'PROPIETARIO' : 'COMPRADOR',
-      recipientName: esProp ? val('recipient_name') : '',
+      issuer: esAsesor ? 'ASESOR' : esProp ? 'PROPIETARIO' : 'COMPRADOR',
+      recipientName: (esProp || esAsesor) ? val('recipient_name') : '',
+      issuerRole: esAsesor ? val('issuer_role') : '',
       validityLong: vigencia,
       validityIso: vigencia ? vigencia.iso : null,
       subjectPriorSale: esProp && offerType.value === 'VENTA' && !!subjectPriorSale.checked,
@@ -987,13 +1106,15 @@
           carta: {
             // En la oferta de venta el que firma es el propietario y el
             // cliente es el destinatario, así que las partes van cruzadas.
-            tipo: v.issuer === 'PROPIETARIO' ? 'oferta_venta' : 'oferta',
+            tipo: v.issuer === 'ASESOR' ? 'presentacion' : v.issuer === 'PROPIETARIO' ? 'oferta_venta' : 'oferta',
             transaccion: v.offerType,
             idioma: v.documentLanguage,
-            cliente_nombre: v.issuer === 'PROPIETARIO' ? (v.recipientName || null) : v.fullName,
-            cliente_documento: v.issuer === 'PROPIETARIO' ? null : v.documentType + ' ' + v.documentNumber,
-            propietario_nombre: v.issuer === 'PROPIETARIO' ? v.fullName : null,
-            propietario_documento: v.issuer === 'PROPIETARIO' ? v.documentType + ' ' + v.documentNumber : null,
+            cliente_nombre: v.issuer === 'COMPRADOR' ? v.fullName : (v.recipientName || null),
+            cliente_documento: v.issuer === 'COMPRADOR' ? v.documentType + ' ' + v.documentNumber : null,
+            // En la carta de presentación el que firma es el asesor; se guarda
+            // en el mismo campo del firmante para poder verlo en el archivo.
+            propietario_nombre: v.issuer === 'COMPRADOR' ? null : v.fullName,
+            propietario_documento: v.issuer === 'COMPRADOR' ? null : v.documentType + ' ' + v.documentNumber,
             vigencia: v.validityIso,
             sujeto_venta_previa: v.subjectPriorSale,
             propiedad_municipio: v.propertyMunicipality,
@@ -1028,10 +1149,12 @@
     btnTxtEn.textContent = '/ Generating…';
     try {
       var pdf = buildPdf(values);
-      var nombreArchivo = values.issuer === 'PROPIETARIO' ? (values.recipientName || values.fullName) : values.fullName;
+      var nombreArchivo = values.issuer === 'COMPRADOR' ? values.fullName : (values.recipientName || values.fullName);
       var slug = (nombreArchivo || 'cliente').toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || 'cliente';
       var pdfBlob = pdf.output('blob');
-      pdf.save((values.issuer === 'PROPIETARIO' ? 'carta-oferta-venta-' : 'carta-oferta-') + slug + '.pdf');
+      var prefijo = values.issuer === 'ASESOR' ? 'carta-presentacion-'
+        : values.issuer === 'PROPIETARIO' ? 'carta-oferta-venta-' : 'carta-oferta-';
+      pdf.save(prefijo + slug + '.pdf');
       registrarEnCRM(values, pdfBlob);
     } catch (ex) {
       console.error('PDF carta de oferta:', ex);
@@ -1149,8 +1272,9 @@
     if (tipo === 'venta') offerType.value = 'VENTA';
     else if (tipo === 'alquiler') offerType.value = 'ALQUILER';
     var emisor = (q.get('emisor') || '').toUpperCase();
-    if (emisor === 'PROPIETARIO' || emisor === 'COMPRADOR') letterIssuer.value = emisor;
+    if (['PROPIETARIO', 'COMPRADOR', 'ASESOR'].indexOf(emisor) !== -1) letterIssuer.value = emisor;
     if (q.get('dirigidaa')) recipientName.value = q.get('dirigidaa');
+    if (q.get('cargo')) issuerRole.value = q.get('cargo');
     if (q.get('firmante')) el('full_name').value = q.get('firmante');
     if (q.get('tipodoc')) documentType.value = q.get('tipodoc');
     if (q.get('doc')) documentNumber.value = q.get('doc');
@@ -1188,6 +1312,7 @@
   // hay algo, es porque él no lo completó.
   function pendientesDelFirmante() {
     var faltan = [];
+    if (delAsesor()) return faltan;
     if (!offerType.value) faltan.push('el tipo de oferta (venta o alquiler)');
     if (delPropietario() && !recipientName.value.trim()) faltan.push('a quién va dirigida la carta');
     if (!el('property_municipality').value.trim()) faltan.push('el municipio del inmueble');
@@ -1224,7 +1349,8 @@
     if (borradorSelect.value) p.set('borrador', borradorSelect.value);
     if (offerType.value) p.set('tipo', offerType.value.toLowerCase());
     p.set('emisor', letterIssuer.value);
-    if (delPropietario()) {
+    if (delAsesor() && issuerRole.value.trim()) p.set('cargo', issuerRole.value.trim());
+    if (delPropietario() || delAsesor()) {
       if (recipientName.value.trim()) p.set('dirigidaa', recipientName.value.trim());
       if (offerValidity.value) p.set('vigencia', offerValidity.value);
       p.set('previa', subjectPriorSale.checked ? '1' : '0');

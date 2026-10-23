@@ -139,11 +139,12 @@ export const TIPO_LISTADO_LABEL: Record<TipoListado, string> = {
   no_exclusivo: 'No exclusivo',
 };
 
-export const CARTA_TIPOS: CartaTipo[] = ['oferta', 'oferta_venta', 'aceptacion', 'contraoferta'];
+export const CARTA_TIPOS: CartaTipo[] = ['oferta', 'oferta_venta', 'presentacion', 'aceptacion', 'contraoferta'];
 
 export const CARTA_TIPO_LABEL: Record<CartaTipo, string> = {
   oferta: 'Oferta de compra',
   oferta_venta: 'Oferta de venta',
+  presentacion: 'Presentación',
   aceptacion: 'Aceptación',
   contraoferta: 'Contraoferta',
 };
@@ -151,6 +152,7 @@ export const CARTA_TIPO_LABEL: Record<CartaTipo, string> = {
 export const CARTA_TIPO_CLASE: Record<CartaTipo, string> = {
   oferta: 'bg-blue-100 text-blue-800',
   oferta_venta: 'bg-indigo-100 text-indigo-800',
+  presentacion: 'bg-slate-100 text-slate-700',
   aceptacion: 'bg-emerald-100 text-emerald-800',
   contraoferta: 'bg-amber-100 text-amber-800',
 };
