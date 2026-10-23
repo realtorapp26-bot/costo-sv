@@ -539,6 +539,15 @@
     pdf.text(fit.lines, x, y);
     return y + (fit.lines.length * fit.lineHeight);
   }
+  // Igual que paragraph, pero mide primero cuánto va a ocupar y solo salta de
+  // página si de verdad no entra. Los cortes por umbral fijo (y > 700) dejaban
+  // hasta 240pt en blanco al pie porque no sabían qué venía después.
+  var PIE_PAGINA = 790;
+  function paragraphFit(pdf, text, x, y, width, opts) {
+    var fit = fitText(pdf, text, width, opts || {});
+    if (y + fit.lines.length * fit.lineHeight > PIE_PAGINA) { pdf.addPage(); y = 80; }
+    return paragraph(pdf, text, x, y, width, opts);
+  }
   function fieldRow(pdf, index, label, value, x, y, width, maxLines) {
     var fit = fitText(pdf, value || '—', width - 48, { fontSize: 11.4, minFontSize: 9.6, maxLines: maxLines || 2 });
     var dynamicHeight = Math.max(46, 26 + fit.lines.length * (fit.lineHeight));
@@ -641,13 +650,8 @@
   function translatedPaymentMethod(v) {
     return ({ 'Contado': 'Cash', 'Crédito': 'Financing', 'Mixto': 'Mixed' })[v] || v;
   }
-  // Este archivo no usa el patrón de paginación robusto (ensureSpace) de
-  // carta-respuesta.js/kyc-cliente.js -- layout fijo de una sola página con
-  // un solo "pdf.addPage()" antes de la firma. Con bloques de contenido
-  // variable (notas, bienes incluidos, gastos de cierre) el texto puede
-  // acumular más altura que la página física y quedar dibujado FUERA del
-  // área visible (se pierde en silencio, sin error). Por eso se llama a este
-  // helper después de cada bloque grande, no solo una vez antes de la firma.
+  // Corte de página para bloques de alto conocido (las cajas), que no se
+  // pueden medir con fitText. Los textos usan paragraphFit, que mide primero.
   function pageBreakIfNeeded(pdf, y, limit) {
     if (y > (limit == null ? 700 : limit)) { pdf.addPage(); return 80; }
     return y;
@@ -780,15 +784,17 @@
       y += 10;
     }
 
+    // La caja de gastos de cierre mide ~150pt y no se puede medir con
+    // fitText, así que acá sí se corta por umbral, antes de dibujarla.
     if (isSale && hayMonto) {
+      y = pageBreakIfNeeded(pdf, y, PIE_PAGINA - 150);
       y = closingCostsBox(pdf, values.amountNumber, x, y, width, language);
-      y = pageBreakIfNeeded(pdf, y, 700);
     }
 
     if (!isSale) {
-      y = paragraph(pdf, (isEnglish ? 'Offered rental term: ' : 'Plazo de alquiler ofrecido: ') + values.rentalTerm + '.', x, y, width, { fontSize: 11.2, minFontSize: 10, lineHeight: 15.2, maxLines: 3 });
+      y = paragraphFit(pdf, (isEnglish ? 'Offered rental term: ' : 'Plazo de alquiler ofrecido: ') + values.rentalTerm + '.', x, y, width, { fontSize: 11.2, minFontSize: 10, lineHeight: 15.2, maxLines: 3 });
       y += 8;
-      y = paragraph(pdf, (isEnglish ? 'Conditions or requests to the property owner: ' : 'Condiciones o solicitudes al propietario: ') + values.ownerConditions, x, y, width, { fontSize: 10.8, minFontSize: 9.4, lineHeight: 14.8, maxLines: 4 });
+      y = paragraphFit(pdf, (isEnglish ? 'Conditions or requests to the property owner: ' : 'Condiciones o solicitudes al propietario: ') + values.ownerConditions, x, y, width, { fontSize: 10.8, minFontSize: 9.4, lineHeight: 14.8, maxLines: 4 });
       y += 14;
     }
     if (isSale && values.paymentMethod) {
@@ -808,10 +814,9 @@
         : deProp
         ? (isEnglish ? 'The payment shall be made as follows: ' : 'El pago deberá realizarse de la siguiente manera: ')
         : (isEnglish ? 'The funds will be delivered as follows: ' : 'Los fondos serán entregados de la siguiente manera: ');
-      y = paragraph(pdf, paymentLead + paymentText, x, y, width, { fontSize: 11.2, minFontSize: 9.6, lineHeight: 15.6, maxLines: 7 });
+      y = paragraphFit(pdf, paymentLead + paymentText, x, y, width, { fontSize: 11.2, minFontSize: 9.6, lineHeight: 15.6, maxLines: 7 });
       y += 14;
     }
-    y = pageBreakIfNeeded(pdf, y, 700);
 
     if (values.includedItems && values.includedItems.length) {
       var encabezadoItems = values.itemsTitle
@@ -821,28 +826,26 @@
             : deProp
             ? (isEnglish ? 'The owner includes the following items together with the property:' : 'El propietario incluye los siguientes bienes junto con el inmueble:')
             : (isEnglish ? 'This offer includes the following items together with the property:' : 'Esta oferta incluye los siguientes bienes junto con el inmueble:'));
-      y = paragraph(pdf, encabezadoItems, x, y, width, { fontSize: 11, minFontSize: 9.8, lineHeight: 15, maxLines: 2 });
+      y = paragraphFit(pdf, encabezadoItems, x, y, width, { fontSize: 11, minFontSize: 9.8, lineHeight: 15, maxLines: 2 });
       y += 4;
       values.includedItems.forEach(function (it) {
-        y = paragraph(pdf, '• ' + it, x + 10, y, width - 10, { fontSize: 10.4, minFontSize: 9.2, lineHeight: 13.8, maxLines: 2 });
-        y = pageBreakIfNeeded(pdf, y, 760);
+        y = paragraphFit(pdf, '• ' + it, x + 10, y, width - 10, { fontSize: 10.4, minFontSize: 9.2, lineHeight: 13.8, maxLines: 2 });
       });
       y += 10;
     }
 
     if (values.additionalNotes) {
-      y = paragraph(pdf,
+      y = paragraphFit(pdf,
         (isEnglish ? 'Additional notes: ' : 'Notas adicionales: ') + values.additionalNotes,
         x, y, width, { fontSize: 10.8, minFontSize: 9.4, lineHeight: 14.8, maxLines: 5 });
       y += 14;
     }
-    y = pageBreakIfNeeded(pdf, y, 700);
 
     // Condiciones propias de la oferta del propietario: hasta cuándo sostiene
     // el precio y que seguir publicando el inmueble no lo contradice.
     if ((deProp || deAsesor) && values.validityLong) {
       pdf.setTextColor(11, 45, 92);
-      y = paragraph(pdf,
+      y = paragraphFit(pdf,
         deAsesor
           ? (isEnglish
               ? 'The prices and conditions stated in this letter are valid until ' + values.validityLong.en + '.'
@@ -856,7 +859,7 @@
     }
     // La carta de presentación no es una oferta: hay que decirlo en el texto.
     if (deAsesor) {
-      y = paragraph(pdf,
+      y = paragraphFit(pdf,
         isEnglish
           ? 'This letter is informational and does not constitute a binding offer or a commitment to sell. Prices, availability and conditions of the development may change without prior notice, and any transaction remains subject to the corresponding contractual documents.'
           : 'La presente carta tiene carácter informativo y no constituye una oferta vinculante ni un compromiso de venta. Los precios, la disponibilidad y las condiciones del desarrollo pueden variar sin previo aviso, y toda operación queda sujeta a los documentos contractuales correspondientes.',
@@ -864,16 +867,15 @@
       y += 12;
     }
     if (deProp && values.subjectPriorSale) {
-      y = paragraph(pdf,
+      y = paragraphFit(pdf,
         isEnglish
           ? 'This offer is subject to prior sale. Acceptance of an offer does not suspend the advertising or marketing of the property, which will continue until an effective reservation deposit has been made in favor of the owner. Until that deposit exists, the owner may receive and accept other offers.'
           : 'Esta oferta queda sujeta a venta previa. La aceptación de una oferta no implica la suspensión de la publicidad ni de la promoción del inmueble, las cuales continuarán hasta que exista una reserva efectiva depositada a favor del propietario. Mientras no exista dicho depósito, el propietario podrá recibir y aceptar otras ofertas.',
         x, y, width, { fontSize: 10.8, minFontSize: 9.4, lineHeight: 14.6, maxLines: 6 });
       y += 12;
     }
-    y = pageBreakIfNeeded(pdf, y, 700);
 
-    y = paragraph(pdf,
+    y = paragraphFit(pdf,
       deAsesor
         ? (isEnglish
             ? 'This letter is issued at the request of the interested party, for whatever purposes they deem appropriate. I remain available to expand on any of the information stated above.'
@@ -892,9 +894,18 @@
     // queda de página, se pasa entero a la siguiente. Antes la firma estaba
     // clavada al fondo (Math.min(710, ...)), así que cuando el texto terminaba
     // arriba quedaba un vacío enorme entre la fecha y la firma.
-    // La carta de presentación lleva una línea más (el cargo de quien firma).
-    var ALTO_BLOQUE_FIRMA = deAsesor && values.issuerRole ? 192 : 170;
-    if (y + ALTO_BLOQUE_FIRMA > pageH - 52) { pdf.addPage(); y = 80; }
+    // El bloque de firma = hueco para la rúbrica + las etiquetas de abajo (una
+    // línea más en la carta de presentación, por el cargo). Si no entra con el
+    // hueco normal pero sí con uno más justo, se aprieta: mandar solo la firma
+    // a la página siguiente deja media hoja en blanco arriba y otra abajo.
+    var HUECO_FIRMA = 90, HUECO_FIRMA_MIN = 80;
+    var COLA_FIRMA = (deAsesor && values.issuerRole ? 86 : 64) + 20;
+    var tope = pageH - 52;
+    var huecoFirma = HUECO_FIRMA;
+    if (y + HUECO_FIRMA + COLA_FIRMA > tope) {
+      if (y + HUECO_FIRMA_MIN + COLA_FIRMA <= tope) huecoFirma = HUECO_FIRMA_MIN;
+      else { pdf.addPage(); y = 80; }
+    }
 
     pdf.setTextColor(15, 23, 42);
     pdf.setFont('helvetica', 'normal');
@@ -903,7 +914,7 @@
 
     // Dos columnas del mismo ancho repartidas sobre el ancho real del
     // contenido: a la izquierda la firma, a la derecha fecha y hora.
-    var signatureTop = y + 90;
+    var signatureTop = y + huecoFirma;
     var colW = (width - 40) / 2;
     var rightX = x + colW + 40;
     pdf.setDrawColor(110, 122, 144);
