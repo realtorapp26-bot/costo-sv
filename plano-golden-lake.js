@@ -173,21 +173,21 @@ const LOT7_HOUSE = {5:"clovis"};
    cuando Walter las dio (lote 5); los lotes 3 y 4 se partieron en dos mitades
    iguales a falta de medidas topográficas exactas de cada porción.
    Disponibilidad al 22/10/2026: el lote 5 se vendió completo. */
-/* Los lotes se parten en dos porciones, pero NO están todas segregadas: se
-   recorta la siguiente recién cuando se vende la anterior. Por eso una porción
-   puede estar "Por segregar" y todavía no existir como parcela con escritura.
-   Al 22/10/2026 la única porción segregada y en venta es la 1 del lote 5.
-   Medidas del lote 4 según el plano: 20.00 m de frente, 20.05 m de fondo y
-   lados de 33.14 m y 31.77 m (649.13 m², el área del cuadro; partido al medio
-   da las dos porciones de ~324.5 m²). */
+/* Los lotes se venden partidos en dos porciones, pero se recorta una por vez:
+   la siguiente se segrega recién cuando se vende la anterior. Por eso el plano
+   solo dibuja porciones de los lotes YA segregados; el resto son lotes
+   enteros. Al 22/10/2026 el único lote segregado es el 5 (porción 2 vendida,
+   porción 1 en venta) y el próximo a segregar es el 6. */
 const LOT7_PORC = {
-  4: {1:{area:324.57,estado:"Por segregar",medidas:"≈ 10 m de frente × 31.77 a 33.14 m de fondo"},
-      2:{area:324.56,estado:"Por segregar",medidas:"≈ 10 m de frente × 31.77 a 33.14 m de fondo"}},
   5: {1:{area:308.33,estado:"Disponible",medidas:"≈ 10 m de frente × 31 m de fondo"},
       2:{area:314.57,estado:"Vendida"}}
 };
-/* Lotes enteros que todavía no se parten, con su estado comercial. */
-const LOT7_ESTADO = {6:"Por segregar"};
+/* Lotes enteros: el 6 es el próximo a segregar; del 4 se conocen las medidas
+   del plano aunque todavía no se haya partido. */
+const LOT7_LOTE = {
+  4: {medidas:"20.00 m de frente × 20.05 m de fondo, con lados de 33.14 y 31.77 m"},
+  6: {estado:"Por segregar"}
+};
 document.querySelectorAll(".lot7").forEach(el=>{
   const n=+el.dataset.lot, por=el.dataset.por;
   if(LOT7_HOUSE[n]) el.classList.add("house");
@@ -203,7 +203,8 @@ function showLot7(n,por,el){
   const porc=por&&LOT7_PORC[n]?.[por];
   const area=porc?porc.area:LOT_AREA[7][n];
   const titulo=`Lote ${n}${por?` · Porción ${por}`:""}`;
-  const estado=porc?porc.estado:LOT7_ESTADO[n];
+  const estado=porc?porc.estado:LOT7_LOTE[n]?.estado;
+  const medidas=porc?porc.medidas:LOT7_LOTE[n]?.medidas;
   // Una porción "Por segregar" todavía no existe como parcela: se recorta
   // cuando se vende la anterior. Conviene decirlo para que nadie pregunte
   // por algo que todavía no se puede escriturar.
@@ -213,7 +214,7 @@ function showLot7(n,por,el){
   $("#gl-plano-panel").innerHTML=`
     <div class="eyebrow">Polígono 7 · ${titulo}</div>
     <h2>${titulo}</h2>
-    <dl class="kv"><dt>Polígono</dt><dd>7 · franja frente al Bulevar Costa del Sol</dd><dt>Frente a</dt><dd>Calle Barcelona</dd><dt>Tamaño</dt><dd>${fmt2(area)} m² (${v2(area)} v²)</dd>${porc?.medidas?`<dt>Medidas</dt><dd>${porc.medidas}</dd>`:""}${estado?`<dt>Estado</dt><dd>${estado}</dd>`:""}</dl>
+    <dl class="kv"><dt>Polígono</dt><dd>7 · franja frente al Bulevar Costa del Sol</dd><dt>Frente a</dt><dd>Calle Barcelona</dd><dt>Tamaño</dt><dd>${fmt2(area)} m² (${v2(area)} v²)</dd>${medidas?`<dt>Medidas</dt><dd>${medidas}</dd>`:""}${estado?`<dt>Estado</dt><dd>${estado}</dd>`:""}</dl>
     <p class="note">${aviso}</p>
     <a class="cta" href="${waLink(`Hola Walter, me interesa el ${titulo} del Polígono 7 en Golden Lake.`)}" target="_blank" rel="noopener">Preguntar por el ${titulo}</a>
     <div class="phone">${WA_TXT}</div>`;
