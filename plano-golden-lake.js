@@ -173,10 +173,15 @@ const LOT7_HOUSE = {5:"clovis"};
    cuando Walter las dio (lote 5); los lotes 3 y 4 se partieron en dos mitades
    iguales a falta de medidas topográficas exactas de cada porción.
    Disponibilidad al 22/10/2026: el lote 5 se vendió completo. */
+/* Medidas del lote 4 según el plano: 20.00 m de frente, 20.05 m de fondo y
+   lados de 33.14 m y 31.77 m. Da 649.13 m², el área del cuadro, y partido al
+   medio deja las dos porciones de ~324.5 m² que ya estaban cargadas. */
 const LOT7_PORC = {
   3: {1:{area:235.82,estado:"Vendida"}, 2:{area:235.82,estado:"Disponible"}},
-  4: {1:{area:324.57,estado:"Disponible"}, 2:{area:324.56,estado:"Disponible"}},
-  5: {1:{area:308.33,estado:"Vendida"}, 2:{area:314.57,estado:"Vendida"}}
+  4: {1:{area:324.57,estado:"Disponible",medidas:"≈ 10 m de frente × 31.77 a 33.14 m de fondo"},
+      2:{area:324.56,estado:"Disponible",medidas:"≈ 10 m de frente × 31.77 a 33.14 m de fondo"}},
+  5: {1:{area:308.33,estado:"Vendida",medidas:"≈ 10 m de frente × 31 m de fondo"},
+      2:{area:314.57,estado:"Vendida"}}
 };
 document.querySelectorAll(".lot7").forEach(el=>{
   const n=+el.dataset.lot, por=el.dataset.por;
@@ -196,7 +201,7 @@ function showLot7(n,por,el){
   $("#gl-plano-panel").innerHTML=`
     <div class="eyebrow">Polígono 7 · ${titulo}</div>
     <h2>${titulo}</h2>
-    <dl class="kv"><dt>Polígono</dt><dd>7 · franja frente al Bulevar Costa del Sol</dd><dt>Frente a</dt><dd>Calle Barcelona</dd><dt>Tamaño</dt><dd>${fmt2(area)} m² (${v2(area)} v²)</dd>${porc?`<dt>Estado</dt><dd>${porc.estado}</dd>`:""}</dl>
+    <dl class="kv"><dt>Polígono</dt><dd>7 · franja frente al Bulevar Costa del Sol</dd><dt>Frente a</dt><dd>Calle Barcelona</dd><dt>Tamaño</dt><dd>${fmt2(area)} m² (${v2(area)} v²)</dd>${porc?.medidas?`<dt>Medidas</dt><dd>${porc.medidas}</dd>`:""}${porc?`<dt>Estado</dt><dd>${porc.estado}</dd>`:""}</dl>
     <p class="note">Pregúntame por la disponibilidad de este lote y por las casas que se están construyendo en el Polígono 7.</p>
     <a class="cta" href="${waLink(`Hola Walter, me interesa el ${titulo} del Polígono 7 en Golden Lake.`)}" target="_blank" rel="noopener">Preguntar por el ${titulo}</a>
     <div class="phone">${WA_TXT}</div>`;
