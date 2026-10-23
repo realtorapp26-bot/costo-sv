@@ -22,12 +22,12 @@ const POLY = {
 /* Para ubicar una propiedad: pon su polígono y lote y las coordenadas del pin (x,y) en el plano. */
 const PROPS = [
   {
-    id:"clovis", n:1, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 5 · Porción 1 vendida · Porción 2 disponible",
-    tag:"Vendida", price:"$350,000", priceRegular:"$400,000", priceNote:"Promoción en planos · amueblada · entrega diciembre 2026", poly:7, lote:"5", xy:[544,735],
+    id:"clovis", n:1, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 5 vendido · Disponible en Lote 4 (porciones 1 y 2) y Lote 3 porción 2",
+    tag:"Vendida", price:"$350,000", priceRegular:"$400,000", priceNote:"Promoción en planos · amueblada · la construcción inicia al reservar", poly:7, lote:"5", xy:[544,735],
     kv:[["Terreno","308.33 m² (441 v²), con título propio"],["Medidas","≈ 10 m de frente × 31 m de fondo"],["Frente a","Calle Barcelona"],["Acceso","A pocos metros de la entrada principal"]],
     units:[
       {t:"Porción 1 · 308.33 m²", s:"Vendida", res:true},
-      {t:"Porción 2 · 314.57 m²", s:"Disponible", ok:true}
+      {t:"Porción 2 · 314.57 m²", s:"Vendida", res:true}
     ]
   },
   {
@@ -170,11 +170,13 @@ function showLot(p,n){
 /* Lotes del Polígono 7 */
 const LOT7_HOUSE = {5:"clovis"};
 /* Lotes de la 7 partidos en porciones (venta de media parcela). Áreas reales
-   cuando Walter las dio (lote 5); el lote 4 se partió en dos mitades iguales
-   a falta de medidas topográficas exactas de cada porción. */
+   cuando Walter las dio (lote 5); los lotes 3 y 4 se partieron en dos mitades
+   iguales a falta de medidas topográficas exactas de cada porción.
+   Disponibilidad al 22/10/2026: el lote 5 se vendió completo. */
 const LOT7_PORC = {
+  3: {1:{area:235.82,estado:"Vendida"}, 2:{area:235.82,estado:"Disponible"}},
   4: {1:{area:324.57,estado:"Disponible"}, 2:{area:324.56,estado:"Disponible"}},
-  5: {1:{area:308.33,estado:"Vendida"}, 2:{area:314.57,estado:"Disponible"}}
+  5: {1:{area:308.33,estado:"Vendida"}, 2:{area:314.57,estado:"Vendida"}}
 };
 document.querySelectorAll(".lot7").forEach(el=>{
   const n=+el.dataset.lot, por=el.dataset.por;
