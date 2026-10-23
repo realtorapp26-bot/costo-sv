@@ -806,18 +806,24 @@
       y = paragraphFit(pdf, (isEnglish ? 'Conditions or requests to the property owner: ' : 'Condiciones o solicitudes al propietario: ') + values.ownerConditions, x, y, width, { fontSize: 10.8, minFontSize: 9.4, lineHeight: 14.8, maxLines: 4 });
       y += esc(14);
     }
-    if (isSale && values.paymentMethod) {
+    // La forma de pago puede quedar sin definir (la carta de presentación no
+    // siempre puede afirmarla). En ese caso se imprimen solo las condiciones
+    // escritas, sin encabezarlas con un método que no se confirmó.
+    if (isSale && (values.paymentMethod || values.paymentDetails)) {
+      var metodo = values.paymentMethod
+        ? (isEnglish ? translatedPaymentMethod(values.paymentMethod) : values.paymentMethod) + '. '
+        : '';
       var paymentText = deAsesor
         ? (isEnglish
-            ? 'Payment terms: ' + translatedPaymentMethod(values.paymentMethod) + '. ' + values.paymentDetails
-            : 'Condiciones de pago: ' + values.paymentMethod + '. ' + values.paymentDetails)
+            ? 'Payment terms: ' + metodo + values.paymentDetails
+            : 'Condiciones de pago: ' + metodo + values.paymentDetails)
         : deProp
         ? (isEnglish
-            ? 'Required payment method: ' + translatedPaymentMethod(values.paymentMethod) + '. ' + values.paymentDetails
-            : 'Forma de pago requerida: ' + values.paymentMethod + '. ' + values.paymentDetails)
+            ? 'Required payment method: ' + metodo + values.paymentDetails
+            : 'Forma de pago requerida: ' + metodo + values.paymentDetails)
         : (isEnglish
-            ? 'Payment method: ' + translatedPaymentMethod(values.paymentMethod) + '. ' + values.paymentDetails
-            : 'Forma de pago: ' + values.paymentMethod + '. ' + values.paymentDetails);
+            ? 'Payment method: ' + metodo + values.paymentDetails
+            : 'Forma de pago: ' + metodo + values.paymentDetails);
       var paymentLead = deAsesor
         ? ''
         : deProp
@@ -1470,9 +1476,7 @@
 
     var inmueble = [el('property_address').value, el('property_municipality').value, el('property_department').value]
       .map(function (s) { return (s || '').trim(); }).filter(Boolean).join(', ');
-    var pago = paymentMethod.value
-      ? paymentMethod.value + (paymentDetails.value.trim() ? '. ' + paymentDetails.value.trim() : '')
-      : '';
+    var pago = [paymentMethod.value, paymentDetails.value.trim()].filter(Boolean).join('. ');
     var vigencia = esProp && offerValidity.value ? (fechaLarga(offerValidity.value) || {}) : {};
 
     var html = '';
