@@ -22,11 +22,11 @@ const POLY = {
 /* Para ubicar una propiedad: pon su polígono y lote y las coordenadas del pin (x,y) en el plano. */
 const PROPS = [
   {
-    id:"clovis", n:1, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 5 vendido · Disponible en Lote 4 (porciones 1 y 2) y Lote 3 porción 2",
-    tag:"Vendida", price:"$350,000", priceRegular:"$400,000", priceNote:"Promoción en planos · amueblada · la construcción inicia al reservar", poly:7, lote:"5", xy:[544,735],
+    id:"clovis", n:1, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 5 · Porción 1 disponible · Porción 2 vendida",
+    price:"$350,000", priceRegular:"$400,000", priceNote:"Promoción en planos · amueblada · la construcción inicia al reservar", poly:7, lote:"5", xy:[544,735],
     kv:[["Terreno","308.33 m² (441 v²), con título propio"],["Medidas","≈ 10 m de frente × 31 m de fondo"],["Frente a","Calle Barcelona"],["Acceso","A pocos metros de la entrada principal"]],
     units:[
-      {t:"Porción 1 · 308.33 m²", s:"Vendida", res:true},
+      {t:"Porción 1 · 308.33 m²", s:"Disponible", ok:true},
       {t:"Porción 2 · 314.57 m²", s:"Vendida", res:true}
     ]
   },
@@ -173,16 +173,21 @@ const LOT7_HOUSE = {5:"clovis"};
    cuando Walter las dio (lote 5); los lotes 3 y 4 se partieron en dos mitades
    iguales a falta de medidas topográficas exactas de cada porción.
    Disponibilidad al 22/10/2026: el lote 5 se vendió completo. */
-/* Medidas del lote 4 según el plano: 20.00 m de frente, 20.05 m de fondo y
-   lados de 33.14 m y 31.77 m. Da 649.13 m², el área del cuadro, y partido al
-   medio deja las dos porciones de ~324.5 m² que ya estaban cargadas. */
+/* Los lotes se parten en dos porciones, pero NO están todas segregadas: se
+   recorta la siguiente recién cuando se vende la anterior. Por eso una porción
+   puede estar "Por segregar" y todavía no existir como parcela con escritura.
+   Al 22/10/2026 la única porción segregada y en venta es la 1 del lote 5.
+   Medidas del lote 4 según el plano: 20.00 m de frente, 20.05 m de fondo y
+   lados de 33.14 m y 31.77 m (649.13 m², el área del cuadro; partido al medio
+   da las dos porciones de ~324.5 m²). */
 const LOT7_PORC = {
-  3: {1:{area:235.82,estado:"Vendida"}, 2:{area:235.82,estado:"Disponible"}},
-  4: {1:{area:324.57,estado:"Disponible",medidas:"≈ 10 m de frente × 31.77 a 33.14 m de fondo"},
-      2:{area:324.56,estado:"Disponible",medidas:"≈ 10 m de frente × 31.77 a 33.14 m de fondo"}},
-  5: {1:{area:308.33,estado:"Vendida",medidas:"≈ 10 m de frente × 31 m de fondo"},
+  4: {1:{area:324.57,estado:"Por segregar",medidas:"≈ 10 m de frente × 31.77 a 33.14 m de fondo"},
+      2:{area:324.56,estado:"Por segregar",medidas:"≈ 10 m de frente × 31.77 a 33.14 m de fondo"}},
+  5: {1:{area:308.33,estado:"Disponible",medidas:"≈ 10 m de frente × 31 m de fondo"},
       2:{area:314.57,estado:"Vendida"}}
 };
+/* Lotes enteros que todavía no se parten, con su estado comercial. */
+const LOT7_ESTADO = {6:"Por segregar"};
 document.querySelectorAll(".lot7").forEach(el=>{
   const n=+el.dataset.lot, por=el.dataset.por;
   if(LOT7_HOUSE[n]) el.classList.add("house");
@@ -198,11 +203,18 @@ function showLot7(n,por,el){
   const porc=por&&LOT7_PORC[n]?.[por];
   const area=porc?porc.area:LOT_AREA[7][n];
   const titulo=`Lote ${n}${por?` · Porción ${por}`:""}`;
+  const estado=porc?porc.estado:LOT7_ESTADO[n];
+  // Una porción "Por segregar" todavía no existe como parcela: se recorta
+  // cuando se vende la anterior. Conviene decirlo para que nadie pregunte
+  // por algo que todavía no se puede escriturar.
+  const aviso=estado==="Por segregar"
+    ? `${por?"Esta porción":"Este lote"} todavía no está segregad${por?"a":"o"}: se recorta una vez vendida la porción anterior. Pregúntame por la disponibilidad.`
+    : "Pregúntame por la disponibilidad de este lote y por las casas que se están construyendo en el Polígono 7.";
   $("#gl-plano-panel").innerHTML=`
     <div class="eyebrow">Polígono 7 · ${titulo}</div>
     <h2>${titulo}</h2>
-    <dl class="kv"><dt>Polígono</dt><dd>7 · franja frente al Bulevar Costa del Sol</dd><dt>Frente a</dt><dd>Calle Barcelona</dd><dt>Tamaño</dt><dd>${fmt2(area)} m² (${v2(area)} v²)</dd>${porc?.medidas?`<dt>Medidas</dt><dd>${porc.medidas}</dd>`:""}${porc?`<dt>Estado</dt><dd>${porc.estado}</dd>`:""}</dl>
-    <p class="note">Pregúntame por la disponibilidad de este lote y por las casas que se están construyendo en el Polígono 7.</p>
+    <dl class="kv"><dt>Polígono</dt><dd>7 · franja frente al Bulevar Costa del Sol</dd><dt>Frente a</dt><dd>Calle Barcelona</dd><dt>Tamaño</dt><dd>${fmt2(area)} m² (${v2(area)} v²)</dd>${porc?.medidas?`<dt>Medidas</dt><dd>${porc.medidas}</dd>`:""}${estado?`<dt>Estado</dt><dd>${estado}</dd>`:""}</dl>
+    <p class="note">${aviso}</p>
     <a class="cta" href="${waLink(`Hola Walter, me interesa el ${titulo} del Polígono 7 en Golden Lake.`)}" target="_blank" rel="noopener">Preguntar por el ${titulo}</a>
     <div class="phone">${WA_TXT}</div>`;
 }
