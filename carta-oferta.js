@@ -513,10 +513,17 @@
     trimmed[maxLines - 1] = last + '...';
     return trimmed;
   }
+  // Escala global del cuerpo del documento. buildPdf la va bajando y vuelve a
+  // armar la carta hasta que entre en el máximo de páginas pedido, igual que
+  // uno ajustaría a mano los tamaños hasta que cierre. El encabezado y el
+  // bloque de firma quedan fuera: tienen que seguir legibles.
+  var ESCALA = 1;
+  function esc(n) { return n * ESCALA; }
+
   function fitText(pdf, text, width, opts) {
     opts = opts || {};
-    var fontSize = opts.fontSize || 11.4;
-    var minFontSize = opts.minFontSize || Math.max(9.2, fontSize - 2.2);
+    var fontSize = esc(opts.fontSize || 11.4);
+    var minFontSize = esc(opts.minFontSize || Math.max(9.2, (opts.fontSize || 11.4) - 2.2));
     var fontStyle = opts.fontStyle || 'normal';
     var maxLines = opts.maxLines || 0;
     var lines = [];
@@ -530,7 +537,7 @@
     pdf.setFont('helvetica', fontStyle);
     pdf.setFontSize(fontSize);
     if (maxLines && lines.length > maxLines) lines = clampText(pdf, text, width, maxLines);
-    return { lines: lines, fontSize: fontSize, lineHeight: opts.lineHeight || (fontSize * 1.42) };
+    return { lines: lines, fontSize: fontSize, lineHeight: opts.lineHeight ? esc(opts.lineHeight) : (fontSize * 1.42) };
   }
   function paragraph(pdf, text, x, y, width, opts) {
     var fit = fitText(pdf, text, width, opts || {});
@@ -550,10 +557,10 @@
   }
   function fieldRow(pdf, index, label, value, x, y, width, maxLines) {
     var fit = fitText(pdf, value || '—', width - 48, { fontSize: 11.4, minFontSize: 9.6, maxLines: maxLines || 2 });
-    var dynamicHeight = Math.max(38, 22 + fit.lines.length * (fit.lineHeight));
+    var dynamicHeight = Math.max(esc(38), esc(22) + fit.lines.length * (fit.lineHeight));
     pdf.setFillColor(250, 252, 255);
     pdf.setDrawColor(229, 235, 243);
-    pdf.roundedRect(x, y - 14, width, dynamicHeight, 9, 9, 'FD');
+    pdf.roundedRect(x, y - esc(14), width, dynamicHeight, 9, 9, 'FD');
     pdf.setTextColor(229, 57, 53);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(11.2);
@@ -563,8 +570,8 @@
     pdf.setTextColor(15, 23, 42);
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(fit.fontSize);
-    pdf.text(fit.lines, x + 34, y + 18);
-    return y + dynamicHeight + 7;
+    pdf.text(fit.lines, x + 34, y + esc(18));
+    return y + dynamicHeight + esc(7);
   }
   function amountBox(pdf, values, x, y, width, title, language) {
     var w = language === 'en' ? values.amountWordsEnglish : values.amountWords;
@@ -576,7 +583,7 @@
     var fit = fitText(pdf, text, width - 28, { fontSize: 11.7, minFontSize: 9.8, maxLines: values.offerType === 'VENTA' ? 5 : 4 });
     // 30 = título arriba + aire bajo la última línea (si no, con montos de
     // tres líneas el texto se sale por el borde de la caja).
-    var boxHeight = Math.max(64, 30 + fit.lines.length * fit.lineHeight);
+    var boxHeight = Math.max(esc(64), esc(30) + fit.lines.length * fit.lineHeight);
     pdf.setFillColor(248, 250, 252);
     pdf.setDrawColor(219, 228, 239);
     pdf.roundedRect(x, y, width, boxHeight, 14, 14, 'FD');
@@ -587,8 +594,8 @@
     pdf.setTextColor(15, 23, 42);
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(fit.fontSize);
-    pdf.text(fit.lines, x + 14, y + 38);
-    return y + boxHeight + 12;
+    pdf.text(fit.lines, x + 14, y + esc(38));
+    return y + boxHeight + esc(12);
   }
   function closingCostsBox(pdf, amount, x, y, width, language) {
     var isEnglish = language === 'en';
@@ -599,8 +606,8 @@
       [isEnglish ? 'Total closing costs' : 'Total gastos de cierre', c.total],
       [isEnglish ? 'Total to prepare (price + costs)' : 'Total a preparar (precio + gastos)', c.grandTotal],
     ];
-    var rowHeight = 18;
-    var boxHeight = 30 + rows.length * rowHeight;
+    var rowHeight = esc(18);
+    var boxHeight = esc(30) + rows.length * rowHeight;
     pdf.setFillColor(248, 250, 252);
     pdf.setDrawColor(219, 228, 239);
     pdf.roundedRect(x, y, width, boxHeight, 14, 14, 'FD');
@@ -608,7 +615,7 @@
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(10.6);
     pdf.text(isEnglish ? 'Estimated closing costs, payable by the buyer (not included in the price above)' : 'Gastos de cierre estimados, a cargo del comprador (no incluidos en el precio anterior)', x + 14, y + 18);
-    var rowY = y + 34;
+    var rowY = y + esc(34);
     rows.forEach(function (row, i) {
       var isTotal = i >= 2;
       pdf.setFont('helvetica', isTotal ? 'bold' : 'normal');
@@ -620,7 +627,7 @@
       rowY += rowHeight;
     });
     pdf.setTextColor(15, 23, 42);
-    return y + boxHeight + 12;
+    return y + boxHeight + esc(12);
   }
   function addHeader(pdf, documentTitle, subtitle) {
     var pageW = pdf.internal.pageSize.getWidth();
@@ -689,7 +696,7 @@
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(9.2);
       pdf.text(isEnglish ? 'ATTACHMENT: The complete Spanish version follows this page.' : 'ANEXO: La versión en inglés forma parte de este mismo PDF.', x, y - 4);
-      y += 8;
+      y += esc(8);
     }
 
     pdf.setTextColor(15, 23, 42);
@@ -698,7 +705,7 @@
       pdf.setFontSize(11.2);
       pdf.text((isEnglish ? 'Addressed to: ' : 'Dirigida a: ') + values.recipientName, x, y);
       pdf.setFont('helvetica', 'normal');
-      y += 16;
+      y += esc(16);
     }
 
     var docEnIngles = values.documentType === 'PASAPORTE' ? 'passport' : values.documentType;
@@ -718,13 +725,13 @@
         : 'Yo, ' + values.fullName + ', portador de mi ' + values.documentType + ' número ' + values.documentNumber + ', en mi calidad de ' + (isSale ? 'comprador' : 'cliente') + ', declaro que me encuentro interesado en ' + (isSale ? 'comprar' : 'alquilar') + ' el inmueble que cuenta con las siguientes características:';
     }
     y = paragraph(pdf, declaracion, x, y, width, { fontSize: 11.8, minFontSize: 10.2, lineHeight: 16.0, maxLines: 7 });
-    y += 10;
+    y += esc(10);
 
     y = fieldRow(pdf, 1, isEnglish ? 'Municipality' : 'Municipio', values.propertyMunicipality, x, y, width, 2);
     y = fieldRow(pdf, 2, isEnglish ? 'State or department' : 'Departamento', values.propertyDepartment, x, y, width, 2);
     y = fieldRow(pdf, 3, isEnglish ? 'Property address' : 'Dirección del inmueble', values.propertyAddress, x, y, width, 3);
 
-    y += 6;
+    y += esc(6);
     var amountLabel = deAsesor
       ? (isEnglish ? 'Reference price' : 'Precio de referencia')
       : deProp
@@ -746,7 +753,7 @@
             ? ' Precio promocional vigente: US$ ' + formatMoney(values.amountNumber) + '.'
             : '');
       y = paragraph(pdf, textoLista, x, y, width, { fontSize: 10.8, minFontSize: 9.6, lineHeight: 14.6, maxLines: 3 });
-      y += 10;
+      y += esc(10);
     } else if (!deAsesor && values.listPrice > 0) {
       var diff = values.listPrice - values.amountNumber;
       var listText;
@@ -774,7 +781,7 @@
               : 'Esta oferta corresponde al precio de lista.');
       }
       y = paragraph(pdf, listText, x, y, width, { fontSize: 10.8, minFontSize: 9.6, lineHeight: 14.6, maxLines: 3 });
-      y += 10;
+      y += esc(10);
     }
 
     if (values.firmPrice) {
@@ -783,7 +790,7 @@
         isEnglish ? 'This price is firm and final between the parties; no additional costs will be added to the agreed amount.' : 'Este precio es cerrado y definitivo entre las partes; no se agregarán costos adicionales al monto pactado.',
         x, y, width, { fontSize: 10.8, minFontSize: 9.6, fontStyle: 'bold', lineHeight: 14.6, maxLines: 2 });
       pdf.setTextColor(15, 23, 42);
-      y += 10;
+      y += esc(10);
     }
 
     // La caja de gastos de cierre mide ~150pt y no se puede medir con
@@ -795,9 +802,9 @@
 
     if (!isSale) {
       y = paragraphFit(pdf, (isEnglish ? 'Offered rental term: ' : 'Plazo de alquiler ofrecido: ') + values.rentalTerm + '.', x, y, width, { fontSize: 11.2, minFontSize: 10, lineHeight: 15.2, maxLines: 3 });
-      y += 8;
+      y += esc(8);
       y = paragraphFit(pdf, (isEnglish ? 'Conditions or requests to the property owner: ' : 'Condiciones o solicitudes al propietario: ') + values.ownerConditions, x, y, width, { fontSize: 10.8, minFontSize: 9.4, lineHeight: 14.8, maxLines: 4 });
-      y += 14;
+      y += esc(14);
     }
     if (isSale && values.paymentMethod) {
       var paymentText = deAsesor
@@ -817,7 +824,7 @@
         ? (isEnglish ? 'The payment shall be made as follows: ' : 'El pago deberá realizarse de la siguiente manera: ')
         : (isEnglish ? 'The funds will be delivered as follows: ' : 'Los fondos serán entregados de la siguiente manera: ');
       y = paragraphFit(pdf, paymentLead + paymentText, x, y, width, { fontSize: 11.2, minFontSize: 9.6, lineHeight: 15.2, maxLines: 7 });
-      y += 10;
+      y += esc(10);
     }
 
     if (values.includedItems && values.includedItems.length) {
@@ -829,18 +836,18 @@
             ? (isEnglish ? 'The owner includes the following items together with the property:' : 'El propietario incluye los siguientes bienes junto con el inmueble:')
             : (isEnglish ? 'This offer includes the following items together with the property:' : 'Esta oferta incluye los siguientes bienes junto con el inmueble:'));
       y = paragraphFit(pdf, encabezadoItems, x, y, width, { fontSize: 11, minFontSize: 9.8, lineHeight: 15, maxLines: 2 });
-      y += 4;
+      y += esc(4);
       values.includedItems.forEach(function (it) {
         y = paragraphFit(pdf, '• ' + it, x + 10, y, width - 10, { fontSize: 10.4, minFontSize: 9.2, lineHeight: 13.2, maxLines: 2 });
       });
-      y += 10;
+      y += esc(10);
     }
 
     if (values.additionalNotes) {
       y = paragraphFit(pdf,
         (isEnglish ? 'Additional notes: ' : 'Notas adicionales: ') + values.additionalNotes,
         x, y, width, { fontSize: 10.8, minFontSize: 9.4, lineHeight: 14.4, maxLines: 5 });
-      y += 10;
+      y += esc(10);
     }
 
     // Condiciones propias de la oferta del propietario: hasta cuándo sostiene
@@ -857,7 +864,7 @@
               : 'Esta oferta es válida hasta el ' + values.validityLong.es + ', fecha después de la cual queda sin efecto sin necesidad de trámite alguno.'),
         x, y, width, { fontSize: 10.8, minFontSize: 9.6, fontStyle: 'bold', lineHeight: 14.6, maxLines: 3 });
       pdf.setTextColor(15, 23, 42);
-      y += 10;
+      y += esc(10);
     }
     // La carta de presentación no es una oferta: hay que decirlo en el texto.
     if (deAsesor) {
@@ -866,7 +873,7 @@
           ? 'This letter is informational and does not constitute a binding offer or a commitment to sell. Prices, availability and conditions of the development may change without prior notice, and any transaction remains subject to the corresponding contractual documents.'
           : 'La presente carta tiene carácter informativo y no constituye una oferta vinculante ni un compromiso de venta. Los precios, la disponibilidad y las condiciones del desarrollo pueden variar sin previo aviso, y toda operación queda sujeta a los documentos contractuales correspondientes.',
         x, y, width, { fontSize: 10.8, minFontSize: 9.4, lineHeight: 14.6, maxLines: 6 });
-      y += 12;
+      y += esc(12);
     }
     if (deProp && values.subjectPriorSale) {
       y = paragraphFit(pdf,
@@ -874,7 +881,7 @@
           ? 'This offer is subject to prior sale. Acceptance of an offer does not suspend the advertising or marketing of the property, which will continue until an effective reservation deposit has been made in favor of the owner. Until that deposit exists, the owner may receive and accept other offers.'
           : 'Esta oferta queda sujeta a venta previa. La aceptación de una oferta no implica la suspensión de la publicidad ni de la promoción del inmueble, las cuales continuarán hasta que exista una reserva efectiva depositada a favor del propietario. Mientras no exista dicho depósito, el propietario podrá recibir y aceptar otras ofertas.',
         x, y, width, { fontSize: 10.8, minFontSize: 9.4, lineHeight: 14.6, maxLines: 6 });
-      y += 12;
+      y += esc(12);
     }
 
     y = paragraphFit(pdf,
@@ -890,7 +897,7 @@
             ? 'I also expressly authorize GUERRERO PROPERTIES to notify the owner of the property of this offer in order to receive a response accepting or rejecting it.'
             : 'Así mismo, autorizo expresamente a GUERRERO PROPERTIES para que notifique al propietario de dicho inmueble la presente oferta, a efectos de recibir respuesta de aceptación o rechazo.'),
       x, y, width, { fontSize: 11.2, minFontSize: 10, lineHeight: 15.0, maxLines: 6 });
-    y += 16;
+    y += esc(16);
 
     // El bloque de fecha + firma mide ~170pt. Si no entra completo en lo que
     // queda de página, se pasa entero a la siguiente. Antes la firma estaba
@@ -965,7 +972,7 @@
       pageW / 2, pageH - 16, { align: 'center' });
   }
 
-  function buildPdf(values) {
+  function armarPdf(values) {
     var jsPDF = window.jspdf.jsPDF;
     var pdf = new jsPDF({ unit: 'pt', format: 'a4', compress: true });
     if (values.documentLanguage === 'en') {
@@ -975,6 +982,25 @@
     } else {
       renderOfferPage(pdf, values, 'es');
     }
+    return pdf;
+  }
+
+  // La carta tiene que caber en dos páginas por idioma (el PDF bilingüe lleva
+  // el documento completo dos veces, así que son cuatro). Se arma, se cuenta,
+  // y si se pasó se vuelve a armar un poco más compacto. Si ni al mínimo
+  // entra, se devuelve el último intento en vez de fallar: mejor una carta
+  // larga que ninguna.
+  var PAGINAS_POR_IDIOMA = 2;
+  var ESCALAS = [1, 0.97, 0.94, 0.91, 0.88, 0.85, 0.82];
+  function buildPdf(values) {
+    var tope = PAGINAS_POR_IDIOMA * (values.documentLanguage === 'en' ? 2 : 1);
+    var pdf = null;
+    for (var i = 0; i < ESCALAS.length; i++) {
+      ESCALA = ESCALAS[i];
+      pdf = armarPdf(values);
+      if (pdf.internal.getNumberOfPages() <= tope) break;
+    }
+    ESCALA = 1;
     return pdf;
   }
 
