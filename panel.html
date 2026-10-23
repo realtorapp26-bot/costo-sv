@@ -56,8 +56,16 @@
         }
         .modal-overlay.show { display: flex; }
         .modal-box { background: white; border-radius: var(--radius-md); width: 100%; padding: 28px; box-shadow: var(--shadow-md); }
-        .modal-box-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .modal-box-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 16px; }
         .modal-box-head h3 { font-family: 'Playfair Display', serif; color: var(--primary); margin: 0; }
+        /* Botón "Atrás": lo agrega agregarBotonesAtras() a cada ventana, para
+           no tener que repetirlo en los diez modales del panel. */
+        .modal-box-atras {
+            background: var(--bg-main); border: 1px solid var(--border); border-radius: 999px;
+            padding: 7px 14px; font: inherit; font-size: 0.82rem; font-weight: 600; color: var(--text-main);
+            cursor: pointer; flex-shrink: 0; display: inline-flex; align-items: center; gap: 7px;
+        }
+        .modal-box-atras:hover { border-color: var(--primary); color: var(--primary); }
         .modal-box-cerrar {
             background: var(--bg-main); border: 1px solid var(--border); border-radius: 50%; width: 34px; height: 34px;
             font-size: 0.9rem; color: var(--text-main); cursor: pointer; flex-shrink: 0;
@@ -3453,7 +3461,34 @@
             }
         }
 
+        // ---------- Botón "Atrás" en todas las ventanas ----------
+        // Cada modal ya tiene su ✕ con su propia función de cierre; en vez de
+        // repetir un botón en los diez, se le agrega uno a cada encabezado que
+        // dispara ese mismo ✕. Tecla Escape, lo mismo.
+        function agregarBotonesAtras() {
+            document.querySelectorAll('.modal-box-head').forEach(head => {
+                if (head.querySelector('.modal-box-atras')) return;
+                const cerrar = head.querySelector('.modal-box-cerrar');
+                if (!cerrar) return;
+                const atras = document.createElement('button');
+                atras.type = 'button';
+                atras.className = 'modal-box-atras';
+                atras.innerHTML = '<i class="fas fa-arrow-left"></i> Atrás';
+                atras.onclick = () => cerrar.click();
+                head.insertBefore(atras, head.firstChild);
+            });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            const abierto = document.querySelector('.modal-overlay.show');
+            if (!abierto) return;
+            const cerrar = abierto.querySelector('.modal-box-cerrar');
+            if (cerrar) cerrar.click();
+        });
+
         CostoSVAuth.requireLogin(() => {
+            agregarBotonesAtras();
             cargarPropiedades();
             cargarFranquicias();
             cargarLeads();

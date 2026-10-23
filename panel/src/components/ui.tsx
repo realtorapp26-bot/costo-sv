@@ -130,15 +130,16 @@ export function Modal({
           MODAL_ANCHO[size],
         )}
       >
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h3 className="font-semibold text-slate-900">{title}</h3>
+        {/* El "Atrás" se ve en cualquier tamaño: antes en escritorio solo se
+            podía cerrar haciendo clic afuera o con Escape. */}
+        <div className="mb-4 flex items-center gap-3">
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 sm:hidden"
-            aria-label="Cerrar"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-navy"
           >
-            <i className="fas fa-xmark" />
+            <i className="fas fa-arrow-left" /> Atrás
           </button>
+          <h3 className="min-w-0 flex-1 font-semibold text-slate-900">{title}</h3>
         </div>
         {children}
       </div>

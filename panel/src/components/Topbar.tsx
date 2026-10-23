@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { nombreDe } from '../lib/usuarios';
 import { Button } from './ui';
@@ -6,6 +7,21 @@ import { Button } from './ui';
 export function Topbar({ onMenu }: { onMenu: () => void }) {
   const { email, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  // Cuántas veces se navegó dentro del panel en esta visita. Si es cero, la
+  // persona entró directo a esta pantalla (link, favorito) y "atrás" la
+  // sacaría del panel: en ese caso se la lleva al inicio.
+  const saltos = useRef(0);
+  useEffect(() => {
+    saltos.current += 1;
+  }, [pathname]);
+
+  function atras() {
+    if (saltos.current > 1) navigate(-1);
+    else navigate('/');
+  }
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4">
@@ -16,6 +32,16 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
       >
         <i className="fas fa-bars" />
       </button>
+
+      {pathname !== '/' && (
+        <button
+          onClick={atras}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-navy"
+        >
+          <i className="fas fa-arrow-left" />
+          <span className="hidden sm:inline">Atrás</span>
+        </button>
+      )}
 
       <div className="relative hidden max-w-sm flex-1 sm:block">
         <i className="fas fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400" />
