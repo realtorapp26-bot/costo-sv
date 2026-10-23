@@ -319,7 +319,9 @@
                     <div class="herr-tool">
                         <span class="herr-tool-name">📄 Carta de Oferta</span>
                         <div class="herr-tool-actions">
-                            <a class="herr-mini" href="carta-oferta.html" target="_blank" rel="noopener">Abrir</a>
+                            <!-- Siempre con agente=1: así ves el selector de borrador y los
+                                 botones de link. El link sin agente=1 es el que se le manda al cliente. -->
+                            <a class="herr-mini" href="carta-oferta.html?agente=1" target="_blank" rel="noopener" title="El comprador le ofrece al propietario">Oferta de compra</a>
                             <a class="herr-mini" href="carta-oferta.html?agente=1&amp;emisor=PROPIETARIO" target="_blank" rel="noopener" title="El propietario le ofrece al comprador y firma él">Oferta de venta</a>
                             <button class="herr-mini" type="button" onclick="copiarLinkHerramienta('carta-oferta.html', 'la carta de oferta', 'el cliente')">Copiar link</button>
                             <button class="herr-mini" type="button" onclick="abrirModalBorradoresOferta()">Borradores</button>

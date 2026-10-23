@@ -34,7 +34,9 @@ const GROUPS: Group[] = [
   {
     title: 'Herramientas',
     items: [
-      { label: 'Carta de oferta', icon: 'fas fa-file-signature', href: `${SITE}/carta-oferta.html` },
+      // Siempre en modo agente: con agente=1 aparece el selector de borrador y
+      // los botones que arman el link del cliente.
+      { label: 'Carta de oferta', icon: 'fas fa-file-signature', href: `${SITE}/carta-oferta.html?agente=1` },
       {
         label: 'Oferta de venta',
         icon: 'fas fa-file-export',

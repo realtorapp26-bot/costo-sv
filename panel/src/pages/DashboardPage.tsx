@@ -38,7 +38,7 @@ export function DashboardPage() {
         >
           <i className="fas fa-plus" /> Nuevo lead
         </Link>
-        <a href={`${SITE}/carta-oferta.html`} target="_blank" rel="noopener">
+        <a href={`${SITE}/carta-oferta.html?agente=1`} target="_blank" rel="noopener">
           <Button variant="outline">
             <i className="fas fa-file-signature" /> Carta de oferta
           </Button>
