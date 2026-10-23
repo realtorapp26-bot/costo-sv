@@ -550,10 +550,10 @@
   }
   function fieldRow(pdf, index, label, value, x, y, width, maxLines) {
     var fit = fitText(pdf, value || '—', width - 48, { fontSize: 11.4, minFontSize: 9.6, maxLines: maxLines || 2 });
-    var dynamicHeight = Math.max(46, 26 + fit.lines.length * (fit.lineHeight));
+    var dynamicHeight = Math.max(38, 22 + fit.lines.length * (fit.lineHeight));
     pdf.setFillColor(250, 252, 255);
     pdf.setDrawColor(229, 235, 243);
-    pdf.roundedRect(x, y - 16, width, dynamicHeight, 10, 10, 'FD');
+    pdf.roundedRect(x, y - 14, width, dynamicHeight, 9, 9, 'FD');
     pdf.setTextColor(229, 57, 53);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(11.2);
@@ -563,8 +563,8 @@
     pdf.setTextColor(15, 23, 42);
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(fit.fontSize);
-    pdf.text(fit.lines, x + 34, y + 20);
-    return y + dynamicHeight + 12;
+    pdf.text(fit.lines, x + 34, y + 18);
+    return y + dynamicHeight + 7;
   }
   function amountBox(pdf, values, x, y, width, title, language) {
     var w = language === 'en' ? values.amountWordsEnglish : values.amountWords;
@@ -574,7 +574,9 @@
       : (language === 'en' ? 'Offered amount: (IN WORDS) ' : 'Monto ofrecido: (LETRAS) ');
     var text = etiqueta + w + ' (US$ ' + formatMoney(values.amountNumber) + ')';
     var fit = fitText(pdf, text, width - 28, { fontSize: 11.7, minFontSize: 9.8, maxLines: values.offerType === 'VENTA' ? 5 : 4 });
-    var boxHeight = Math.max(74, 26 + fit.lines.length * fit.lineHeight);
+    // 30 = título arriba + aire bajo la última línea (si no, con montos de
+    // tres líneas el texto se sale por el borde de la caja).
+    var boxHeight = Math.max(64, 30 + fit.lines.length * fit.lineHeight);
     pdf.setFillColor(248, 250, 252);
     pdf.setDrawColor(219, 228, 239);
     pdf.roundedRect(x, y, width, boxHeight, 14, 14, 'FD');
@@ -585,8 +587,8 @@
     pdf.setTextColor(15, 23, 42);
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(fit.fontSize);
-    pdf.text(fit.lines, x + 14, y + 40);
-    return y + boxHeight + 16;
+    pdf.text(fit.lines, x + 14, y + 38);
+    return y + boxHeight + 12;
   }
   function closingCostsBox(pdf, amount, x, y, width, language) {
     var isEnglish = language === 'en';
@@ -597,8 +599,8 @@
       [isEnglish ? 'Total closing costs' : 'Total gastos de cierre', c.total],
       [isEnglish ? 'Total to prepare (price + costs)' : 'Total a preparar (precio + gastos)', c.grandTotal],
     ];
-    var rowHeight = 20;
-    var boxHeight = 34 + rows.length * rowHeight;
+    var rowHeight = 18;
+    var boxHeight = 30 + rows.length * rowHeight;
     pdf.setFillColor(248, 250, 252);
     pdf.setDrawColor(219, 228, 239);
     pdf.roundedRect(x, y, width, boxHeight, 14, 14, 'FD');
@@ -606,7 +608,7 @@
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(10.6);
     pdf.text(isEnglish ? 'Estimated closing costs, payable by the buyer (not included in the price above)' : 'Gastos de cierre estimados, a cargo del comprador (no incluidos en el precio anterior)', x + 14, y + 18);
-    var rowY = y + 38;
+    var rowY = y + 34;
     rows.forEach(function (row, i) {
       var isTotal = i >= 2;
       pdf.setFont('helvetica', isTotal ? 'bold' : 'normal');
@@ -618,7 +620,7 @@
       rowY += rowHeight;
     });
     pdf.setTextColor(15, 23, 42);
-    return y + boxHeight + 16;
+    return y + boxHeight + 12;
   }
   function addHeader(pdf, documentTitle, subtitle) {
     var pageW = pdf.internal.pageSize.getWidth();
@@ -627,25 +629,25 @@
     pdf.setFillColor(11, 45, 92);
     pdf.rect(pageW * 0.34, 0, pageW * 0.66, 14, 'F');
     pdf.setFillColor(255, 255, 255);
-    pdf.roundedRect(30, 24, pageW - 60, 106, 22, 22, 'F');
+    pdf.roundedRect(30, 22, pageW - 60, 92, 20, 20, 'F');
     pdf.setDrawColor(225, 232, 240);
-    pdf.roundedRect(30, 24, pageW - 60, 106, 22, 22, 'S');
+    pdf.roundedRect(30, 22, pageW - 60, 92, 20, 20, 'S');
     pdf.setTextColor(229, 57, 53);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(12);
-    pdf.text('Guerrero Properties', 50, 54);
+    pdf.text('Guerrero Properties', 50, 48);
     pdf.setTextColor(11, 45, 92);
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(24);
-    pdf.text(documentTitle, 50, 80);
+    pdf.text(documentTitle, 50, 74);
     pdf.setTextColor(71, 85, 105);
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(12.8);
-    pdf.text(subtitle, 50, 102);
+    pdf.text(subtitle, 50, 95);
     pdf.setDrawColor(229, 57, 53);
     pdf.setLineWidth(1.2);
-    pdf.line(50, 114, 188, 114);
-    return 152;
+    pdf.line(50, 104, 188, 104);
+    return 136;
   }
   function translatedPaymentMethod(v) {
     return ({ 'Contado': 'Cash', 'Crédito': 'Financing', 'Mixto': 'Mixed' })[v] || v;
@@ -696,7 +698,7 @@
       pdf.setFontSize(11.2);
       pdf.text((isEnglish ? 'Addressed to: ' : 'Dirigida a: ') + values.recipientName, x, y);
       pdf.setFont('helvetica', 'normal');
-      y += 20;
+      y += 16;
     }
 
     var docEnIngles = values.documentType === 'PASAPORTE' ? 'passport' : values.documentType;
@@ -715,8 +717,8 @@
         ? 'I, ' + values.fullName + ', holder of my ' + docEnIngles + ' number ' + values.documentNumber + ', acting as the ' + (isSale ? 'buyer' : 'prospective tenant') + ', declare that I am interested in ' + (isSale ? 'purchasing' : 'renting') + ' the property with the following characteristics:'
         : 'Yo, ' + values.fullName + ', portador de mi ' + values.documentType + ' número ' + values.documentNumber + ', en mi calidad de ' + (isSale ? 'comprador' : 'cliente') + ', declaro que me encuentro interesado en ' + (isSale ? 'comprar' : 'alquilar') + ' el inmueble que cuenta con las siguientes características:';
     }
-    y = paragraph(pdf, declaracion, x, y, width, { fontSize: 11.8, minFontSize: 10.2, lineHeight: 16.8, maxLines: 7 });
-    y += 12;
+    y = paragraph(pdf, declaracion, x, y, width, { fontSize: 11.8, minFontSize: 10.2, lineHeight: 16.0, maxLines: 7 });
+    y += 10;
 
     y = fieldRow(pdf, 1, isEnglish ? 'Municipality' : 'Municipio', values.propertyMunicipality, x, y, width, 2);
     y = fieldRow(pdf, 2, isEnglish ? 'State or department' : 'Departamento', values.propertyDepartment, x, y, width, 2);
@@ -814,8 +816,8 @@
         : deProp
         ? (isEnglish ? 'The payment shall be made as follows: ' : 'El pago deberá realizarse de la siguiente manera: ')
         : (isEnglish ? 'The funds will be delivered as follows: ' : 'Los fondos serán entregados de la siguiente manera: ');
-      y = paragraphFit(pdf, paymentLead + paymentText, x, y, width, { fontSize: 11.2, minFontSize: 9.6, lineHeight: 15.6, maxLines: 7 });
-      y += 14;
+      y = paragraphFit(pdf, paymentLead + paymentText, x, y, width, { fontSize: 11.2, minFontSize: 9.6, lineHeight: 15.2, maxLines: 7 });
+      y += 10;
     }
 
     if (values.includedItems && values.includedItems.length) {
@@ -829,7 +831,7 @@
       y = paragraphFit(pdf, encabezadoItems, x, y, width, { fontSize: 11, minFontSize: 9.8, lineHeight: 15, maxLines: 2 });
       y += 4;
       values.includedItems.forEach(function (it) {
-        y = paragraphFit(pdf, '• ' + it, x + 10, y, width - 10, { fontSize: 10.4, minFontSize: 9.2, lineHeight: 13.8, maxLines: 2 });
+        y = paragraphFit(pdf, '• ' + it, x + 10, y, width - 10, { fontSize: 10.4, minFontSize: 9.2, lineHeight: 13.2, maxLines: 2 });
       });
       y += 10;
     }
@@ -837,8 +839,8 @@
     if (values.additionalNotes) {
       y = paragraphFit(pdf,
         (isEnglish ? 'Additional notes: ' : 'Notas adicionales: ') + values.additionalNotes,
-        x, y, width, { fontSize: 10.8, minFontSize: 9.4, lineHeight: 14.8, maxLines: 5 });
-      y += 14;
+        x, y, width, { fontSize: 10.8, minFontSize: 9.4, lineHeight: 14.4, maxLines: 5 });
+      y += 10;
     }
 
     // Condiciones propias de la oferta del propietario: hasta cuándo sostiene
@@ -887,8 +889,8 @@
         : (isEnglish
             ? 'I also expressly authorize GUERRERO PROPERTIES to notify the owner of the property of this offer in order to receive a response accepting or rejecting it.'
             : 'Así mismo, autorizo expresamente a GUERRERO PROPERTIES para que notifique al propietario de dicho inmueble la presente oferta, a efectos de recibir respuesta de aceptación o rechazo.'),
-      x, y, width, { fontSize: 11.2, minFontSize: 10, lineHeight: 15.4, maxLines: 6 });
-    y += 20;
+      x, y, width, { fontSize: 11.2, minFontSize: 10, lineHeight: 15.0, maxLines: 6 });
+    y += 16;
 
     // El bloque de fecha + firma mide ~170pt. Si no entra completo en lo que
     // queda de página, se pasa entero a la siguiente. Antes la firma estaba
