@@ -576,10 +576,9 @@
   function amountBox(pdf, values, x, y, width, title, language) {
     var w = language === 'en' ? values.amountWordsEnglish : values.amountWords;
     // En la carta de presentación no hay oferta: el monto es de referencia.
-    var etiqueta = values.issuer === 'ASESOR'
-      ? (language === 'en' ? 'Amount: (IN WORDS) ' : 'Monto: (LETRAS) ')
-      : (language === 'en' ? 'Offered amount: (IN WORDS) ' : 'Monto ofrecido: (LETRAS) ');
-    var text = etiqueta + w + ' (US$ ' + formatMoney(values.amountNumber) + ')';
+    // El título de la caja ya dice de qué precio se trata, así que adentro
+    // va la cantidad y nada más: en letras y, entre paréntesis, en cifras.
+    var text = w + ' (US$ ' + formatMoney(values.amountNumber) + ')';
     var fit = fitText(pdf, text, width - 28, { fontSize: 11.7, minFontSize: 9.8, maxLines: values.offerType === 'VENTA' ? 5 : 4 });
     // 30 = título arriba + aire bajo la última línea (si no, con montos de
     // tres líneas el texto se sale por el borde de la caja).
@@ -604,7 +603,7 @@
       [isEnglish ? 'Property transfer tax (alcabala)' : 'Impuesto de transferencia (alcabala)', c.transferTax],
       [isEnglish ? 'CNR registration fee' : 'Derechos de registro CNR', c.cnrFee],
       [isEnglish ? 'Total closing costs' : 'Total gastos de cierre', c.total],
-      [isEnglish ? 'Total to prepare (price + costs)' : 'Total a preparar (precio + gastos)', c.grandTotal],
+      [isEnglish ? 'Estimated total to prepare (price + costs)' : 'Total estimado a preparar (precio + gastos)', c.grandTotal],
     ];
     var rowHeight = esc(18);
     var boxHeight = esc(30) + rows.length * rowHeight;
@@ -656,6 +655,10 @@
     pdf.line(50, 104, 188, 104);
     return 136;
   }
+  var CARGOS_EN = {
+    'Asesor inmobiliario de RE/MAX Elite': 'real estate advisor with RE/MAX Elite',
+    'Asesor inmobiliario': 'real estate advisor',
+  };
   function translatedPaymentMethod(v) {
     return ({ 'Contado': 'Cash', 'Crédito': 'Financing', 'Mixto': 'Mixed' })[v] || v;
   }
@@ -700,7 +703,10 @@
     }
 
     pdf.setTextColor(15, 23, 42);
-    if ((deProp || deAsesor) && values.recipientName) {
+    // En la carta de presentación, si va dirigida "a quien interese" el
+    // encabezado ya lo dice: repetirlo abajo sobra.
+    var destinatarioGenerico = /^a quien interese$/i.test((values.recipientName || '').trim());
+    if ((deProp || deAsesor) && values.recipientName && !(deAsesor && destinatarioGenerico)) {
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(11.2);
       pdf.text((isEnglish ? 'Addressed to: ' : 'Dirigida a: ') + values.recipientName, x, y);
@@ -711,10 +717,14 @@
     var docEnIngles = values.documentType === 'PASAPORTE' ? 'passport' : values.documentType;
     var declaracion;
     if (deAsesor) {
-      var cargo = values.issuerRole || (isEnglish ? 'real estate agent' : 'asesor inmobiliario');
+      // El cargo lo escribe el agente en español. En la página en inglés se
+      // traduce el que viene por defecto; si puso uno propio, se respeta tal
+      // cual (no se adivina la traducción de algo que escribió él).
+      var cargo = values.issuerRole || (isEnglish ? 'real estate advisor' : 'asesor inmobiliario');
+      if (isEnglish) cargo = CARGOS_EN[cargo] || cargo;
       declaracion = isEnglish
-        ? 'I, ' + values.fullName + ', holder of my ' + docEnIngles + ' number ' + values.documentNumber + ', acting as ' + cargo + ', hereby state that the property and the development described below offer the conditions set out in this letter.'
-        : 'Yo, ' + values.fullName + ', portador de mi ' + values.documentType + ' número ' + values.documentNumber + ', en mi calidad de ' + cargo + ', hago constar que el inmueble y el desarrollo que se describen a continuación ofrecen las condiciones detalladas en la presente carta.';
+        ? 'I, ' + values.fullName + ', holder of my ' + docEnIngles + ' number ' + values.documentNumber + ', acting as ' + cargo + ', hereby certify, at the request of the interested party, the characteristics and conditions of the property and the development described below.'
+        : 'Yo, ' + values.fullName + ', portador de mi ' + values.documentType + ' número ' + values.documentNumber + ', en mi calidad de ' + cargo + ', hago constar, a solicitud de la parte interesada, las características y condiciones del inmueble y del desarrollo que se describen a continuación.';
     } else if (deProp) {
       declaracion = isEnglish
         ? 'I, ' + values.fullName + ', holder of my ' + docEnIngles + ' number ' + values.documentNumber + ', acting as the owner of the property described below, hereby offer to ' + (isSale ? 'sell' : 'lease') + ' it to ' + (values.recipientName || 'the interested party') + '. The property has the following characteristics:'
@@ -722,7 +732,7 @@
     } else {
       declaracion = isEnglish
         ? 'I, ' + values.fullName + ', holder of my ' + docEnIngles + ' number ' + values.documentNumber + ', acting as the ' + (isSale ? 'buyer' : 'prospective tenant') + ', declare that I am interested in ' + (isSale ? 'purchasing' : 'renting') + ' the property with the following characteristics:'
-        : 'Yo, ' + values.fullName + ', portador de mi ' + values.documentType + ' número ' + values.documentNumber + ', en mi calidad de ' + (isSale ? 'comprador' : 'cliente') + ', declaro que me encuentro interesado en ' + (isSale ? 'comprar' : 'alquilar') + ' el inmueble que cuenta con las siguientes características:';
+        : 'Yo, ' + values.fullName + ', portador de mi ' + values.documentType + ' número ' + values.documentNumber + ', en mi calidad de ' + (isSale ? 'comprador' : 'cliente') + ', declaro que me encuentro interesado en ' + (isSale ? 'comprar' : 'alquilar') + ' el inmueble que se describe a continuación:';
     }
     y = paragraph(pdf, declaracion, x, y, width, { fontSize: 11.8, minFontSize: 10.2, lineHeight: 16.0, maxLines: 7 });
     y += esc(10);
@@ -894,7 +904,7 @@
       deAsesor
         ? (isEnglish
             ? 'This letter is issued at the request of the interested party, for whatever purposes they deem appropriate. I remain available to expand on any of the information stated above.'
-            : 'Se extiende la presente carta a solicitud de la parte interesada, para los fines que estime convenientes. Quedo a disposición para ampliar cualquiera de los puntos aquí detallados.')
+            : 'Se extiende la presente carta a solicitud de la parte interesada, para los fines que estime convenientes. Quedo a sus órdenes para ampliar cualquiera de los puntos aquí detallados.')
         : deProp
         ? (isEnglish
             ? 'I also expressly authorize GUERRERO PROPERTIES to deliver this offer to the party named above in order to receive a response accepting or rejecting it. GUERRERO PROPERTIES acts solely as an intermediary and is not empowered to accept offers, modify their conditions, or sign contracts on my behalf.'
@@ -965,7 +975,7 @@
       pdf.text(isEnglish ? 'ROLE:' : 'CARGO:', x, signatureTop + 86);
       pdf.setTextColor(15, 23, 42);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(values.issuerRole, x + 86, signatureTop + 86);
+      pdf.text(isEnglish ? (CARGOS_EN[values.issuerRole] || values.issuerRole) : values.issuerRole, x + 86, signatureTop + 86);
     }
     pdf.text(values.signDate, rightX + 56, signatureTop + 20);
     pdf.text(values.signTime, rightX + 56, signatureTop + 42);
@@ -974,7 +984,7 @@
     pdf.setFont('helvetica', 'italic');
     pdf.setFontSize(8.5);
     pdf.text(
-      isEnglish ? 'English offer - The attached Spanish version follows.' : (values.documentLanguage === 'en' ? 'Versión en español - Se anexa la versión en inglés en este mismo PDF.' : 'Versión en español.'),
+      isEnglish ? 'English version - The Spanish version is attached in this same PDF.' : (values.documentLanguage === 'en' ? 'Versión en español - Se anexa la versión en inglés en este mismo PDF.' : 'Versión en español.'),
       pageW / 2, pageH - 16, { align: 'center' });
   }
 
