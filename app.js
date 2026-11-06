@@ -314,37 +314,44 @@ window.imgOpt = function (url, w, q) {
       const payload = buildPayload(form, path);   // en memoria; no se persiste
       const wa = waLink(resumenLead(payload));
 
-      // El Pixel marca el Lead solo si el lead realmente quedó guardado: así
-      // el número de Ads Manager coincide con los leads que Walter ve.
-      guardarLeadEnCRM(payload, path)
-        .then((ok) => { if (ok) marcarLeadPixel(payload.servicio || payload.tipo_propiedad || null); })
-        .catch((err) => console.error('No se pudo guardar el lead en el CRM:', err));
-
+      // La confirmación depende del guardado REAL (Supabase + aviso por
+      // Telegram a Walter), no del webhook de n8n, que es opcional y hoy está
+      // vacío en config.js. Antes se tomaba el webhook como única prueba de
+      // éxito: sin webhook, a TODO el que llenaba el formulario se le decía
+      // que el envío "aún no está activo", no se le limpiaba el formulario y
+      // se lo empujaba a WhatsApp — aunque su lead sí había quedado guardado
+      // y Walter ya tenía el aviso en el teléfono. Para el visitante se leía
+      // como que algo falló, y además nunca se registraba el lead_submit, así
+      // que en las métricas el formulario figuraba siempre en cero.
+      let guardado = false;
       try {
-        if (!WEBHOOK_ENABLED) {
-          // Sin webhook real: NO simular éxito, NO decir que guardamos, NO limpiar el form.
-          // Se abre WhatsApp con el mensaje ya preparado. Los campos quedan llenos para reintentar.
-          if (esMobile) abrirWhatsAppMobil(resumenLead(payload));
-          else window.open(wa, '_blank', 'noopener');
-          show(`El envío automático aún no está activo. Enviaremos tu información mediante WhatsApp. Si no se abrió, <a href="${wa}" target="_blank" rel="noopener" style="font-weight:700;text-decoration:underline;">tocá aquí para abrir WhatsApp</a>.`, false);
-          return;
-        }
-        const res = await fetch(WEBHOOK_URL, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-        });
-        if (res.ok) {                              // ÚNICA confirmación real
-          if (window.CostoSVMetricas) window.CostoSVMetricas.registrarEvento('lead_submit');
-          show('¡Información enviada con éxito! Walter se pondrá en contacto pronto.', true);
-          form.reset();                            // limpiar SOLO con confirmación del webhook
-        } else {
-          show(`No pudimos enviar el formulario (código ${res.status}). <a href="${wa}" target="_blank" rel="noopener" style="font-weight:700;text-decoration:underline;">Escribinos por WhatsApp</a> y no perdés tu consulta.`, false);
-        }
+        guardado = await guardarLeadEnCRM(payload, path);
       } catch (err) {
-        console.error('Error enviando el lead:', err);
-        show(`Hubo un problema de conexión. <a href="${wa}" target="_blank" rel="noopener" style="font-weight:700;text-decoration:underline;">Enviá tu información por WhatsApp</a>.`, false);
-      } finally {
-        if (btn) { btn.innerHTML = btnText; btn.disabled = false; }
+        console.error('No se pudo guardar el lead en el CRM:', err);
       }
+
+      // Integración externa, cuando exista: no decide lo que ve el visitante.
+      if (WEBHOOK_ENABLED) {
+        fetch(WEBHOOK_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+        }).catch((err) => console.error('Webhook de leads:', err));
+      }
+
+      if (btn) { btn.innerHTML = btnText; btn.disabled = false; }
+
+      if (guardado) {
+        marcarLeadPixel(payload.servicio || payload.tipo_propiedad || null);
+        if (window.CostoSVMetricas) window.CostoSVMetricas.registrarEvento('lead_submit');
+        // Ya no se abre WhatsApp a la fuerza: eso era el parche por el
+        // formulario que "no estaba activo". Queda como opción para quien
+        // quiera hablar en el momento.
+        show(`¡Listo! Recibimos tus datos y Walter se pone en contacto con vos. Si querés hablar ahora mismo, <a href="${wa}" target="_blank" rel="noopener" style="font-weight:700;text-decoration:underline;">escribinos por WhatsApp</a>.`, true);
+        form.reset();                              // limpiar SOLO con guardado confirmado
+        return;
+      }
+
+      // No se pudo guardar: no se simula éxito y los campos quedan llenos para reintentar.
+      show(`No pudimos enviar tu información. <a href="${wa}" target="_blank" rel="noopener" style="font-weight:700;text-decoration:underline;">Escribinos por WhatsApp</a> y no perdés tu consulta.`, false);
     });
   }
 
