@@ -78,6 +78,12 @@ async function procesarLeadgen(leadgenId, pageAccessToken, serviceKey) {
       interes: 'otro',
       propiedad_referencia: data.ad_name || null,
       notas: notasPartes.length ? notasPartes.join('\n') : null,
+      // Misma columna que usan los leads del sitio: así "de qué campaña vino"
+      // se compara igual venga del formulario instantáneo o de la web.
+      campana: [data.ad_name ? 'anuncio: ' + data.ad_name : null,
+                data.form_name ? 'formulario: ' + data.form_name : null]
+        .filter(Boolean).join(' | ') || 'source: facebook',
+      pagina: 'facebook_lead_ads',
       actividad: { tipo: 'otro', detalle: 'Lead recibido desde Facebook Lead Ads' },
     },
     serviceKey,

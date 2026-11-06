@@ -9,19 +9,27 @@ export function useLeads() {
   return useQuery({
     queryKey: ['leads'],
     queryFn: async (): Promise<LeadConContacto[]> => {
-      // Intenta con oferta_pdf_path; si la migración no se aplicó, PostgREST da 400 -> reintenta sin ella.
-      const withOferta = await supabase
-        .from('leads')
-        .select(`${LEAD_COLS_BASE},oferta_pdf_path`)
-        .order('created_at', { ascending: false });
-      if (!withOferta.error) return (withOferta.data ?? []) as unknown as LeadConContacto[];
-
-      const base = await supabase
-        .from('leads')
-        .select(LEAD_COLS_BASE)
-        .order('created_at', { ascending: false });
-      if (base.error) throw base.error;
-      return (base.data ?? []).map((l) => ({ ...l, oferta_pdf_path: null })) as unknown as LeadConContacto[];
+      // Las columnas opcionales dependen de migraciones que Walter aplica a mano: si
+      // alguna falta, PostgREST responde 400 -> se prueba el select siguiente, más corto.
+      const selects = [
+        `${LEAD_COLS_BASE},oferta_pdf_path,campana,pagina`,
+        `${LEAD_COLS_BASE},oferta_pdf_path`,
+        LEAD_COLS_BASE,
+      ];
+      let ultimoError: unknown = null;
+      for (const sel of selects) {
+        const res = await supabase.from('leads').select(sel).order('created_at', { ascending: false });
+        if (!res.error) {
+          // El select es dinámico, así que las filas llegan sin tipo: se normalizan
+          // acá poniendo en null las columnas que ese select no trajo.
+          const filas = (res.data ?? []) as unknown as Record<string, unknown>[];
+          return filas.map((l) => ({
+            oferta_pdf_path: null, campana: null, pagina: null, ...l,
+          })) as unknown as LeadConContacto[];
+        }
+        ultimoError = res.error;
+      }
+      throw ultimoError;
     },
     staleTime: 15_000,
   });

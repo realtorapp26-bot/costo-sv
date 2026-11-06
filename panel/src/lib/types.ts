@@ -25,6 +25,9 @@ export interface Lead {
   estado: Estado;
   notas: string | null;
   oferta_pdf_path: string | null;
+  // Atribución: de qué campaña vino y en qué página convirtió.
+  campana: string | null;
+  pagina: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -144,6 +147,8 @@ export interface LeadConContacto {
   estado: Estado;
   notas: string | null;
   oferta_pdf_path: string | null;
+  campana: string | null;
+  pagina: string | null;
   created_at: string;
   contactos: Pick<Contacto, 'nombre' | 'telefono' | 'correo'> | null;
 }

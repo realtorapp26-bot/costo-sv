@@ -93,6 +93,12 @@ function PipelineCard({
       {lead.propiedad_referencia && (
         <div className="mt-1 line-clamp-2 text-xs text-slate-500">{lead.propiedad_referencia}</div>
       )}
+      {lead.campana && (
+        <div className="mt-1 line-clamp-2 text-[0.7rem] leading-tight text-slate-400" title="Campaña que trajo este lead">
+          <i className="fas fa-bullhorn mr-1" />
+          {lead.campana}
+        </div>
+      )}
       <div className="mt-2 flex items-center justify-between">
         <span className="text-[0.7rem] text-slate-400">{formatearFecha(lead.created_at)}</span>
         <button

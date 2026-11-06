@@ -2180,12 +2180,17 @@
             const body = document.getElementById('leads-body');
             try {
                 const headers = await CostoSVAuth.authHeaders();
-                // oferta_pdf_path puede no existir todavía si falta aplicar la migración: si el
-                // servidor lo rechaza, se reintenta sin esa columna para no romper la lista.
+                // Las columnas opcionales (oferta_pdf_path, campana/pagina) pueden no existir
+                // todavía si falta aplicar su migración: se intenta con todas y se van soltando
+                // de atrás hacia adelante, para no romper la lista por una migración pendiente.
                 const base = `${SUPA_URL}/rest/v1/leads?select=`;
                 const cols = 'id,origen,interes,propiedad_referencia,estado,created_at,notas,contactos(nombre,telefono,correo)';
-                let res = await fetch(`${base}${cols},oferta_pdf_path&order=created_at.desc`, { headers });
-                if (res.status === 400) res = await fetch(`${base}${cols}&order=created_at.desc`, { headers });
+                const intentos = [`${cols},oferta_pdf_path,campana,pagina`, `${cols},oferta_pdf_path`, cols];
+                let res;
+                for (const sel of intentos) {
+                    res = await fetch(`${base}${sel}&order=created_at.desc`, { headers });
+                    if (res.status !== 400) break;
+                }
                 if (!res.ok) throw new Error('No se pudieron cargar los leads (' + res.status + ')');
                 leadsData = await res.json();
                 renderLeads();
@@ -2242,7 +2247,11 @@
                         ${contacto.telefono ? `<div class="contacto-tel"><a href="tel:${contacto.telefono}" title="Llamar">${contacto.telefono}</a>${waHref(contacto.telefono) ? ` <a class="ico-wa" href="${waHref(contacto.telefono)}" target="_blank" rel="noopener" title="Abrir WhatsApp"><i class="fab fa-whatsapp"></i></a>` : ''}</div>` : ''}
                         ${contacto.correo ? `<div class="contacto-correo"><a href="mailto:${contacto.correo}" title="Enviar correo">${contacto.correo}</a></div>` : ''}
                     </td>
-                    <td><span class="badge-origen">${origenLabels[l.origen] || l.origen}</span></td>
+                    <td>
+                        <span class="badge-origen">${origenLabels[l.origen] || l.origen}</span>
+                        ${l.campana ? `<div style="font-size:.72rem; color:#64748b; margin-top:4px; line-height:1.3;" title="Campaña que trajo este lead">${l.campana}</div>` : ''}
+                        ${l.pagina ? `<div style="font-size:.7rem; color:#94a3b8; line-height:1.3;" title="Página donde escribió">${l.pagina}</div>` : ''}
+                    </td>
                     <td>${l.interes[0].toUpperCase() + l.interes.slice(1)}</td>
                     <td>${l.propiedad_referencia || '—'}</td>
                     <td>
@@ -2342,6 +2351,8 @@
                 `Interés: ${l.interes}`,
             ];
             if (l.propiedad_referencia) partes.push(`Propiedad / Anuncio: ${l.propiedad_referencia}`);
+            if (l.campana) partes.push(`Campaña: ${l.campana}`);
+            if (l.pagina) partes.push(`Página donde escribió: ${l.pagina}`);
             partes.push('');
             partes.push('Respuestas del formulario:');
             partes.push(l.notas || 'Sin respuestas adicionales.');

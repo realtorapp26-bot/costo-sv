@@ -220,6 +220,16 @@ export function LeadsPage() {
                         <i className={cx(ORIGEN_ICONO[l.origen], 'mr-1')} />
                         {ORIGEN_LABEL[l.origen] ?? l.origen}
                       </Badge>
+                      {l.campana && (
+                        <div className="mt-1 max-w-[12rem] text-[0.7rem] leading-tight text-slate-500" title="Campaña que trajo este lead">
+                          {l.campana}
+                        </div>
+                      )}
+                      {l.pagina && (
+                        <div className="text-[0.68rem] leading-tight text-slate-400" title="Página donde escribió">
+                          {l.pagina}
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3">{INTERES_LABEL[l.interes]}</td>
                     <td className="max-w-[16rem] px-4 py-3 text-slate-600">
@@ -370,6 +380,16 @@ function LeadCard({
         </div>
       )}
 
+      {l.campana && (
+        <div className="mt-2 flex items-start gap-1.5 text-[0.7rem] leading-tight text-slate-500">
+          <i className="fas fa-bullhorn mt-0.5 text-slate-400" />
+          <span>
+            {l.campana}
+            {l.pagina && <span className="text-slate-400"> · {l.pagina}</span>}
+          </span>
+        </div>
+      )}
+
       <div className="mt-3 flex items-center gap-1 border-t border-slate-100 pt-2.5">
         <button
           onClick={onVer}
@@ -429,6 +449,17 @@ function DetalleModal({ lead, onClose }: { lead: LeadConContacto | null; onClose
               <div className="col-span-2">
                 <span className="font-semibold text-slate-800">Propiedad / Anuncio:</span>{' '}
                 {lead.propiedad_referencia}
+              </div>
+            )}
+            {lead.campana && (
+              <div className="col-span-2">
+                <span className="font-semibold text-slate-800">Campaña:</span> {lead.campana}
+              </div>
+            )}
+            {lead.pagina && (
+              <div className="col-span-2">
+                <span className="font-semibold text-slate-800">Página donde escribió:</span>{' '}
+                {lead.pagina}
               </div>
             )}
           </div>

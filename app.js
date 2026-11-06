@@ -49,6 +49,44 @@ window.imgOpt = function (url, w, q) {
     return 'otro';
   }
 
+  // De qué campaña viene el visitante. Hasta ahora NO se guardaba: un lead
+  // entraba como "formulario_web" o "whatsapp" y no había forma de saber si
+  // lo trajo una pauta de Meta, un posteo orgánico o una búsqueda — así que
+  // "esta campaña funcionó / no funcionó" no se podía responder con datos.
+  // Los parámetros van a sessionStorage (no localStorage) porque la persona
+  // suele llegar por un anuncio a una página y recién convertir en otra: si
+  // solo se leyera la URL del momento del envío, la atribución se perdería.
+  // No son datos personales — son las etiquetas del anuncio.
+  const CAMPANA_KEY = 'csv_campana';
+  const UTM_CAMPOS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+  function capturarCampana() {
+    try {
+      const q = new URLSearchParams(window.location.search);
+      const partes = [];
+      UTM_CAMPOS.forEach((k) => { const v = q.get(k); if (v) partes.push(`${k.replace('utm_', '')}: ${v}`); });
+      if (q.get('fbclid') && !partes.length) partes.push('source: facebook'); // anuncio de Meta sin UTM puestas a mano
+      if (!partes.length) return;                        // visita sin etiquetas: no sobreescribir una campaña ya guardada
+      sessionStorage.setItem(CAMPANA_KEY, partes.join(' | '));
+    } catch (e) { /* sin sessionStorage seguimos igual, solo sin atribución */ }
+  }
+  function campanaActual() {
+    try { return sessionStorage.getItem(CAMPANA_KEY) || null; } catch (e) { return null; }
+  }
+  capturarCampana();                                     // antes del DOMContentLoaded: la URL ya está disponible
+
+  // Meta Pixel — evento de conversión. El Pixel solo marcaba PageView (y
+  // ViewContent en las fichas): la pauta no tenía con qué optimizar hacia
+  // "esta persona SÍ escribió", y en Ads Manager los leads del sitio no
+  // aparecían como resultado. Best-effort; nunca romper la UI si no cargó.
+  function marcarLeadPixel(detalle) {
+    try {
+      if (typeof window.fbq !== 'function') return;
+      const params = { content_category: mapInteres(path) };
+      if (detalle) params.content_name = detalle;
+      window.fbq('track', 'Lead', params);
+    } catch (e) { /* noop */ }
+  }
+
   // Un click en WhatsApp no trae nombre/teléfono todavía (a diferencia de un
   // formulario) — se registra igual como lead "en blanco" (origen whatsapp,
   // el mensaje completo queda en notas) para que quede en el pipeline y Walter
@@ -62,11 +100,13 @@ window.imgOpt = function (url, w, q) {
     } catch (e) { /* sin sessionStorage seguimos igual, solo sin el freno de duplicados */ }
 
     const tituloMatch = mensaje.match(/"([^"]+)"/); // el texto suele citar el título de la propiedad entre comillas
+    marcarLeadPixel(tituloMatch ? tituloMatch[1] : null);
     fetch('/api/lead', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         nombre: 'Contacto por WhatsApp', origen: 'whatsapp', interes: mapInteres(path),
         propiedad_referencia: tituloMatch ? tituloMatch[1] : null, notas: mensaje,
+        campana: campanaActual(), pagina: path,
       }),
     }).catch((err) => console.error('No se pudo registrar el lead de WhatsApp:', err));
   }
@@ -172,6 +212,7 @@ window.imgOpt = function (url, w, q) {
         interes: mapInteres(path),
         propiedad_referencia: payload.tipo_propiedad || null,
         notas: notasCompletas(payload),
+        campana: campanaActual(), pagina: path,
       }),
     });
     return res.ok;
@@ -273,7 +314,11 @@ window.imgOpt = function (url, w, q) {
       const payload = buildPayload(form, path);   // en memoria; no se persiste
       const wa = waLink(resumenLead(payload));
 
-      guardarLeadEnCRM(payload, path).catch((err) => console.error('No se pudo guardar el lead en el CRM:', err));
+      // El Pixel marca el Lead solo si el lead realmente quedó guardado: así
+      // el número de Ads Manager coincide con los leads que Walter ve.
+      guardarLeadEnCRM(payload, path)
+        .then((ok) => { if (ok) marcarLeadPixel(payload.servicio || payload.tipo_propiedad || null); })
+        .catch((err) => console.error('No se pudo guardar el lead en el CRM:', err));
 
       try {
         if (!WEBHOOK_ENABLED) {
@@ -322,13 +367,21 @@ window.imgOpt = function (url, w, q) {
 
   // Se registra vía RPC (función de base de datos) y no con un INSERT directo
   // a la tabla: así el sitio público nunca tiene acceso de escritura directo.
+  // La campaña se guarda también en las VISITAS, no solo en los leads: es la
+  // única forma de distinguir "la pauta no trajo a nadie" de "trajo gente y
+  // no escribió" — dos problemas con soluciones opuestas. La escribe el
+  // bloque de captación de leads de arriba, en la misma clave.
+  function campanaDeLaSesion() {
+    try { return sessionStorage.getItem('csv_campana') || null; } catch (e) { return null; }
+  }
+
   function registrarEvento(tipo, detalle) {
     try {
       const pagina = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
       fetch(`${SUPA_URL}/rest/v1/rpc/registrar_evento_publico`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, Prefer: 'return=minimal' },
-        body: JSON.stringify({ p_tipo: tipo, p_pagina: pagina, p_detalle: detalle || null }),
+        body: JSON.stringify({ p_tipo: tipo, p_pagina: pagina, p_detalle: detalle || null, p_campana: campanaDeLaSesion() }),
       }).catch(() => {});
     } catch (e) { /* nunca romper la pagina por esto */ }
   }
