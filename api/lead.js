@@ -13,6 +13,8 @@
 //                 pdf_base64?, pdf_bucket? }
 //  Devuelve: { contactoId, leadId, pdfPath }
 //
+//  Body (completar el teléfono de un lead de WhatsApp, cuando viene
+//  completar_lead): ver lib/completarContacto.js.
 //  Body (completar KYC, cuando viene kyc_caso_id): ver lib/guardarKyc.js.
 //  Body (firmar contrato, cuando viene contrato_id): ver lib/guardarContrato.js.
 //  GET ?contrato_id=... : lee un contrato para la página pública de firma
@@ -24,6 +26,7 @@
 // ============================================================
 
 import { guardarLead } from '../lib/guardarLead.js';
+import { completarContacto } from '../lib/completarContacto.js';
 import { guardarKyc } from '../lib/guardarKyc.js';
 import { guardarContrato } from '../lib/guardarContrato.js';
 import { guardarCarta, TIPOS_CARTA } from '../lib/guardarCarta.js';
@@ -72,7 +75,9 @@ export default async function handler(req, res) {
       return;
     }
 
-    const resultado = body.contrato_id
+    const resultado = body.completar_lead
+      ? await completarContacto(body, serviceKey)
+      : body.contrato_id
       ? await guardarContrato(body, serviceKey)
       : body.kyc_caso_id
       ? await guardarKyc(body, serviceKey)

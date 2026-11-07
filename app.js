@@ -93,6 +93,9 @@ window.imgOpt = function (url, w, q) {
   // le ponga el nombre cuando chateen. Máximo 1 por sesión de navegador (no
   // uno por cada click) para no llenar Leads de filas repetidas.
   const WA_LEAD_FLAG = 'csv_wa_lead_creado';
+  // Id del lead creado por el clic, para poder COMPLETARLO con el teléfono si
+  // la persona después lo deja en el aviso (en vez de crear una fila nueva).
+  let leadWhatsappId = null;
   function registrarLeadWhatsapp(mensaje) {
     try {
       if (sessionStorage.getItem(WA_LEAD_FLAG)) return;
@@ -108,7 +111,10 @@ window.imgOpt = function (url, w, q) {
         propiedad_referencia: tituloMatch ? tituloMatch[1] : null, notas: mensaje,
         campana: campanaActual(), pagina: path,
       }),
-    }).catch((err) => console.error('No se pudo registrar el lead de WhatsApp:', err));
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d && d.leadId) leadWhatsappId = d.leadId; })
+      .catch((err) => console.error('No se pudo registrar el lead de WhatsApp:', err));
   }
 
   // Aviso al hacer click en WhatsApp: el link solo PRECARGA el mensaje, la
@@ -118,6 +124,55 @@ window.imgOpt = function (url, w, q) {
   // mayoría no lo escanea desde la misma compu. Por eso este aviso (con el
   // teléfono como respaldo) en vez de asumir que el mensaje llegó solo.
   let waAvisoTimer = null;
+
+  // Guarda el número que la persona deja en el aviso. Completa el lead que ya
+  // creó el clic; si ese id no está a mano (p. ej. hizo el clic en otra página
+  // de la misma sesión), crea uno nuevo — el número importa más que evitar una
+  // fila repetida.
+  function prepararCapturaWhatsapp(aviso) {
+    const form = aviso.querySelector('[data-wa-captura]');
+    if (!form) return;
+    const input = form.querySelector('[name=telefono]');
+    const msg = form.querySelector('[data-wa-captura-msg]');
+    const decir = (texto, ok) => {
+      msg.textContent = texto;
+      msg.style.color = ok ? '#1b5e20' : '#9a3412';
+      msg.style.display = 'block';
+    };
+
+    // Mientras escribe, el aviso no se cierra solo.
+    ['focus', 'input'].forEach((ev) => input.addEventListener(ev, () => clearTimeout(waAvisoTimer)));
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearTimeout(waAvisoTimer);
+      const telefono = input.value.trim();
+      if (telefono.replace(/\D/g, '').length < 8) { decir('Escribí un número completo, con código de país si estás fuera de El Salvador.', false); return; }
+
+      const btn = form.querySelector('button[type=submit]');
+      const btnTexto = btn.textContent;
+      btn.disabled = true; btn.textContent = '...';
+
+      const cuerpo = leadWhatsappId
+        ? { completar_lead: leadWhatsappId, telefono }
+        : { nombre: 'Dejó su número tras el clic de WhatsApp', telefono, origen: 'whatsapp',
+            interes: mapInteres(path), notas: 'Dejó su número en el aviso posterior al clic de WhatsApp.',
+            campana: campanaActual(), pagina: path };
+
+      try {
+        const res = await fetch('/api/lead', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cuerpo),
+        });
+        if (!res.ok) throw new Error('respuesta ' + res.status);
+        form.innerHTML = '<div style="font-size:.84rem;color:#1b5e20;">¡Gracias! Walter te escribe a ese número.</div>';
+      } catch (err) {
+        console.error('No se pudo guardar el número:', err);
+        btn.disabled = false; btn.textContent = btnTexto;
+        decir('No se pudo guardar. Probá de nuevo o escribinos al ' + formatearTelefono(WA_NUMBER) + '.', false);
+      }
+    });
+  }
+
   function mostrarAvisoWhatsapp() {
     let aviso = document.getElementById('wa-aviso');
     if (!aviso) {
@@ -131,14 +186,33 @@ window.imgOpt = function (url, w, q) {
         'border-radius:14px;box-shadow:0 12px 32px rgba(15,23,42,.18);padding:14px 36px 14px 16px;' +
         'z-index:9999;font-family:inherit;font-size:.85rem;line-height:1.4;color:#0f172a;' +
         'opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;';
+      // Además del recordatorio de tocar Enviar, acá se le pide el número.
+      // Es el único momento en que se puede: el clic de WhatsApp no le dice
+      // al sitio quién es la persona, así que sin esto el lead queda sin
+      // teléfono y no hay a quién devolverle el contacto. Va DESPUÉS del
+      // clic, nunca antes, para no ponerle un trámite delante al que sí va
+      // a escribir por WhatsApp.
       aviso.innerHTML =
+        '<button type="button" data-cerrar aria-label="Cerrar" style="position:absolute;top:4px;right:8px;background:none;border:none;' +
+        'font-size:1.1rem;color:#94a3b8;cursor:pointer;line-height:1;padding:6px;">&times;</button>' +
         'Se abrió WhatsApp con tu mensaje listo — <strong>tocá Enviar</strong> para mandarlo.<br>' +
         '¿No se abrió? Escribinos al <a href="tel:+' + WA_NUMBER + '" style="color:#25D366;font-weight:700;text-decoration:underline;">' +
         formatearTelefono(WA_NUMBER) + '</a>.' +
-        '<button type="button" aria-label="Cerrar" style="position:absolute;top:4px;right:8px;background:none;border:none;' +
-        'font-size:1.1rem;color:#94a3b8;cursor:pointer;line-height:1;padding:6px;">&times;</button>';
+        '<form data-wa-captura style="margin-top:10px;padding-top:10px;border-top:1px solid #e2e8f0;">' +
+          '<label for="wa-captura-tel" style="display:block;font-size:.8rem;color:#475569;margin-bottom:6px;">' +
+            'O dejame tu número y te escribo yo:</label>' +
+          '<div style="display:flex;gap:6px;">' +
+            '<input id="wa-captura-tel" name="telefono" type="tel" inputmode="tel" autocomplete="tel" required ' +
+              'placeholder="7000 0000" style="flex:1 1 auto;min-width:0;padding:9px 11px;border:1.5px solid #e2e8f0;' +
+              'border-radius:9px;font:inherit;font-size:.85rem;background:#f8fafc;box-sizing:border-box;">' +
+            '<button type="submit" style="flex:0 0 auto;padding:9px 14px;border:none;border-radius:9px;' +
+              'background:#003da5;color:#fff;font:inherit;font-size:.82rem;font-weight:600;cursor:pointer;">Enviar</button>' +
+          '</div>' +
+          '<div data-wa-captura-msg style="display:none;margin-top:8px;font-size:.8rem;"></div>' +
+        '</form>';
       document.body.appendChild(aviso);
-      aviso.querySelector('button').addEventListener('click', () => { aviso.style.opacity = '0'; aviso.style.pointerEvents = 'none'; });
+      aviso.querySelector('[data-cerrar]').addEventListener('click', () => { aviso.style.opacity = '0'; aviso.style.pointerEvents = 'none'; });
+      prepararCapturaWhatsapp(aviso);
     }
     aviso.style.opacity = '1';
     aviso.style.transform = 'translateX(-50%) translateY(0)';
