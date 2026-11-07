@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Estado, LeadConContacto } from '../lib/types';
-import { ESTADOS, ESTADO_LABEL, INTERES_LABEL, ORIGEN_ICONO } from '../lib/enums';
+import { ESTADOS, ESTADO_LABEL, INTERES_LABEL, ORIGEN_ICONO, formatearCampana } from '../lib/enums';
 import { formatearFecha, waHref } from '../lib/format';
 import { Badge, cx } from '../components/ui';
 
@@ -93,10 +93,10 @@ function PipelineCard({
       {lead.propiedad_referencia && (
         <div className="mt-1 line-clamp-2 text-xs text-slate-500">{lead.propiedad_referencia}</div>
       )}
-      {lead.campana && (
-        <div className="mt-1 line-clamp-2 text-[0.7rem] leading-tight text-slate-400" title="Campaña que trajo este lead">
+      {formatearCampana(lead.campana).titulo && (
+        <div className="mt-1 line-clamp-2 text-[0.7rem] leading-tight text-slate-400" title={lead.campana ?? ''}>
           <i className="fas fa-bullhorn mr-1" />
-          {lead.campana}
+          {formatearCampana(lead.campana).titulo}
         </div>
       )}
       <div className="mt-2 flex items-center justify-between">

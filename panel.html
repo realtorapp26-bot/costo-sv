@@ -2176,6 +2176,26 @@
             return esHoy(fechaIso) ? `Hoy ${hora}` : f.toLocaleDateString('es-SV') + ' ' + hora;
         }
 
+        // La campaña llega como "source: meta | medium: paid_social | campaign: x |
+        // content: 120251400464020654 | term: ...". Meta manda en content/term los
+        // IDs internos del anuncio y del conjunto, que no le dicen nada a nadie: si
+        // son puros números se ocultan, y si son nombres se muestran.
+        function formatearCampana(txt) {
+            if (!txt) return { titulo: '', fuente: '' };
+            const datos = {};
+            String(txt).split('|').forEach(p => {
+                const i = p.indexOf(':');
+                if (i > 0) datos[p.slice(0, i).trim()] = p.slice(i + 1).trim();
+            });
+            const esId = v => /^\d{6,}$/.test(v || '');
+            const principal = [datos.campaign, datos.content, datos.term]
+                .filter(v => v && !esId(v));
+            const fuente = [datos.source, datos.medium].filter(Boolean).join(' · ');
+            return principal.length
+                ? { titulo: principal.join(' · '), fuente }
+                : { titulo: fuente, fuente: '' };
+        }
+
         async function cargarLeads() {
             const body = document.getElementById('leads-body');
             try {
@@ -2249,7 +2269,11 @@
                     </td>
                     <td>
                         <span class="badge-origen">${origenLabels[l.origen] || l.origen}</span>
-                        ${l.campana ? `<div style="font-size:.72rem; color:#64748b; margin-top:4px; line-height:1.3;" title="Campaña que trajo este lead">${l.campana}</div>` : ''}
+                        ${(() => {
+                            const c = formatearCampana(l.campana);
+                            return (c.titulo ? `<div style="font-size:.72rem; color:#64748b; margin-top:4px; line-height:1.3;" title="Campaña que trajo este lead">${c.titulo}</div>` : '')
+                                 + (c.fuente ? `<div style="font-size:.7rem; color:#94a3b8; line-height:1.3;">${c.fuente}</div>` : '');
+                        })()}
                         ${l.pagina ? `<div style="font-size:.7rem; color:#94a3b8; line-height:1.3;" title="Página donde escribió">${l.pagina}</div>` : ''}
                     </td>
                     <td>${l.interes[0].toUpperCase() + l.interes.slice(1)}</td>
@@ -2351,7 +2375,10 @@
                 `Interés: ${l.interes}`,
             ];
             if (l.propiedad_referencia) partes.push(`Propiedad / Anuncio: ${l.propiedad_referencia}`);
-            if (l.campana) partes.push(`Campaña: ${l.campana}`);
+            if (l.campana) {
+                const c = formatearCampana(l.campana);
+                partes.push(`Campaña: ${[c.titulo, c.fuente].filter(Boolean).join(' — ')}`);
+            }
             if (l.pagina) partes.push(`Página donde escribió: ${l.pagina}`);
             partes.push('');
             partes.push('Respuestas del formulario:');

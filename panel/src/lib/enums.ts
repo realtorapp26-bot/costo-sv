@@ -156,3 +156,20 @@ export const CARTA_TIPO_CLASE: Record<CartaTipo, string> = {
   aceptacion: 'bg-emerald-100 text-emerald-800',
   contraoferta: 'bg-amber-100 text-amber-800',
 };
+
+// La campaña llega como "source: meta | medium: paid_social | campaign: x |
+// content: 120251400464020654 | term: ...". Meta manda en content/term los IDs
+// internos del anuncio y del conjunto, que no le dicen nada a nadie: si son
+// puros números se ocultan, y si son nombres se muestran.
+export function formatearCampana(txt: string | null): { titulo: string; fuente: string } {
+  if (!txt) return { titulo: '', fuente: '' };
+  const datos: Record<string, string> = {};
+  txt.split('|').forEach((p) => {
+    const i = p.indexOf(':');
+    if (i > 0) datos[p.slice(0, i).trim()] = p.slice(i + 1).trim();
+  });
+  const esId = (v?: string) => /^\d{6,}$/.test(v || '');
+  const principal = [datos.campaign, datos.content, datos.term].filter((v) => v && !esId(v));
+  const fuente = [datos.source, datos.medium].filter(Boolean).join(' · ');
+  return principal.length ? { titulo: principal.join(' · '), fuente } : { titulo: fuente, fuente: '' };
+}

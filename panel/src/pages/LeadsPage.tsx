@@ -10,6 +10,7 @@ import {
   ORIGENES,
   ORIGEN_ICONO,
   ORIGEN_LABEL,
+  formatearCampana,
 } from '../lib/enums';
 import { esHoy, formatearFecha, waHref } from '../lib/format';
 import {
@@ -220,9 +221,12 @@ export function LeadsPage() {
                         <i className={cx(ORIGEN_ICONO[l.origen], 'mr-1')} />
                         {ORIGEN_LABEL[l.origen] ?? l.origen}
                       </Badge>
-                      {l.campana && (
-                        <div className="mt-1 max-w-[12rem] text-[0.7rem] leading-tight text-slate-500" title="Campaña que trajo este lead">
-                          {l.campana}
+                      {formatearCampana(l.campana).titulo && (
+                        <div className="mt-1 max-w-[12rem] text-[0.7rem] leading-tight text-slate-500" title={l.campana ?? ''}>
+                          {formatearCampana(l.campana).titulo}
+                          {formatearCampana(l.campana).fuente && (
+                            <span className="block text-slate-400">{formatearCampana(l.campana).fuente}</span>
+                          )}
                         </div>
                       )}
                       {l.pagina && (
@@ -380,11 +384,11 @@ function LeadCard({
         </div>
       )}
 
-      {l.campana && (
+      {formatearCampana(l.campana).titulo && (
         <div className="mt-2 flex items-start gap-1.5 text-[0.7rem] leading-tight text-slate-500">
           <i className="fas fa-bullhorn mt-0.5 text-slate-400" />
           <span>
-            {l.campana}
+            {formatearCampana(l.campana).titulo}
             {l.pagina && <span className="text-slate-400"> · {l.pagina}</span>}
           </span>
         </div>
@@ -451,9 +455,12 @@ function DetalleModal({ lead, onClose }: { lead: LeadConContacto | null; onClose
                 {lead.propiedad_referencia}
               </div>
             )}
-            {lead.campana && (
+            {formatearCampana(lead.campana).titulo && (
               <div className="col-span-2">
-                <span className="font-semibold text-slate-800">Campaña:</span> {lead.campana}
+                <span className="font-semibold text-slate-800">Campaña:</span>{' '}
+                {[formatearCampana(lead.campana).titulo, formatearCampana(lead.campana).fuente]
+                  .filter(Boolean)
+                  .join(' — ')}
               </div>
             )}
             {lead.pagina && (

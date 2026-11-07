@@ -194,7 +194,7 @@ window.imgOpt = function (url, w, q) {
     });
   }
 
-  function mostrarAvisoWhatsapp() {
+  function mostrarAvisoWhatsapp(conCaptura) {
     let aviso = document.getElementById('wa-aviso');
     if (!aviso) {
       aviso = document.createElement('div');
@@ -239,6 +239,10 @@ window.imgOpt = function (url, w, q) {
       });
       prepararCapturaWhatsapp(aviso);
     }
+    // Si ya dejó el número antes de abrir WhatsApp, no se le vuelve a pedir.
+    const captura = aviso.querySelector('[data-wa-captura]');
+    if (captura) captura.hidden = conCaptura === false || yaDioNumero();
+
     aviso.style.opacity = '1';
     aviso.style.transform = 'translateX(-50%) translateY(0)';
     aviso.style.pointerEvents = 'auto';
@@ -250,6 +254,98 @@ window.imgOpt = function (url, w, q) {
     // "50370381941" -> "+503 7038-1941" (formato ya usado en el resto del sitio).
     const m = soloDigitos.match(/^(\d{3})(\d{4})(\d{4})$/);
     return m ? `+${m[1]} ${m[2]}-${m[3]}` : `+${soloDigitos}`;
+  }
+
+  // ---- Pedir el número ANTES de abrir WhatsApp -------------------------
+  // El clic de WhatsApp no le devuelve el número a nadie: ese dato vive en la
+  // app. Y la mayoría de los clics no terminaba en conversación — quedaban
+  // leads "Contacto por WhatsApp" con teléfono vacío, interés visible y nadie
+  // a quien llamar. Por eso se pide acá, con un enlace claro para saltarlo:
+  // nadie queda bloqueado, pero el que se va sin escribir deja un rastro.
+  const WA_NUMERO_FLAG = 'csv_wa_numero_dado';
+  function yaDioNumero() {
+    try { return !!sessionStorage.getItem(WA_NUMERO_FLAG); } catch (e) { return false; }
+  }
+
+  function pedirNumeroYAbrir(mensaje) {
+    const previo = document.getElementById('wa-pedir');
+    if (previo) previo.remove();
+
+    const tituloMatch = mensaje.match(/"([^"]+)"/);
+    const referencia = tituloMatch ? tituloMatch[1] : null;
+
+    const capa = document.createElement('div');
+    capa.id = 'wa-pedir';
+    capa.setAttribute('role', 'dialog');
+    capa.setAttribute('aria-modal', 'true');
+    capa.setAttribute('aria-label', 'Dejanos tu número antes de abrir WhatsApp');
+    capa.style.cssText =
+      'position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,.55);display:flex;' +
+      'align-items:center;justify-content:center;padding:20px;font-family:inherit;';
+    capa.innerHTML =
+      '<div style="background:#fff;border-radius:16px;max-width:360px;width:100%;padding:22px 20px;' +
+        'box-shadow:0 20px 50px rgba(15,23,42,.3);color:#0f172a;">' +
+        '<div style="font-size:1.05rem;font-weight:700;margin-bottom:6px;">Te abro WhatsApp</div>' +
+        '<p style="font-size:.88rem;line-height:1.5;color:#475569;margin:0 0 16px;">' +
+          'Dejame tu número por si el chat no llega a enviarse, y te escribo yo.</p>' +
+        '<form data-pedir-form>' +
+          '<input name="telefono" type="tel" inputmode="tel" autocomplete="tel" placeholder="7000 0000" ' +
+            'style="width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:10px;' +
+            'font:inherit;font-size:.95rem;background:#f8fafc;box-sizing:border-box;">' +
+          '<div data-pedir-msg style="display:none;margin-top:8px;font-size:.8rem;color:#9a3412;"></div>' +
+          '<button type="submit" style="width:100%;margin-top:12px;padding:13px;border:none;border-radius:10px;' +
+            'background:#25D366;color:#fff;font:inherit;font-size:.95rem;font-weight:700;cursor:pointer;">' +
+            'Abrir WhatsApp</button>' +
+        '</form>' +
+        '<button type="button" data-pedir-saltar style="display:block;width:100%;margin-top:10px;background:none;' +
+          'border:none;color:#64748b;font:inherit;font-size:.82rem;text-decoration:underline;cursor:pointer;padding:6px;">' +
+          'Abrir sin dejar mi número</button>' +
+      '</div>';
+    document.body.appendChild(capa);
+
+    const form = capa.querySelector('[data-pedir-form]');
+    const input = capa.querySelector('[name=telefono]');
+    const msg = capa.querySelector('[data-pedir-msg]');
+    setTimeout(() => input.focus(), 80);
+
+    // Abrir WhatsApp SIEMPRE dentro del gesto del usuario: si se esperara a
+    // que termine el fetch, en computadora el navegador bloquea la ventana.
+    const abrir = (conCaptura) => {
+      capa.remove();
+      mostrarAvisoWhatsapp(conCaptura);
+      if (esMobile) abrirWhatsAppMobil(mensaje);
+      else window.open(waLink(mensaje), '_blank', 'noopener');
+    };
+
+    capa.querySelector('[data-pedir-saltar]').addEventListener('click', () => {
+      registrarLeadWhatsapp(mensaje);          // lead en blanco: queda el interés
+      abrir(true);                             // y el aviso le da una segunda chance
+    });
+
+    capa.addEventListener('click', (e) => {    // tocar fuera = saltar
+      if (e.target === capa) { registrarLeadWhatsapp(mensaje); abrir(true); }
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const telefono = input.value.trim();
+      if (telefono.replace(/\D/g, '').length < 8) {
+        msg.textContent = 'Escribí un número completo, con código de país si estás fuera de El Salvador.';
+        msg.style.display = 'block';
+        return;
+      }
+      try { sessionStorage.setItem(WA_NUMERO_FLAG, '1'); sessionStorage.setItem(WA_LEAD_FLAG, '1'); } catch (err) { /* noop */ }
+      marcarLeadPixel(referencia);
+      fetch('/api/lead', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: 'Contacto por WhatsApp', telefono, origen: 'whatsapp', interes: mapInteres(path),
+          propiedad_referencia: referencia, notas: mensaje + '\nDejó su número antes de abrir WhatsApp.',
+          campana: campanaActual(), pagina: path,
+        }),
+      }).catch((err) => console.error('No se pudo guardar el número:', err));
+      abrir(false);                            // ya dejó el dato: el aviso va sin casilla
+    });
   }
 
   // wa.me a veces NO abre la app en celular: según el navegador/Android, en
@@ -287,12 +383,15 @@ window.imgOpt = function (url, w, q) {
       a.href = waLink(mensaje); // respaldo por si el click no llega a dispararse por JS
       if (!esMobile) { a.target = '_blank'; a.rel = 'noopener'; }
       a.addEventListener('click', (e) => {
-        registrarLeadWhatsapp(mensaje);
-        mostrarAvisoWhatsapp();
-        if (esMobile) {
-          e.preventDefault();
-          abrirWhatsAppMobil(mensaje);
+        // Si ya dejó el número en esta sesión no se le pide de nuevo: va directo.
+        if (yaDioNumero()) {
+          registrarLeadWhatsapp(mensaje);
+          mostrarAvisoWhatsapp(false);
+          if (esMobile) { e.preventDefault(); abrirWhatsAppMobil(mensaje); }
+          return;
         }
+        e.preventDefault();                    // se frena para poder pedirle el número
+        pedirNumeroYAbrir(mensaje);
       });
     });
   }
