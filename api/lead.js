@@ -40,51 +40,6 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    // Diagnóstico del aviso por Telegram. Los leads entraban bien a la base
-    // pero el aviso no llegaba al teléfono, y los logs de Vercel se borran
-    // antes de poder mirarlos. Esto pregunta a Telegram si la credencial y el
-    // chat siguen siendo válidos. NO manda ningún mensaje y NO devuelve el
-    // token: solo si cada cosa funciona y qué dice Telegram cuando no.
-    if (req.query?.diagnostico === 'telegram') {
-      const token = process.env.TELEGRAM_BOT_TOKEN;
-      const chat = process.env.TELEGRAM_CHAT_ID;
-      const salida = { token_configurado: !!token, chat_configurado: !!chat };
-      if (token) {
-        try {
-          const r = await fetch(`https://api.telegram.org/bot${token}/getMe`);
-          const d = await r.json();
-          salida.token_valido = !!d.ok;
-          salida.bot = d.ok ? d.result.username : null;
-          if (!d.ok) salida.error_token = d.description;
-        } catch (e) { salida.token_valido = false; salida.error_token = e.message; }
-      }
-      if (token && chat) {
-        try {
-          const r = await fetch(`https://api.telegram.org/bot${token}/getChat?chat_id=${encodeURIComponent(chat)}`);
-          const d = await r.json();
-          salida.chat_valido = !!d.ok;
-          if (!d.ok) salida.error_chat = d.description;
-        } catch (e) { salida.chat_valido = false; salida.error_chat = e.message; }
-      }
-      // Con &enviar=1 manda UN mensaje de prueba y devuelve lo que contesta
-      // Telegram. Es la única forma de distinguir "Telegram lo rechaza" de
-      // "Telegram lo entrega y el teléfono no lo muestra".
-      if (req.query?.enviar === '1' && token && chat) {
-        try {
-          const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: chat, text: '🔧 Prueba de avisos de guerrero-properties.com. Si ves esto, los avisos funcionan.' }),
-          });
-          const d = await r.json();
-          salida.envio_ok = !!d.ok;
-          if (!d.ok) { salida.envio_codigo = r.status; salida.envio_error = d.description; }
-        } catch (e) { salida.envio_ok = false; salida.envio_error = e.message; }
-      }
-      res.status(200).json(salida);
-      return;
-    }
-
     const contratoId = req.query?.contrato_id;
     if (!contratoId) {
       res.status(400).json({ error: 'Falta contrato_id' });
