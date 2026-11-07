@@ -292,6 +292,13 @@ function render(p) {
         .ficha-precio { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--primary); margin: 4px 0 20px; }
         .ficha-aside .btn { width: 100%; }
         .ficha-aside .aside-nota { font-size: 0.82rem; color: var(--text-light); margin-top: 14px; text-align: center; }
+        .ficha-contacto { margin-top: 22px; padding-top: 22px; border-top: 1px solid var(--border); }
+        .ficha-contacto-titulo { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--primary); }
+        .ficha-contacto-bajada { font-size: 0.84rem; color: var(--text-light); line-height: 1.5; margin: 6px 0 16px; }
+        .ficha-contacto .form-group { margin-bottom: 12px; }
+        .ficha-contacto .form-group label { font-size: 0.82rem; }
+        .ficha-contacto .form-control { padding: 11px 13px; font-size: 0.92rem; }
+        .ficha-contacto .form-alert { font-size: 0.86rem; line-height: 1.45; }
         .ficha-mapa { position: relative; aspect-ratio: 16 / 9; border-radius: var(--radius-md); overflow: hidden; background: var(--border); }
         .ficha-mapa iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
         .ficha-mapa-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; color: var(--primary); text-decoration: none; font-weight: 500; }
@@ -358,6 +365,36 @@ function render(p) {
                 <button type="button" class="btn btn-outline" style="margin-top:12px;" onclick="window.abrirDossier && window.abrirDossier()"><i class="fas fa-file-arrow-down"></i> Descargar dossier</button>
                 ${(Array.isArray(p.fotos) && p.fotos.length) ? `<a href="/api/fotos-zip?slug=${esc(slug)}" class="btn btn-outline" style="margin-top:12px;"><i class="fas fa-download"></i> Descargar fotos</a>` : ''}
                 <a href="/propiedades.html" class="btn btn-outline" style="margin-top:12px;">Ver otras propiedades</a>
+
+                <!-- Captura de datos. Antes la ficha SOLO ofrecía WhatsApp: si la
+                     persona no tocaba Enviar dentro de WhatsApp, el lead quedaba
+                     sin nombre ni teléfono y no había forma de devolverle el
+                     contacto. Acá pide lo mínimo (nombre + teléfono) para que
+                     siempre quede un dato con el que llamar. La clase
+                     webhook-form es la que app.js engancha para guardarlo. -->
+                <div class="ficha-contacto">
+                    <div class="ficha-contacto-titulo">¿Preferís que te contacte yo?</div>
+                    <p class="ficha-contacto-bajada">Dejame tus datos y te escribo con la información completa de esta propiedad.</p>
+                    <form class="webhook-form" action="" method="POST">
+                        <input type="hidden" name="servicio" value="${esc(p.titulo)}">
+                        <input type="hidden" name="tipo_propiedad" value="${esc(p.titulo)}">
+                        <input type="hidden" name="pagina_origen" value="${esc(slug)}">
+                        <div class="form-group">
+                            <label>Nombre*</label>
+                            <input type="text" name="nombre" class="form-control" required placeholder="Tu nombre">
+                        </div>
+                        <div class="form-group">
+                            <label>WhatsApp o teléfono*</label>
+                            <input type="tel" name="telefono" class="form-control" required placeholder="+503 ... o +1 ...">
+                        </div>
+                        <div class="form-group">
+                            <label>Correo <span style="font-weight:400; color:var(--text-light);">(opcional)</span></label>
+                            <input type="email" name="email" class="form-control" placeholder="tu@correo.com">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Quiero que me contacten</button>
+                    </form>
+                </div>
+
                 <p class="aside-nota">Atención directa de Walter Guerrero, agente RE/MAX Elite.</p>
             </aside>
         </div>
