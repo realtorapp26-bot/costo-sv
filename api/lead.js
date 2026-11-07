@@ -66,6 +66,21 @@ export default async function handler(req, res) {
           if (!d.ok) salida.error_chat = d.description;
         } catch (e) { salida.chat_valido = false; salida.error_chat = e.message; }
       }
+      // Con &enviar=1 manda UN mensaje de prueba y devuelve lo que contesta
+      // Telegram. Es la única forma de distinguir "Telegram lo rechaza" de
+      // "Telegram lo entrega y el teléfono no lo muestra".
+      if (req.query?.enviar === '1' && token && chat) {
+        try {
+          const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: chat, text: '🔧 Prueba de avisos de guerrero-properties.com. Si ves esto, los avisos funcionan.' }),
+          });
+          const d = await r.json();
+          salida.envio_ok = !!d.ok;
+          if (!d.ok) { salida.envio_codigo = r.status; salida.envio_error = d.description; }
+        } catch (e) { salida.envio_ok = false; salida.envio_error = e.message; }
+      }
       res.status(200).json(salida);
       return;
     }
