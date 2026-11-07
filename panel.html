@@ -731,6 +731,12 @@
                 <span class="filter-label">Interés</span>
                 <div class="filter-group" id="filtro-interes"></div>
             </div>
+            <div class="filters-bar" id="filtros-prioridad" style="display:none;">
+                <span class="filter-label">Prioridad</span>
+                <div class="filter-group" id="filtro-prioridad"></div>
+                <button id="btn-orden-leads" class="btn btn-outline" style="margin-left:auto; padding:6px 12px; font-size:.8rem;"
+                        onclick="antiguoPrimero = !antiguoPrimero; renderLeads();">↑ Más antiguo primero</button>
+            </div>
 
             <div class="filters-bar" style="justify-content: space-between; flex-wrap: wrap; gap: 10px;">
                 <span class="filter-label" id="exportar-resumen" style="font-weight: 400;"></span>
@@ -2172,7 +2178,21 @@
         const estados = ['nuevo', 'contactado', 'calificado', 'perdido', 'cerrado'];
         const origenes = ['whatsapp', 'formulario_web', 'facebook_ads', 'marketplace', 'referido'];
         const intereses = ['comprar', 'vender', 'invertir', 'otro'];
-        let filtroEstado = null, filtroOrigen = null, filtroInteres = null;
+        let filtroEstado = null, filtroOrigen = null, filtroInteres = null, filtroPrioridad = null;
+        // Más antiguo primero: el que lleva más tiempo esperando respuesta.
+        let antiguoPrimero = true;
+
+        const PRIORIDADES = ['caliente', 'tibio', 'frio'];
+        const PRIORIDAD_LABEL = { caliente: 'Caliente', tibio: 'Tibio', frio: 'Frío' };
+        const PRIORIDAD_ESTILO = {
+            caliente: 'background:#ffedd5;color:#9a3412',
+            tibio: 'background:#fef3c7;color:#92400e',
+            frio: 'background:#f1f5f9;color:#475569',
+        };
+        function badgePrioridad(p) {
+            if (!p) return '';
+            return `<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:.7rem;font-weight:700;${PRIORIDAD_ESTILO[p] || ''}">${PRIORIDAD_LABEL[p] || p}</span>`;
+        }
         let leadsFiltrados = [];
 
         // Exporta los contactos que se están viendo (respeta los filtros de
@@ -2199,8 +2219,9 @@
         function exportarContactos() {
             if (!leadsFiltrados.length) { alert('No hay contactos para descargar con estos filtros.'); return; }
 
-            const columnas = ['Nombre', 'Telefono', 'Telefono internacional', 'Correo', 'Origen',
-                'Interes', 'Estado', 'Campana', 'Pagina', 'Propiedad o anuncio', 'Fecha', 'Notas'];
+            const columnas = ['Fecha de ingreso', 'Nombre', 'Telefono', 'Telefono internacional', 'Correo',
+                'Origen', 'Interes', 'Estado', 'Prioridad', 'Presupuesto', 'Cuando compra', 'Proposito',
+                'Formulario', 'Campana', 'Pagina', 'Propiedad o anuncio', 'Notas'];
             const celda = (v) => {
                 const t = v == null ? '' : String(v);
                 return /[",\n;]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
@@ -2209,11 +2230,13 @@
                 const c = l.contactos || {};
                 const camp = formatearCampana(l.campana);
                 return [
+                    new Date(l.fecha_ingreso || l.created_at).toLocaleString('es-SV'),
                     c.nombre, c.telefono, telefonoParaMeta(c.telefono), c.correo,
                     origenLabels[l.origen] || l.origen, l.interes, l.estado,
+                    l.prioridad ? (PRIORIDAD_LABEL[l.prioridad] || l.prioridad) : '',
+                    l.presupuesto, l.plazo, l.proposito, l.formulario,
                     [camp.titulo, camp.fuente].filter(Boolean).join(' — '),
                     l.pagina, l.propiedad_referencia,
-                    new Date(l.created_at).toLocaleString('es-SV'),
                     (l.notas || '').replace(/\s*\n\s*/g, ' | '),
                 ].map(celda).join(',');
             });
@@ -2273,7 +2296,13 @@
                 // de atrás hacia adelante, para no romper la lista por una migración pendiente.
                 const base = `${SUPA_URL}/rest/v1/leads?select=`;
                 const cols = 'id,origen,interes,propiedad_referencia,estado,created_at,notas,contactos(nombre,telefono,correo)';
-                const intentos = [`${cols},oferta_pdf_path,campana,pagina`, `${cols},oferta_pdf_path`, cols];
+                const calif = 'fecha_ingreso,presupuesto,plazo,proposito,prioridad,formulario';
+                const intentos = [
+                    `${cols},oferta_pdf_path,campana,pagina,${calif}`,
+                    `${cols},oferta_pdf_path,campana,pagina`,
+                    `${cols},oferta_pdf_path`,
+                    cols,
+                ];
                 let res;
                 for (const sel of intentos) {
                     res = await fetch(`${base}${sel}&order=created_at.desc`, { headers });
@@ -2309,11 +2338,27 @@
             crearChips('filtro-origen', origenes, o => origenLabels[o], filtroOrigen, v => { filtroOrigen = v; renderLeads(); });
             crearChips('filtro-interes', intereses, i => i[0].toUpperCase() + i.slice(1), filtroInteres, v => { filtroInteres = v; renderLeads(); });
 
+            // La fila de prioridad y el orden solo tienen sentido si hay leads
+            // calificados (los del formulario de Meta).
+            const hayCalificados = leadsData.some(l => l.prioridad);
+            const barraPrioridad = document.getElementById('filtros-prioridad');
+            if (barraPrioridad) {
+                barraPrioridad.style.display = hayCalificados ? '' : 'none';
+                if (hayCalificados) {
+                    crearChips('filtro-prioridad', PRIORIDADES, p => PRIORIDAD_LABEL[p], filtroPrioridad,
+                        v => { filtroPrioridad = v; renderLeads(); });
+                    document.getElementById('btn-orden-leads').textContent =
+                        antiguoPrimero ? '↑ Más antiguo primero' : '↓ Más reciente primero';
+                }
+            }
+
+            const cuando = l => new Date(l.fecha_ingreso || l.created_at).getTime();
             const filtrados = leadsData.filter(l =>
                 (!filtroEstado || l.estado === filtroEstado) &&
                 (!filtroOrigen || l.origen === filtroOrigen) &&
-                (!filtroInteres || l.interes === filtroInteres)
-            );
+                (!filtroInteres || l.interes === filtroInteres) &&
+                (!filtroPrioridad || l.prioridad === filtroPrioridad)
+            ).sort((a, b) => antiguoPrimero ? cuando(a) - cuando(b) : cuando(b) - cuando(a));
 
             document.getElementById('kpi-nuevos').textContent = leadsData.filter(l => esHoy(l.created_at)).length;
             document.getElementById('kpi-activos').textContent = leadsData.filter(l => ['nuevo','contactado'].includes(l.estado)).length;
@@ -2352,14 +2397,22 @@
                         })()}
                         ${l.pagina ? `<div style="font-size:.7rem; color:#94a3b8; line-height:1.3;" title="Página donde escribió">${l.pagina}</div>` : ''}
                     </td>
-                    <td>${l.interes[0].toUpperCase() + l.interes.slice(1)}</td>
-                    <td>${l.propiedad_referencia || '—'}</td>
+                    <td>
+                        ${l.interes[0].toUpperCase() + l.interes.slice(1)}
+                        ${l.prioridad ? `<div style="margin-top:4px;">${badgePrioridad(l.prioridad)}</div>` : ''}
+                    </td>
+                    <td>
+                        ${l.propiedad_referencia || '—'}
+                        ${l.presupuesto ? `<div style="font-size:.74rem; color:#334155; font-weight:600; margin-top:4px;">${l.presupuesto}</div>` : ''}
+                        ${l.plazo ? `<div style="font-size:.72rem; color:#64748b;">Compra en ${l.plazo}</div>` : ''}
+                        ${l.proposito ? `<div style="font-size:.72rem; color:#94a3b8;">${l.proposito}</div>` : ''}
+                    </td>
                     <td>
                         <select class="estado-select estado-${l.estado}" data-id="${l.id}" onchange="cambiarEstado(this)">
                             ${estados.map(e => `<option value="${e}" ${e === l.estado ? 'selected' : ''}>${e[0].toUpperCase() + e.slice(1)}</option>`).join('')}
                         </select>
                     </td>
-                    <td>${formatearFecha(l.created_at)}</td>
+                    <td>${formatearFecha(l.fecha_ingreso || l.created_at)}</td>
                     <td>${l.oferta_pdf_path
                         ? `<button class="btn-nota" title="Descargar carta de oferta firmada" onclick="descargarOferta('${l.oferta_pdf_path}', this)"><i class="fas fa-file-arrow-down"></i></button>`
                         : '<span style="color:var(--text-light);">—</span>'}</td>
@@ -2451,6 +2504,11 @@
                 `Interés: ${l.interes}`,
             ];
             if (l.propiedad_referencia) partes.push(`Propiedad / Anuncio: ${l.propiedad_referencia}`);
+            if (l.prioridad) partes.push(`Prioridad: ${PRIORIDAD_LABEL[l.prioridad] || l.prioridad}`);
+            if (l.presupuesto) partes.push(`Presupuesto: ${l.presupuesto}`);
+            if (l.plazo) partes.push(`Compra en: ${l.plazo}`);
+            if (l.proposito) partes.push(`Para: ${l.proposito}`);
+            if (l.formulario) partes.push(`Formulario: ${l.formulario}`);
             if (l.campana) {
                 const c = formatearCampana(l.campana);
                 partes.push(`Campaña: ${[c.titulo, c.fuente].filter(Boolean).join(' — ')}`);

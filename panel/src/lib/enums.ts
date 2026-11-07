@@ -173,3 +173,25 @@ export function formatearCampana(txt: string | null): { titulo: string; fuente: 
   const fuente = [datos.source, datos.medium].filter(Boolean).join(' · ');
   return principal.length ? { titulo: principal.join(' · '), fuente } : { titulo: fuente, fuente: '' };
 }
+
+// Prioridad de los leads del formulario de Meta (la calcula lib/leadMeta.js
+// en el servidor a partir del presupuesto y el plazo que declaró la persona).
+export const PRIORIDADES = ['caliente', 'tibio', 'frio'] as const;
+
+export const PRIORIDAD_LABEL: Record<string, string> = {
+  caliente: 'Caliente',
+  tibio: 'Tibio',
+  frio: 'Frío',
+};
+
+export const PRIORIDAD_CLASE: Record<string, string> = {
+  caliente: 'bg-orange-100 text-orange-800',
+  tibio: 'bg-amber-100 text-amber-800',
+  frio: 'bg-slate-100 text-slate-600',
+};
+
+export const PRIORIDAD_ICONO: Record<string, string> = {
+  caliente: 'fas fa-fire',
+  tibio: 'fas fa-temperature-half',
+  frio: 'fas fa-snowflake',
+};

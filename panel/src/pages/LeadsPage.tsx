@@ -10,6 +10,10 @@ import {
   ORIGENES,
   ORIGEN_ICONO,
   ORIGEN_LABEL,
+  PRIORIDADES,
+  PRIORIDAD_CLASE,
+  PRIORIDAD_ICONO,
+  PRIORIDAD_LABEL,
   formatearCampana,
 } from '../lib/enums';
 import { esHoy, formatearFecha, waHref } from '../lib/format';
@@ -38,20 +42,36 @@ export function LeadsPage() {
   const [fEstado, setFEstado] = useState<Estado | null>(null);
   const [fOrigen, setFOrigen] = useState<Origen | null>(null);
   const [fInteres, setFInteres] = useState<Interes | null>(null);
+  const [fPrioridad, setFPrioridad] = useState<string | null>(null);
+  const [fFormulario, setFFormulario] = useState<string | null>(null);
+  const [antiguoPrimero, setAntiguoPrimero] = useState(true);
   const [notaLead, setNotaLead] = useState<LeadConContacto | null>(null);
   const [detalleLead, setDetalleLead] = useState<LeadConContacto | null>(null);
   const [nuevoOpen, setNuevoOpen] = useState(params.get('nuevo') === '1');
 
-  const filtrados = useMemo(
-    () =>
-      leads.filter(
-        (l) =>
-          (!fEstado || l.estado === fEstado) &&
-          (!fOrigen || l.origen === fOrigen) &&
-          (!fInteres || l.interes === fInteres),
-      ),
-    [leads, fEstado, fOrigen, fInteres],
+  // Los leads del formulario de Meta traen prioridad y formulario; los del
+  // sitio no. Esos filtros solo aparecen cuando hay algo que filtrar.
+  const hayCalificados = useMemo(() => leads.some((l) => l.prioridad), [leads]);
+  const formularios = useMemo(
+    () => Array.from(new Set(leads.map((l) => l.formulario).filter(Boolean) as string[])),
+    [leads],
   );
+
+  const filtrados = useMemo(() => {
+    const lista = leads.filter(
+      (l) =>
+        (!fEstado || l.estado === fEstado) &&
+        (!fOrigen || l.origen === fOrigen) &&
+        (!fInteres || l.interes === fInteres) &&
+        (!fPrioridad || l.prioridad === fPrioridad) &&
+        (!fFormulario || l.formulario === fFormulario),
+    );
+    // Se ordena por cuándo lo envió la persona (fecha_ingreso de Meta) y, si
+    // no hay, por cuándo lo guardamos. Más antiguo primero por defecto: es el
+    // que lleva más tiempo esperando respuesta.
+    const cuando = (l: LeadConContacto) => new Date(l.fecha_ingreso || l.created_at).getTime();
+    return [...lista].sort((a, b) => (antiguoPrimero ? cuando(a) - cuando(b) : cuando(b) - cuando(a)));
+  }, [leads, fEstado, fOrigen, fInteres, fPrioridad, fFormulario, antiguoPrimero]);
 
   // Cuántos de los que se están viendo sirven para contactar de verdad.
   const conDatos = useMemo(
@@ -144,6 +164,33 @@ export function LeadsPage() {
         <ChipRow label="Estado" valores={ESTADOS} labelFn={(e) => ESTADO_LABEL[e]} activo={fEstado} onChange={setFEstado} />
         <ChipRow label="Origen" valores={ORIGENES} labelFn={(o) => ORIGEN_LABEL[o]} activo={fOrigen} onChange={setFOrigen} />
         <ChipRow label="Interés" valores={INTERESES} labelFn={(i) => INTERES_LABEL[i]} activo={fInteres} onChange={setFInteres} />
+        {hayCalificados && (
+          <ChipRow
+            label="Prioridad"
+            valores={PRIORIDADES as unknown as string[]}
+            labelFn={(p) => PRIORIDAD_LABEL[p]}
+            activo={fPrioridad}
+            onChange={setFPrioridad}
+          />
+        )}
+        {formularios.length > 1 && (
+          <ChipRow label="Formulario" valores={formularios} labelFn={(f) => f} activo={fFormulario} onChange={setFFormulario} />
+        )}
+        {hayCalificados && (
+          <div className="flex items-center gap-2 pt-1 text-xs text-slate-500">
+            <span className="font-medium uppercase tracking-wide">Orden</span>
+            <button
+              onClick={() => setAntiguoPrimero((v) => !v)}
+              className="rounded-md border border-slate-200 px-2.5 py-1 font-medium text-slate-700 hover:bg-slate-50"
+            >
+              <i className={cx('mr-1 fas', antiguoPrimero ? 'fa-arrow-up-9-1' : 'fa-arrow-down-1-9')} />
+              {antiguoPrimero ? 'Más antiguo primero' : 'Más reciente primero'}
+            </button>
+            <span className="text-slate-400">
+              {antiguoPrimero ? 'los que llevan más tiempo esperando, arriba' : 'los últimos en entrar, arriba'}
+            </span>
+          </div>
+        )}
       </Card>
 
       {error && (
@@ -191,6 +238,8 @@ export function LeadsPage() {
                 <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase text-slate-500">
                   <th className="px-4 py-3">Contacto</th>
                   <th className="px-4 py-3">Origen</th>
+                  {hayCalificados && <th className="px-4 py-3">Prioridad</th>}
+                  {hayCalificados && <th className="px-4 py-3">Presupuesto / Cuándo</th>}
                   <th className="px-4 py-3">Interés</th>
                   <th className="px-4 py-3">Propiedad / Nota</th>
                   <th className="px-4 py-3">Estado</th>
@@ -251,6 +300,31 @@ export function LeadsPage() {
                         </div>
                       )}
                     </td>
+                    {hayCalificados && (
+                      <td className="px-4 py-3">
+                        {l.prioridad ? (
+                          <Badge className={PRIORIDAD_CLASE[l.prioridad]}>
+                            <i className={cx(PRIORIDAD_ICONO[l.prioridad], 'mr-1')} />
+                            {PRIORIDAD_LABEL[l.prioridad]}
+                          </Badge>
+                        ) : (
+                          <span className="text-slate-300">—</span>
+                        )}
+                      </td>
+                    )}
+                    {hayCalificados && (
+                      <td className="max-w-[12rem] px-4 py-3 text-xs leading-tight text-slate-600">
+                        {l.presupuesto || l.plazo ? (
+                          <>
+                            {l.presupuesto && <div className="font-medium text-slate-700">{l.presupuesto}</div>}
+                            {l.plazo && <div className="text-slate-500">{l.plazo}</div>}
+                            {l.proposito && <div className="text-slate-400">{l.proposito}</div>}
+                          </>
+                        ) : (
+                          <span className="text-slate-300">—</span>
+                        )}
+                      </td>
+                    )}
                     <td className="px-4 py-3">{INTERES_LABEL[l.interes]}</td>
                     <td className="max-w-[16rem] px-4 py-3 text-slate-600">
                       {l.propiedad_referencia || '—'}
@@ -259,7 +333,9 @@ export function LeadsPage() {
                       <EstadoSelect value={l.estado} onChange={(estado) => updateEstado.mutate({ id: l.id, estado })} />
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-slate-500">
-                      {formatearFecha(l.created_at)}
+                      {/* Para los leads de Meta vale cuándo lo envió la persona,
+                          no cuándo nos enteramos nosotros. */}
+                      {formatearFecha(l.fecha_ingreso || l.created_at)}
                     </td>
                     <td className="px-4 py-3">
                       {l.oferta_pdf_path ? (
@@ -390,9 +466,23 @@ function LeadCard({
           <i className={cx(ORIGEN_ICONO[l.origen], 'mr-1')} />
           {ORIGEN_LABEL[l.origen] ?? l.origen}
         </Badge>
+        {l.prioridad && (
+          <Badge className={PRIORIDAD_CLASE[l.prioridad]}>
+            <i className={cx(PRIORIDAD_ICONO[l.prioridad], 'mr-1')} />
+            {PRIORIDAD_LABEL[l.prioridad]}
+          </Badge>
+        )}
         <Badge className="bg-slate-100 text-slate-600">{INTERES_LABEL[l.interes]}</Badge>
-        <span className="ml-auto text-[0.7rem] text-slate-400">{formatearFecha(l.created_at)}</span>
+        <span className="ml-auto text-[0.7rem] text-slate-400">{formatearFecha(l.fecha_ingreso || l.created_at)}</span>
       </div>
+
+      {(l.presupuesto || l.plazo) && (
+        <div className="mt-2 rounded-md bg-slate-50 px-2.5 py-1.5 text-xs leading-tight text-slate-600">
+          {l.presupuesto && <div className="font-medium text-slate-700">{l.presupuesto}</div>}
+          {l.plazo && <div>Compra en {l.plazo}</div>}
+          {l.proposito && <div className="text-slate-400">{l.proposito}</div>}
+        </div>
+      )}
 
       {l.propiedad_referencia && (
         <div className="mt-2 line-clamp-2 rounded-md bg-slate-50 px-2.5 py-1.5 text-xs text-slate-600">
@@ -469,6 +559,32 @@ function DetalleModal({ lead, onClose }: { lead: LeadConContacto | null; onClose
               <div className="col-span-2">
                 <span className="font-semibold text-slate-800">Propiedad / Anuncio:</span>{' '}
                 {lead.propiedad_referencia}
+              </div>
+            )}
+            {lead.prioridad && (
+              <div>
+                <span className="font-semibold text-slate-800">Prioridad:</span>{' '}
+                {PRIORIDAD_LABEL[lead.prioridad]}
+              </div>
+            )}
+            {lead.presupuesto && (
+              <div>
+                <span className="font-semibold text-slate-800">Presupuesto:</span> {lead.presupuesto}
+              </div>
+            )}
+            {lead.plazo && (
+              <div>
+                <span className="font-semibold text-slate-800">Compra en:</span> {lead.plazo}
+              </div>
+            )}
+            {lead.proposito && (
+              <div>
+                <span className="font-semibold text-slate-800">Para:</span> {lead.proposito}
+              </div>
+            )}
+            {lead.formulario && (
+              <div className="col-span-2">
+                <span className="font-semibold text-slate-800">Formulario:</span> {lead.formulario}
               </div>
             )}
             {formatearCampana(lead.campana).titulo && (

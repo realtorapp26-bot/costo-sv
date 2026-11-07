@@ -8,7 +8,7 @@
 // ============================================================
 
 import type { LeadConContacto } from './types';
-import { ORIGEN_LABEL, formatearCampana } from './enums';
+import { ORIGEN_LABEL, PRIORIDAD_LABEL, formatearCampana } from './enums';
 
 // Meta cruza mejor los números en formato internacional. Un número suelto de
 // 8 dígitos en El Salvador es local -> se le pone +503. Los que ya traen
@@ -34,18 +34,21 @@ const celda = (v: unknown): string => {
 };
 
 export function exportarContactos(leads: LeadConContacto[]): void {
-  const columnas = ['Nombre', 'Telefono', 'Telefono internacional', 'Correo', 'Origen',
-    'Interes', 'Estado', 'Campana', 'Pagina', 'Propiedad o anuncio', 'Fecha', 'Notas'];
+  const columnas = ['Fecha de ingreso', 'Nombre', 'Telefono', 'Telefono internacional', 'Correo',
+    'Origen', 'Interes', 'Estado', 'Prioridad', 'Presupuesto', 'Cuando compra', 'Proposito',
+    'Formulario', 'Campana', 'Pagina', 'Propiedad o anuncio', 'Notas'];
 
   const filas = leads.map((l) => {
     const c = l.contactos || { nombre: '', telefono: '', correo: '' };
     const camp = formatearCampana(l.campana);
     return [
+      new Date(l.fecha_ingreso || l.created_at).toLocaleString('es-SV'),
       c.nombre, c.telefono, telefonoParaMeta(c.telefono), c.correo,
       ORIGEN_LABEL[l.origen] ?? l.origen, l.interes, l.estado,
+      l.prioridad ? PRIORIDAD_LABEL[l.prioridad] : '',
+      l.presupuesto, l.plazo, l.proposito, l.formulario,
       [camp.titulo, camp.fuente].filter(Boolean).join(' — '),
       l.pagina, l.propiedad_referencia,
-      new Date(l.created_at).toLocaleString('es-SV'),
       (l.notas || '').replace(/\s*\n\s*/g, ' | '),
     ].map(celda).join(',');
   });

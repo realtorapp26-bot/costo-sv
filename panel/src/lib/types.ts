@@ -149,6 +149,13 @@ export interface LeadConContacto {
   oferta_pdf_path: string | null;
   campana: string | null;
   pagina: string | null;
+  // Respuestas del formulario instantáneo de Meta y prioridad calculada.
+  fecha_ingreso: string | null;
+  presupuesto: string | null;
+  plazo: string | null;
+  proposito: string | null;
+  prioridad: string | null;
+  formulario: string | null;
   created_at: string;
   contactos: Pick<Contacto, 'nombre' | 'telefono' | 'correo'> | null;
 }

@@ -11,7 +11,9 @@ export function useLeads() {
     queryFn: async (): Promise<LeadConContacto[]> => {
       // Las columnas opcionales dependen de migraciones que Walter aplica a mano: si
       // alguna falta, PostgREST responde 400 -> se prueba el select siguiente, más corto.
+      const CALIF = 'fecha_ingreso,presupuesto,plazo,proposito,prioridad,formulario';
       const selects = [
+        `${LEAD_COLS_BASE},oferta_pdf_path,campana,pagina,${CALIF}`,
         `${LEAD_COLS_BASE},oferta_pdf_path,campana,pagina`,
         `${LEAD_COLS_BASE},oferta_pdf_path`,
         LEAD_COLS_BASE,
@@ -24,7 +26,9 @@ export function useLeads() {
           // acá poniendo en null las columnas que ese select no trajo.
           const filas = (res.data ?? []) as unknown as Record<string, unknown>[];
           return filas.map((l) => ({
-            oferta_pdf_path: null, campana: null, pagina: null, ...l,
+            oferta_pdf_path: null, campana: null, pagina: null,
+            fecha_ingreso: null, presupuesto: null, plazo: null,
+            proposito: null, prioridad: null, formulario: null, ...l,
           })) as unknown as LeadConContacto[];
         }
         ultimoError = res.error;
