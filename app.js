@@ -124,6 +124,25 @@ window.imgOpt = function (url, w, q) {
   // mayoría no lo escanea desde la misma compu. Por eso este aviso (con el
   // teléfono como respaldo) en vez de asumir que el mensaje llegó solo.
   let waAvisoTimer = null;
+  let avisoWhatsappActivo = false;
+
+  // El aviso se escondía solo a los 9 segundos — justo mientras la persona
+  // estaba DENTRO de WhatsApp. Al volver al navegador ya no quedaba nada en
+  // pantalla, así que la casilla para dejar el número no la veía nadie, que
+  // es exactamente a quien está dirigida. Ahora: mientras la pestaña está
+  // oculta el reloj se detiene, y cuando la persona vuelve el aviso reaparece
+  // y YA NO se cierra solo — volver de WhatsApp es la señal más fuerte de que
+  // la conversación no arrancó.
+  document.addEventListener('visibilitychange', () => {
+    if (!avisoWhatsappActivo) return;
+    const aviso = document.getElementById('wa-aviso');
+    if (!aviso) return;
+    if (document.hidden) { clearTimeout(waAvisoTimer); return; }
+    clearTimeout(waAvisoTimer);
+    aviso.style.opacity = '1';
+    aviso.style.transform = 'translateX(-50%) translateY(0)';
+    aviso.style.pointerEvents = 'auto';
+  });
 
   // Guarda el número que la persona deja en el aviso. Completa el lead que ya
   // creó el clic; si ese id no está a mano (p. ej. hizo el clic en otra página
@@ -165,6 +184,8 @@ window.imgOpt = function (url, w, q) {
         });
         if (!res.ok) throw new Error('respuesta ' + res.status);
         form.innerHTML = '<div style="font-size:.84rem;color:#1b5e20;">¡Gracias! Walter te escribe a ese número.</div>';
+        avisoWhatsappActivo = false;              // ya dejó el dato: se puede ir solo
+        waAvisoTimer = setTimeout(() => { aviso.style.opacity = '0'; aviso.style.pointerEvents = 'none'; }, 6000);
       } catch (err) {
         console.error('No se pudo guardar el número:', err);
         btn.disabled = false; btn.textContent = btnTexto;
@@ -211,12 +232,17 @@ window.imgOpt = function (url, w, q) {
           '<div data-wa-captura-msg style="display:none;margin-top:8px;font-size:.8rem;"></div>' +
         '</form>';
       document.body.appendChild(aviso);
-      aviso.querySelector('[data-cerrar]').addEventListener('click', () => { aviso.style.opacity = '0'; aviso.style.pointerEvents = 'none'; });
+      aviso.querySelector('[data-cerrar]').addEventListener('click', () => {
+        avisoWhatsappActivo = false;              // cerrado a mano: no vuelve a aparecer
+        aviso.style.opacity = '0';
+        aviso.style.pointerEvents = 'none';
+      });
       prepararCapturaWhatsapp(aviso);
     }
     aviso.style.opacity = '1';
     aviso.style.transform = 'translateX(-50%) translateY(0)';
     aviso.style.pointerEvents = 'auto';
+    avisoWhatsappActivo = true;
     clearTimeout(waAvisoTimer);
     waAvisoTimer = setTimeout(() => { aviso.style.opacity = '0'; aviso.style.pointerEvents = 'none'; }, 9000);
   }
