@@ -283,11 +283,14 @@ window.imgOpt = function (url, w, q) {
       'position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,.55);display:flex;' +
       'align-items:center;justify-content:center;padding:20px;font-family:inherit;';
     capa.innerHTML =
-      '<div style="background:#fff;border-radius:16px;max-width:360px;width:100%;padding:22px 20px;' +
+      '<div style="position:relative;background:#fff;border-radius:16px;max-width:360px;width:100%;padding:22px 20px;' +
         'box-shadow:0 20px 50px rgba(15,23,42,.3);color:#0f172a;">' +
-        '<div style="font-size:1.05rem;font-weight:700;margin-bottom:6px;">Te abro WhatsApp</div>' +
+        '<button type="button" data-pedir-cerrar aria-label="Cerrar" style="position:absolute;top:6px;right:10px;' +
+          'background:none;border:none;font-size:1.3rem;color:#94a3b8;cursor:pointer;line-height:1;padding:6px;">&times;</button>' +
+        '<div style="font-size:1.05rem;font-weight:700;margin-bottom:6px;padding-right:20px;">¿A qué número te escribo?</div>' +
         '<p style="font-size:.88rem;line-height:1.5;color:#475569;margin:0 0 16px;">' +
-          'Dejame tu número por si el chat no llega a enviarse, y te escribo yo.</p>' +
+          'Muchos chats se abren y nunca llegan a enviarse. Con tu número te escribo yo ' +
+          'y no perdemos la consulta.</p>' +
         '<form data-pedir-form>' +
           '<input name="telefono" type="tel" inputmode="tel" autocomplete="tel" placeholder="7000 0000" ' +
             'style="width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:10px;' +
@@ -295,11 +298,11 @@ window.imgOpt = function (url, w, q) {
           '<div data-pedir-msg style="display:none;margin-top:8px;font-size:.8rem;color:#9a3412;"></div>' +
           '<button type="submit" style="width:100%;margin-top:12px;padding:13px;border:none;border-radius:10px;' +
             'background:#25D366;color:#fff;font:inherit;font-size:.95rem;font-weight:700;cursor:pointer;">' +
-            'Abrir WhatsApp</button>' +
+            'Continuar a WhatsApp</button>' +
         '</form>' +
-        '<button type="button" data-pedir-saltar style="display:block;width:100%;margin-top:10px;background:none;' +
-          'border:none;color:#64748b;font:inherit;font-size:.82rem;text-decoration:underline;cursor:pointer;padding:6px;">' +
-          'Abrir sin dejar mi número</button>' +
+        '<p style="font-size:.76rem;line-height:1.4;color:#94a3b8;margin:10px 0 0;text-align:center;">' +
+          'O escribinos al <a href="tel:+' + WA_NUMBER + '" style="color:#25D366;font-weight:600;">' +
+          formatearTelefono(WA_NUMBER) + '</a></p>' +
       '</div>';
     document.body.appendChild(capa);
 
@@ -317,13 +320,19 @@ window.imgOpt = function (url, w, q) {
       else window.open(waLink(mensaje), '_blank', 'noopener');
     };
 
-    capa.querySelector('[data-pedir-saltar]').addEventListener('click', () => {
-      registrarLeadWhatsapp(mensaje);          // lead en blanco: queda el interés
-      abrir(true);                             // y el aviso le da una segunda chance
-    });
-
-    capa.addEventListener('click', (e) => {    // tocar fuera = saltar
-      if (e.target === capa) { registrarLeadWhatsapp(mensaje); abrir(true); }
+    // Cerrar = cancelar, NO abrir WhatsApp sin el número. Antes había un
+    // "Abrir sin dejar mi número" y lo usaba todo el mundo: los leads
+    // llegaban con Teléfono vacío y Walter se enteraba del interés sin tener
+    // a quién llamar. Igual queda el lead en blanco, para no perder la señal
+    // de que alguien estuvo a punto de escribir.
+    const cancelar = () => {
+      registrarLeadWhatsapp(mensaje);
+      capa.remove();
+    };
+    capa.querySelector('[data-pedir-cerrar]').addEventListener('click', cancelar);
+    capa.addEventListener('click', (e) => { if (e.target === capa) cancelar(); });
+    document.addEventListener('keydown', function esc(e) {
+      if (e.key === 'Escape' && document.getElementById('wa-pedir')) { cancelar(); document.removeEventListener('keydown', esc); }
     });
 
     form.addEventListener('submit', (e) => {
