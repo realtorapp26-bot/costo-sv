@@ -14,6 +14,9 @@
 
 import crypto from 'node:crypto';
 import { guardarLead } from '../lib/guardarLead.js';
+import {
+  calcularPrioridad, esLeadDePrueba, mapearRespuestas, normalizarNombre, valorDe,
+} from '../lib/leadMeta.js';
 
 // Vercel parsea el body como JSON por default, pero para validar la firma
 // de Meta hace falta la respuesta apagando ese parseo automático y hace
@@ -29,65 +32,77 @@ async function leerCuerpoCrudo(req) {
 
 const GRAPH_VERSION = 'v21.0';
 
-// Nombres típicos que Meta usa para los campos estándar del formulario —
-// el resto de las preguntas (las que Walter arma a mano) quedan con su
-// propio nombre y van todas a "notas".
 const CAMPOS_NOMBRE = ['full_name', 'first_name'];
 const CAMPOS_TELEFONO = ['phone_number'];
 const CAMPOS_CORREO = ['email'];
 
-function valorDe(fieldData, nombres) {
-  for (const f of fieldData) {
-    if (nombres.includes(f.name) && f.values && f.values[0]) return f.values[0];
-  }
-  return '';
-}
-
-function etiquetaCampo(nombre) {
-  return nombre.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-async function procesarLeadgen(leadgenId, pageAccessToken, serviceKey) {
-  const url = `https://graph.facebook.com/${GRAPH_VERSION}/${leadgenId}?fields=field_data,ad_name,form_name&access_token=${encodeURIComponent(pageAccessToken)}`;
-  const r = await fetch(url);
-  if (!r.ok) throw new Error('Graph API ' + r.status + ': ' + (await r.text()));
-  const data = await r.json();
+// Convierte un lead de la Graph API en lo que espera guardarLead(). Está
+// separado del webhook a propósito: un script de recuperación (backfill)
+// que traiga los leads viejos de Meta tiene que armar EXACTAMENTE lo mismo,
+// y así no hay dos versiones del mapeo que se desincronicen.
+export function leadDesdeMeta(data) {
   const fieldData = data.field_data || [];
 
-  let nombre = valorDe(fieldData, CAMPOS_NOMBRE);
-  const apellido = valorDe(fieldData, ['last_name']);
+  let nombre = normalizarNombre(valorDe(fieldData, CAMPOS_NOMBRE));
+  const apellido = normalizarNombre(valorDe(fieldData, ['last_name']));
   if (nombre && apellido && !nombre.includes(apellido)) nombre = `${nombre} ${apellido}`;
 
-  const usados = new Set([...CAMPOS_NOMBRE, 'last_name', ...CAMPOS_TELEFONO, ...CAMPOS_CORREO]);
-  const otrasPreguntas = fieldData
-    .filter((f) => !usados.has(f.name))
-    .map((f) => `${etiquetaCampo(f.name)}: ${(f.values && f.values[0]) || ''}`)
-    .filter((linea) => !linea.endsWith(': '));
+  const r = mapearRespuestas(fieldData);
+  const prioridad = calcularPrioridad(r);
 
   const notasPartes = [];
   if (data.form_name) notasPartes.push('Formulario: ' + data.form_name);
   if (data.ad_name) notasPartes.push('Anuncio: ' + data.ad_name);
-  notasPartes.push(...otrasPreguntas);
+  if (data.campaign_name) notasPartes.push('Campaña: ' + data.campaign_name);
+  notasPartes.push(...r.otras);
 
-  await guardarLead(
-    {
-      nombre: nombre || 'Lead de Facebook',
-      telefono: valorDe(fieldData, CAMPOS_TELEFONO),
-      correo: valorDe(fieldData, CAMPOS_CORREO),
-      origen: 'facebook_ads',
-      interes: 'otro',
-      propiedad_referencia: data.ad_name || null,
-      notas: notasPartes.length ? notasPartes.join('\n') : null,
-      // Misma columna que usan los leads del sitio: así "de qué campaña vino"
-      // se compara igual venga del formulario instantáneo o de la web.
-      campana: [data.ad_name ? 'anuncio: ' + data.ad_name : null,
-                data.form_name ? 'formulario: ' + data.form_name : null]
-        .filter(Boolean).join(' | ') || 'source: facebook',
-      pagina: 'facebook_lead_ads',
-      actividad: { tipo: 'otro', detalle: 'Lead recibido desde Facebook Lead Ads' },
-    },
-    serviceKey,
-  );
+  return {
+    nombre: nombre || 'Lead de Facebook',
+    telefono: valorDe(fieldData, CAMPOS_TELEFONO),
+    correo: valorDe(fieldData, CAMPOS_CORREO),
+    origen: 'facebook_ads',
+    interes: 'comprar',
+    propiedad_referencia: data.ad_name || null,
+    notas: notasPartes.length ? notasPartes.join('\n') : null,
+    // Misma columna que usan los leads del sitio: así "de qué campaña vino"
+    // se compara igual venga del formulario instantáneo o de la web.
+    campana: [data.campaign_name ? 'campaign: ' + data.campaign_name : null,
+              data.ad_name ? 'anuncio: ' + data.ad_name : null]
+      .filter(Boolean).join(' | ') || 'source: facebook',
+    pagina: 'facebook_lead_ads',
+    meta_leadgen_id: data.id || null,
+    fecha_ingreso: data.created_time || null,
+    proposito: r.proposito,
+    presupuesto: r.presupuesto,
+    plazo: r.plazo,
+    prioridad,
+    formulario: data.form_name || null,
+    respuestas_raw: fieldData.length ? fieldData : null,
+    actividad: { tipo: 'otro', detalle: 'Lead recibido desde Facebook Lead Ads' },
+  };
+}
+
+async function procesarLeadgen(leadgenId, pageAccessToken, serviceKey) {
+  const campos = 'id,created_time,field_data,ad_name,adset_name,campaign_name,form_id,is_organic';
+  const url = `https://graph.facebook.com/${GRAPH_VERSION}/${leadgenId}?fields=${campos}&access_token=${encodeURIComponent(pageAccessToken)}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error('Graph API ' + r.status + ': ' + (await r.text()));
+  const data = await r.json();
+
+  // El formulario trae el nombre por separado (no viene con el lead).
+  if (!data.form_name && data.form_id) {
+    try {
+      const rf = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${data.form_id}?fields=name&access_token=${encodeURIComponent(pageAccessToken)}`);
+      if (rf.ok) data.form_name = (await rf.json()).name || null;
+    } catch (e) { /* el nombre del formulario es opcional */ }
+  }
+
+  if (esLeadDePrueba(data.field_data)) {
+    console.log('facebook-leadgen: lead de prueba de Meta, no se guarda:', leadgenId);
+    return;
+  }
+
+  await guardarLead(leadDesdeMeta(data), serviceKey);
 }
 
 export default async function handler(req, res) {
