@@ -176,8 +176,10 @@ export function LeadsPage() {
         {formularios.length > 1 && (
           <ChipRow label="Formulario" valores={formularios} labelFn={(f) => f} activo={fFormulario} onChange={setFFormulario} />
         )}
-        {hayCalificados && (
-          <div className="flex items-center gap-2 pt-1 text-xs text-slate-500">
+        {/* El orden se puede invertir SIEMPRE: el default es "más antiguo
+            primero" para todos los leads, así que esconder el botón dejaba a
+            Walter sin forma de volver al orden de siempre. */}
+        <div className="flex items-center gap-2 pt-1 text-xs text-slate-500">
             <span className="font-medium uppercase tracking-wide">Orden</span>
             <button
               onClick={() => setAntiguoPrimero((v) => !v)}
@@ -186,11 +188,10 @@ export function LeadsPage() {
               <i className={cx('mr-1 fas', antiguoPrimero ? 'fa-arrow-up-9-1' : 'fa-arrow-down-1-9')} />
               {antiguoPrimero ? 'Más antiguo primero' : 'Más reciente primero'}
             </button>
-            <span className="text-slate-400">
-              {antiguoPrimero ? 'los que llevan más tiempo esperando, arriba' : 'los últimos en entrar, arriba'}
-            </span>
-          </div>
-        )}
+          <span className="hidden text-slate-400 sm:inline">
+            {antiguoPrimero ? 'los que llevan más tiempo esperando, arriba' : 'los últimos en entrar, arriba'}
+          </span>
+        </div>
       </Card>
 
       {error && (

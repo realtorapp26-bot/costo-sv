@@ -100,22 +100,22 @@ async function procesarLeadgen(leadgenId, pageAccessToken, serviceKey) {
 
   const lead = leadDesdeMeta(data);
 
-  // Los leads de prueba de la Herramienta de Meta traen datos inventados: no
-  // van al panel, porque ensucian el pipeline con filas que después hay que
-  // borrar a mano. Pero SÍ avisan por Telegram, con el mismo formato que uno
-  // real: es la única forma de comprobar el circuito completo (suscripción →
-  // webhook → Graph API → mapeo de las respuestas → aviso) sin dejar basura.
-  if (esLeadDePrueba(data.field_data)) {
-    console.log('facebook-leadgen: lead de prueba de Meta, se avisa sin guardar:', leadgenId);
-    await avisarTelegram(
-      mensajeLead(lead, '🧪 PRUEBA — lead de prueba de Meta') +
-        '\n\nNo se guarda en el panel: es una prueba. Si ves bien el presupuesto, ' +
-        'el plazo y la prioridad, el circuito completo funciona.',
-    );
-    return;
+  // Los leads de prueba de la Herramienta de Meta traen datos inventados.
+  // Entran igual al panel —si no, probar el circuito obliga a adivinar dónde
+  // mirar— pero con el nombre marcado para que se reconozcan de un vistazo y
+  // se borren con el bote de basura cuando sobren.
+  const prueba = esLeadDePrueba(data.field_data);
+  if (prueba) {
+    lead.nombre = '🧪 PRUEBA — ' + lead.nombre;
+    lead.notas = 'Lead de prueba de la Herramienta de Meta. Se puede borrar.\n' + (lead.notas || '');
+    lead.actividad = { tipo: 'otro', detalle: 'Lead de PRUEBA desde Facebook Lead Ads' };
+    console.log('facebook-leadgen: lead de prueba de Meta:', leadgenId);
   }
 
-  await guardarLead(lead, serviceKey);
+  await guardarLead(
+    prueba ? { ...lead, encabezadoTelegram: '🧪 PRUEBA — lead de prueba de Meta' } : lead,
+    serviceKey,
+  );
 }
 
 export default async function handler(req, res) {

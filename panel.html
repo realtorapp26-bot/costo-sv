@@ -734,7 +734,13 @@
             <div class="filters-bar" id="filtros-prioridad" style="display:none;">
                 <span class="filter-label">Prioridad</span>
                 <div class="filter-group" id="filtro-prioridad"></div>
-                <button id="btn-orden-leads" class="btn btn-outline" style="margin-left:auto; padding:6px 12px; font-size:.8rem;"
+            </div>
+            <!-- El orden se puede invertir siempre: el default es "más antiguo
+                 primero" para todos los leads, así que esconder el botón dejaba
+                 a Walter sin forma de volver al orden de siempre. -->
+            <div class="filters-bar">
+                <span class="filter-label">Orden</span>
+                <button id="btn-orden-leads" class="btn btn-outline" style="padding:6px 12px; font-size:.8rem;"
                         onclick="antiguoPrimero = !antiguoPrimero; renderLeads();">↑ Más antiguo primero</button>
             </div>
 
@@ -2347,10 +2353,10 @@
                 if (hayCalificados) {
                     crearChips('filtro-prioridad', PRIORIDADES, p => PRIORIDAD_LABEL[p], filtroPrioridad,
                         v => { filtroPrioridad = v; renderLeads(); });
-                    document.getElementById('btn-orden-leads').textContent =
-                        antiguoPrimero ? '↑ Más antiguo primero' : '↓ Más reciente primero';
                 }
             }
+            document.getElementById('btn-orden-leads').textContent =
+                antiguoPrimero ? '↑ Más antiguo primero' : '↓ Más reciente primero';
 
             const cuando = l => new Date(l.fecha_ingreso || l.created_at).getTime();
             const filtrados = leadsData.filter(l =>
