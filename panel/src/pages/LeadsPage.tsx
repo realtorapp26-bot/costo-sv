@@ -13,6 +13,7 @@ import {
   formatearCampana,
 } from '../lib/enums';
 import { esHoy, formatearFecha, waHref } from '../lib/format';
+import { exportarContactos } from '../lib/exportarContactos';
 import {
   ofertaSignedUrl,
   useAddLead,
@@ -50,6 +51,12 @@ export function LeadsPage() {
           (!fInteres || l.interes === fInteres),
       ),
     [leads, fEstado, fOrigen, fInteres],
+  );
+
+  // Cuántos de los que se están viendo sirven para contactar de verdad.
+  const conDatos = useMemo(
+    () => filtrados.filter((l) => l.contactos?.telefono || l.contactos?.correo).length,
+    [filtrados],
   );
 
   const kpis = useMemo(
@@ -110,6 +117,15 @@ export function LeadsPage() {
               </button>
             ))}
           </div>
+          <Button
+            variant="outline"
+            onClick={() => exportarContactos(filtrados)}
+            disabled={!filtrados.length}
+            title={`Descargar los ${filtrados.length} contactos que estás viendo (${conDatos} con teléfono o correo)`}
+          >
+            <i className="fas fa-file-csv" />
+            <span className="hidden sm:inline">Contactos</span>
+          </Button>
           <Button variant="gold" onClick={() => setNuevoOpen(true)}>
             <i className="fas fa-plus" />
             <span className="hidden sm:inline">Nuevo lead</span>

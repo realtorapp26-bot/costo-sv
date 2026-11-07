@@ -732,6 +732,13 @@
                 <div class="filter-group" id="filtro-interes"></div>
             </div>
 
+            <div class="filters-bar" style="justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                <span class="filter-label" id="exportar-resumen" style="font-weight: 400;"></span>
+                <button class="btn btn-outline" onclick="exportarContactos()" style="padding: 8px 14px; font-size: .85rem;">
+                    <i class="fas fa-file-csv"></i> Descargar contactos (CSV)
+                </button>
+            </div>
+
             <table class="leads-table">
                 <thead>
                     <tr>
@@ -2165,6 +2172,62 @@
         const origenes = ['whatsapp', 'formulario_web', 'facebook_ads', 'marketplace', 'referido'];
         const intereses = ['comprar', 'vender', 'invertir', 'otro'];
         let filtroEstado = null, filtroOrigen = null, filtroInteres = null;
+        let leadsFiltrados = [];
+
+        // Exporta los contactos que se están viendo (respeta los filtros de
+        // arriba). Sirve para subirlos como Audiencia Personalizada en Meta,
+        // importarlos a WhatsApp Business o trabajarlos en una hoja de cálculo.
+        function telefonoParaMeta(tel) {
+            // Meta cruza mejor los números en formato internacional. Un número
+            // suelto de 8 dígitos en El Salvador es local -> se le pone +503.
+            // Los que ya traen código de país (extranjeros) se respetan.
+            // Ojo con inventar código de país: un número cargado como
+            // "700 028384" tiene 9 dígitos y no es ni local ni internacional
+            // reconocible; con un "+" delante quedaría "+700028384", un país
+            // que no existe. En ese caso se devuelve tal cual — que Meta no lo
+            // cruce es mejor que cruzarlo mal.
+            const limpio = String(tel || '').replace(/[^\d+]/g, '');
+            if (!limpio) return '';
+            if (limpio.startsWith('+')) return limpio;
+            if (limpio.length === 8) return '+503' + limpio;
+            if (limpio.length === 11 && limpio.startsWith('503')) return '+' + limpio;
+            if (limpio.length >= 10 && limpio.length <= 15) return '+' + limpio;
+            return limpio;
+        }
+
+        function exportarContactos() {
+            if (!leadsFiltrados.length) { alert('No hay contactos para descargar con estos filtros.'); return; }
+
+            const columnas = ['Nombre', 'Telefono', 'Telefono internacional', 'Correo', 'Origen',
+                'Interes', 'Estado', 'Campana', 'Pagina', 'Propiedad o anuncio', 'Fecha', 'Notas'];
+            const celda = (v) => {
+                const t = v == null ? '' : String(v);
+                return /[",\n;]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+            };
+            const filas = leadsFiltrados.map((l) => {
+                const c = l.contactos || {};
+                const camp = formatearCampana(l.campana);
+                return [
+                    c.nombre, c.telefono, telefonoParaMeta(c.telefono), c.correo,
+                    origenLabels[l.origen] || l.origen, l.interes, l.estado,
+                    [camp.titulo, camp.fuente].filter(Boolean).join(' — '),
+                    l.pagina, l.propiedad_referencia,
+                    new Date(l.created_at).toLocaleString('es-SV'),
+                    (l.notas || '').replace(/\s*\n\s*/g, ' | '),
+                ].map(celda).join(',');
+            });
+
+            // El BOM es lo que hace que Excel abra los acentos bien.
+            const csv = '﻿' + columnas.join(',') + '\n' + filas.join('\n');
+            const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'contactos-' + new Date().toISOString().slice(0, 10) + '.csv';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
 
         function esHoy(fechaIso) {
             const f = new Date(fechaIso);
@@ -2251,6 +2314,14 @@
             document.getElementById('kpi-activos').textContent = leadsData.filter(l => ['nuevo','contactado'].includes(l.estado)).length;
             document.getElementById('kpi-calificados').textContent = leadsData.filter(l => l.estado === 'calificado').length;
             document.getElementById('kpi-total').textContent = filtrados.length;
+
+            // Para exportar hace falta la MISMA lista que se está viendo.
+            leadsFiltrados = filtrados;
+            const conDatos = filtrados.filter(l => (l.contactos || {}).telefono || (l.contactos || {}).correo).length;
+            document.getElementById('exportar-resumen').textContent =
+                filtrados.length
+                    ? `${conDatos} de ${filtrados.length} con teléfono o correo`
+                    : '';
 
             const body = document.getElementById('leads-body');
             body.innerHTML = '';
