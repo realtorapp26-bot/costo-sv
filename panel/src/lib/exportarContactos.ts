@@ -55,7 +55,11 @@ export function exportarContactos(leads: LeadConContacto[]): void {
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'contactos-' + new Date().toISOString().slice(0, 10) + '.csv';
+  // Nombre explícito: el archivo es para SUBIR a Meta, no para leerlo. Va con
+  // coma porque es lo que pide el cargador de Meta; un Excel en español espera
+  // punto y coma y lo muestra apelmazado en una columna. Para mirar contactos
+  // está el panel, no este archivo.
+  a.download = 'subir-a-meta-' + new Date().toISOString().slice(0, 10) + '.csv';
   document.body.appendChild(a);
   a.click();
   a.remove();

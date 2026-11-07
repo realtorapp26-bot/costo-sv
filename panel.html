@@ -734,8 +734,9 @@
 
             <div class="filters-bar" style="justify-content: space-between; flex-wrap: wrap; gap: 10px;">
                 <span class="filter-label" id="exportar-resumen" style="font-weight: 400;"></span>
-                <button class="btn btn-outline" onclick="exportarContactos()" style="padding: 8px 14px; font-size: .85rem;">
-                    <i class="fas fa-file-csv"></i> Descargar contactos (CSV)
+                <button class="btn btn-outline" onclick="exportarContactos()" style="padding: 8px 14px; font-size: .85rem;"
+                        title="Archivo para subir como Audiencia Personalizada en Meta. No hace falta abrirlo.">
+                    <i class="fas fa-bullhorn"></i> Lista para Meta
                 </button>
             </div>
 
@@ -2222,7 +2223,11 @@
             const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'contactos-' + new Date().toISOString().slice(0, 10) + '.csv';
+            // Nombre explícito: el archivo es para SUBIR a Meta, no para leerlo.
+            // Va con coma porque es lo que pide el cargador de Meta; un Excel en
+            // español espera punto y coma y lo muestra apelmazado en una columna.
+            // Para mirar contactos está el panel, no este archivo.
+            a.download = 'subir-a-meta-' + new Date().toISOString().slice(0, 10) + '.csv';
             document.body.appendChild(a);
             a.click();
             a.remove();

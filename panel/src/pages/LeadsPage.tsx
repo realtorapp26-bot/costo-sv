@@ -121,10 +121,10 @@ export function LeadsPage() {
             variant="outline"
             onClick={() => exportarContactos(filtrados)}
             disabled={!filtrados.length}
-            title={`Descargar los ${filtrados.length} contactos que estás viendo (${conDatos} con teléfono o correo)`}
+            title={`Archivo para subir como Audiencia Personalizada en Meta: ${conDatos} de ${filtrados.length} con teléfono o correo. No hace falta abrirlo.`}
           >
-            <i className="fas fa-file-csv" />
-            <span className="hidden sm:inline">Contactos</span>
+            <i className="fas fa-bullhorn" />
+            <span className="hidden sm:inline">Lista para Meta</span>
           </Button>
           <Button variant="gold" onClick={() => setNuevoOpen(true)}>
             <i className="fas fa-plus" />
