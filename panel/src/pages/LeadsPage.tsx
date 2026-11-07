@@ -43,6 +43,7 @@ export function LeadsPage() {
   const [fOrigen, setFOrigen] = useState<Origen | null>(null);
   const [fInteres, setFInteres] = useState<Interes | null>(null);
   const [fPrioridad, setFPrioridad] = useState<string | null>(null);
+  const [fContacto, setFContacto] = useState<string | null>(null);
   const [fFormulario, setFFormulario] = useState<string | null>(null);
   const [antiguoPrimero, setAntiguoPrimero] = useState(true);
   const [notaLead, setNotaLead] = useState<LeadConContacto | null>(null);
@@ -64,14 +65,15 @@ export function LeadsPage() {
         (!fOrigen || l.origen === fOrigen) &&
         (!fInteres || l.interes === fInteres) &&
         (!fPrioridad || l.prioridad === fPrioridad) &&
-        (!fFormulario || l.formulario === fFormulario),
+        (!fFormulario || l.formulario === fFormulario) &&
+        (!fContacto || (!!(l.contactos?.telefono || l.contactos?.correo) === (fContacto === 'con'))),
     );
     // Se ordena por cuándo lo envió la persona (fecha_ingreso de Meta) y, si
     // no hay, por cuándo lo guardamos. Más antiguo primero por defecto: es el
     // que lleva más tiempo esperando respuesta.
     const cuando = (l: LeadConContacto) => new Date(l.fecha_ingreso || l.created_at).getTime();
     return [...lista].sort((a, b) => (antiguoPrimero ? cuando(a) - cuando(b) : cuando(b) - cuando(a)));
-  }, [leads, fEstado, fOrigen, fInteres, fPrioridad, fFormulario, antiguoPrimero]);
+  }, [leads, fEstado, fOrigen, fInteres, fPrioridad, fFormulario, fContacto, antiguoPrimero]);
 
   // Cuántos de los que se están viendo sirven para contactar de verdad.
   const conDatos = useMemo(
@@ -176,6 +178,16 @@ export function LeadsPage() {
         {formularios.length > 1 && (
           <ChipRow label="Formulario" valores={formularios} labelFn={(f) => f} activo={fFormulario} onChange={setFFormulario} />
         )}
+        {/* Separa a quién se puede llamar hoy de quién solo dejó rastro. Los
+            "sin datos" son casi siempre clics de WhatsApp que no llegaron a
+            enviarse: sirven para cruzar contra los chats y para retargeting. */}
+        <ChipRow
+          label="Contacto"
+          valores={['con', 'sin']}
+          labelFn={(v) => (v === 'con' ? 'Con teléfono o correo' : 'Sin datos de contacto')}
+          activo={fContacto}
+          onChange={setFContacto}
+        />
         {/* El orden se puede invertir SIEMPRE: el default es "más antiguo
             primero" para todos los leads, así que esconder el botón dejaba a
             Walter sin forma de volver al orden de siempre. */}
