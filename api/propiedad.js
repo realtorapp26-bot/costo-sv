@@ -26,6 +26,20 @@ const AGENTE = {
 };
 const FOTO_RESPALDO = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80';
 
+// El precio se carga a mano desde el panel, así que llega como venga:
+// "125000", "$125000", "US$ 129,900" o "Consultar". Si es un número suelto se
+// le ponen los separadores de miles — "$125000" se lee descuidado justo en la
+// página que recibe el 80% del tráfico. Cualquier otro texto se respeta.
+function precioLegible(valor) {
+  const txt = String(valor == null ? '' : valor).trim();
+  if (!txt) return 'Consultar';
+  const m = txt.match(/^(US\$|\$|USD\s*)?\s*(\d[\d,]*)(\.\d{1,2})?$/i);
+  if (!m) return txt;
+  const entero = m[2].replace(/,/g, '');
+  if (entero.length < 4) return txt;                    // 500 no necesita separador
+  return (m[1] ? m[1].trim() : '$') + entero.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (m[3] || '');
+}
+
 const esc = (s) => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -299,6 +313,11 @@ function render(p) {
         .ficha-contacto .form-group label { font-size: 0.82rem; }
         .ficha-contacto .form-control { padding: 11px 13px; font-size: 0.92rem; }
         .ficha-contacto .form-alert { font-size: 0.86rem; line-height: 1.45; }
+        .ficha-encabezado { margin-top: 30px; }
+        .ficha-extras { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+        .ficha-extras a, .ficha-extras button { background: none; border: 0; padding: 0; font: inherit; font-size: 0.82rem; color: var(--text-light); text-decoration: none; cursor: pointer; }
+        .ficha-extras a:hover, .ficha-extras button:hover { color: var(--primary); text-decoration: underline; }
+        .ficha-extras i { margin-right: 5px; }
         .ficha-mapa { position: relative; aspect-ratio: 16 / 9; border-radius: var(--radius-md); overflow: hidden; background: var(--border); }
         .ficha-mapa iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
         .ficha-mapa-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; color: var(--primary); text-decoration: none; font-weight: 500; }
@@ -311,7 +330,11 @@ function render(p) {
         .yt-play { position: relative; z-index: 1; width: 66px; height: 66px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; padding-left: 4px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35); }
         @media (max-width: 880px) {
             .ficha-layout { flex-direction: column; }
-            .ficha-aside { position: static; width: 100%; flex-basis: auto; }
+            /* El precio y el formulario van ANTES de la descripción. Medido:
+               en la ficha de Golden Lake quedaban a 2.173px de una página de
+               3.754px — había que bajar más de la mitad para encontrar dónde
+               dejar los datos. */
+            .ficha-aside { position: static; width: 100%; flex-basis: auto; order: -1; }
             .ficha-titulo { font-size: 1.7rem; }
         }
     </style>
@@ -344,12 +367,20 @@ function render(p) {
         <img id="ficha-hero" class="ficha-hero-img" src="${esc(imgOpt(foto0, 1080, 75))}" alt="${esc(p.titulo)}" onerror="this.src='${FOTO_RESPALDO}'" onclick="abrirGaleria()">
         ${galeriaThumbs}
 
+        <!-- El encabezado vive FUERA de las dos columnas. Así, en celular, el
+             orden queda: foto -> qué es y dónde -> precio y contacto ->
+             descripción. Antes el precio y el formulario caían al final de
+             todo: había que pasar descripción, video, características y mapa
+             para llegar a ellos, en la página que recibe el 80% del tráfico. -->
+        <div class="ficha-encabezado">
+            <span class="ficha-badge">${esc(p.categoria || 'Propiedad')} · ${contrato}</span>
+            <h1 class="ficha-titulo">${esc(p.titulo)}</h1>
+            ${p.ubicacion ? `<p class="ficha-ubicacion"><i class="fas fa-location-dot"></i>${esc(p.ubicacion)}</p>` : ''}
+            ${chips ? `<div class="ficha-chips">${chips}</div>` : ''}
+        </div>
+
         <div class="ficha-layout">
             <div class="ficha-main">
-                <span class="ficha-badge">${esc(p.categoria || 'Propiedad')} · ${contrato}</span>
-                <h1 class="ficha-titulo">${esc(p.titulo)}</h1>
-                ${p.ubicacion ? `<p class="ficha-ubicacion"><i class="fas fa-location-dot"></i>${esc(p.ubicacion)}</p>` : ''}
-                ${chips ? `<div class="ficha-chips">${chips}</div>` : ''}
 
                 ${descripcion ? `<div class="ficha-seccion"><h2>Descripción</h2><div class="ficha-desc">${esc(descripcion)}</div></div>` : ''}
                 ${videoHtml}
@@ -360,11 +391,8 @@ function render(p) {
 
             <aside class="ficha-aside">
                 <div class="ficha-precio-label">Precio</div>
-                <div class="ficha-precio">${esc(p.precio || 'Consultar')}</div>
+                <div class="ficha-precio">${esc(precioLegible(p.precio))}</div>
                 <a data-whatsapp data-wa="${esc(waMsg)}" href="${esc(waHref)}" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> Consultar por WhatsApp</a>
-                <button type="button" class="btn btn-outline" style="margin-top:12px;" onclick="window.abrirDossier && window.abrirDossier()"><i class="fas fa-file-arrow-down"></i> Descargar dossier</button>
-                ${(Array.isArray(p.fotos) && p.fotos.length) ? `<a href="/api/fotos-zip?slug=${esc(slug)}" class="btn btn-outline" style="margin-top:12px;"><i class="fas fa-download"></i> Descargar fotos</a>` : ''}
-                <a href="/propiedades.html" class="btn btn-outline" style="margin-top:12px;">Ver otras propiedades</a>
 
                 <!-- Captura de datos. Antes la ficha SOLO ofrecía WhatsApp: si la
                      persona no tocaba Enviar dentro de WhatsApp, el lead quedaba
@@ -393,6 +421,16 @@ function render(p) {
                         </div>
                         <button type="submit" class="btn btn-primary">Quiero que me contacten</button>
                     </form>
+                </div>
+
+                <!-- Secundarios. El dossier estaba arriba, ocupando el lugar
+                     de honor bajo el precio, y en 30 días lo abrieron 4
+                     personas de 3.459 visitas (0,1%): no se gana ese espacio.
+                     Siguen disponibles, como enlaces y no como botones. -->
+                <div class="ficha-extras">
+                    <button type="button" onclick="window.abrirDossier && window.abrirDossier()"><i class="fas fa-file-arrow-down"></i> Dossier</button>
+                    ${(Array.isArray(p.fotos) && p.fotos.length) ? `<a href="/api/fotos-zip?slug=${esc(slug)}"><i class="fas fa-download"></i> Fotos</a>` : ''}
+                    <a href="/propiedades.html"><i class="fas fa-building"></i> Otras propiedades</a>
                 </div>
 
                 <p class="aside-nota">Atención directa de Walter Guerrero, agente RE/MAX Elite.</p>
