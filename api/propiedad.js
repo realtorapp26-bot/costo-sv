@@ -618,6 +618,16 @@ export default async function handler(req, res) {
     return;
   }
 
-  res.setHeader('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=600');
+  // La ficha recibe ~2.800 visitas al mes: una cada 15 minutos. Con los 120 s
+  // que tenía antes, la caché del CDN caducaba siempre ANTES de la visita
+  // siguiente, así que casi todo el mundo caía en un arranque en frío de la
+  // función (1,8 s hasta el primer byte, medido; con caché caliente es 0,4 s).
+  // Con una hora de validez la mayoría entra por caché, y
+  // stale-while-revalidate de un día hace que, pasada esa hora, el visitante
+  // reciba al instante la versión guardada mientras el CDN la renueva por
+  // detrás: nadie espera por la revalidación.
+  // Precio: un cambio hecho en el panel puede tardar hasta una hora en verse.
+  // Si hace falta al instante, un redeploy limpia la caché.
+  res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
   res.status(200).send(render(propiedad));
 }
