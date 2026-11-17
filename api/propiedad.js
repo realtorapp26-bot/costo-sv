@@ -208,7 +208,16 @@ function render(p) {
   const waHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waMsg)}`;
 
   const galeriaThumbs = fotos.length > 1
-    ? `<div class="ficha-thumbs">${fotos.map((f, i) => `<button type="button" class="ficha-thumb${i === 0 ? ' activo' : ''}" onclick="verFoto(${i})"><img src="${esc(imgOpt(f, 300, 65))}" alt="${esc(p.titulo)} — foto ${i + 1}" loading="lazy" decoding="async"></button>`).join('')}</div>`
+    // Las miniaturas se MUESTRAN a 96x68 px (ver .ficha-thumb abajo) pero se
+    // pedían a 300 px de ancho, que el optimizador redondea a 400: 23 KB cada
+    // una, 253 KB sólo de miniaturas en una ficha de 11 fotos, más que la foto
+    // principal. Con srcset una pantalla normal baja la de 160 (4 KB) y una
+    // retina la de 280 (12 KB), que es lo que de verdad necesita cada una.
+    ? `<div class="ficha-thumbs">${fotos.map((f, i) => {
+      const thumbOpt = imgOpt(f, 160, 65) !== f;
+      const srcset = thumbOpt ? ` srcset="${esc([160, 280].map((w) => `${imgOpt(f, w, 65)} ${w}w`).join(', '))}" sizes="96px"` : '';
+      return `<button type="button" class="ficha-thumb${i === 0 ? ' activo' : ''}" onclick="verFoto(${i})"><img src="${esc(imgOpt(f, 280, 65))}"${srcset} alt="${esc(p.titulo)} — foto ${i + 1}" loading="lazy" decoding="async"></button>`;
+    }).join('')}</div>`
     : '';
 
   const jsonld = {
