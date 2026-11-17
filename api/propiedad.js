@@ -129,6 +129,19 @@ function render(p) {
   const slug = p.slug || p.id;
   const fotos = Array.isArray(p.fotos) && p.fotos.length ? p.fotos : [FOTO_RESPALDO];
   const foto0 = fotos[0];
+  // La foto principal es el LCP de la página. Antes se servía un solo archivo
+  // de 1080px a todo el mundo: en un celular de 390px eso es casi el triple
+  // de píxeles de los necesarios (164 KB en webp contra ~55 KB a 600px). Con
+  // srcset cada aparato baja el tamaño que le toca.
+  // Ojo: imgOpt() solo reescribe las URLs de los hosts optimizables; si la
+  // foto viene de otro lado devuelve la misma URL, y entonces un srcset con
+  // varios anchos sería una mentira (el mismo archivo declarado como cuatro
+  // tamaños). Por eso el srcset solo se arma cuando la URL sí se optimiza.
+  const heroOptimizable = imgOpt(foto0, 1080, 75) !== foto0;
+  const HERO_SIZES = '(max-width: 900px) 100vw, 740px';
+  const heroSrcset = heroOptimizable
+    ? [400, 600, 800, 1080].map((w) => `${imgOpt(foto0, w, 75)} ${w}w`).join(', ')
+    : foto0;
   const url = `${SITE_URL}/propiedad/${slug}`;
   const precioN = precioNumero(p.precio);
   const contrato = p.tipo_contrato === 'alquiler' ? 'Alquiler' : 'Venta';
@@ -273,9 +286,24 @@ function render(p) {
     <script type="application/ld+json">${JSON.stringify(jsonld)}</script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- La foto principal es el elemento LCP de esta página (el 80% del
+         tráfico del sitio entra acá). Sin este preload el navegador la
+         descubre recién después de parsear las tres hojas de estilo, y
+         PageSpeed lo marca como "descubrimiento tardío de la solicitud LCP".
+         El imagesrcset/imagesizes tiene que ser IDÉNTICO al del <img> de
+         abajo, si no el navegador baja la imagen dos veces. -->
+    <link rel="preload" as="image" fetchpriority="high"
+          imagesrcset="${esc(heroSrcset)}" imagesizes="${HERO_SIZES}">
+    <link rel="preconnect" href="https://remaxcaribbeanandcentralamerica.azureedge.net">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap">
     <link rel="stylesheet" href="/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Font Awesome son 102 KB de CSS para 20 iconos, y bloqueaba el render
+         de todo lo demás. Con media="print" el navegador lo baja sin esperar
+         a aplicarlo, y el onload lo activa ya pintada la página. El <noscript>
+         cubre a quien tenga el JS apagado. -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          media="print" onload="this.media='all';this.onload=null">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     <style>
         .ficha-wrap { max-width: 1180px; margin: 0 auto; padding: 40px 24px 80px; }
         .ficha-volver { display: inline-flex; align-items: center; gap: 8px; color: var(--text-light); text-decoration: none; font-size: 0.9rem; margin-bottom: 24px; }
@@ -364,7 +392,7 @@ function render(p) {
     <div class="ficha-wrap">
         <a href="/propiedades.html#${esc(slug)}" class="ficha-volver"><i class="fas fa-arrow-left"></i> Volver al inventario</a>
 
-        <img id="ficha-hero" class="ficha-hero-img" src="${esc(imgOpt(foto0, 1080, 75))}" alt="${esc(p.titulo)}" onerror="this.src='${FOTO_RESPALDO}'" onclick="abrirGaleria()">
+        <img id="ficha-hero" class="ficha-hero-img" src="${esc(imgOpt(foto0, 1080, 75))}" srcset="${esc(heroSrcset)}" sizes="${HERO_SIZES}" fetchpriority="high" decoding="async" alt="${esc(p.titulo)}" onerror="this.removeAttribute('srcset');this.src='${FOTO_RESPALDO}'" onclick="abrirGaleria()">
         ${galeriaThumbs}
 
         <!-- El encabezado vive FUERA de las dos columnas. Así, en celular, el
@@ -538,7 +566,10 @@ function render(p) {
             if (window.CostoSVMetricas) window.CostoSVMetricas.registrarEvento('ficha_view', 'video: ' + FICHA_SHARE.titulo);
         }
     </script>
-    <script src="/dossier.js?v=1"></script>
+    <!-- El dossier se abrió 4 veces en 3.459 visitas (0,1%), pero sus 26 KB se
+         bajaban en todas. Con defer deja de competir por el ancho de banda
+         mientras se pinta la página. -->
+    <script src="/dossier.js?v=1" defer></script>
 </body>
 </html>`;
 }
