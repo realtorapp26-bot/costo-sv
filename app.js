@@ -446,11 +446,14 @@ window.imgOpt = function (url, w, q) {
     const navLinks = document.querySelector('.nav-links');
     if (mobileBtn && navLinks) mobileBtn.addEventListener('click', () => navLinks.classList.toggle('active'));
 
-    // Botón flotante de WhatsApp: se oculta mientras el botón de WhatsApp
-    // propio del hero esté visible, para no superponerse con él (pasaba en
-    // el hero de index.html, sobre todo en móvil).
+    // Botón flotante de WhatsApp: se aparta mientras haya CUALQUIER botón del
+    // hero en pantalla. Antes solo miraba el botón de WhatsApp del hero, que
+    // en index.html queda más abajo que los otros dos: arriba de todo el
+    // flotante seguía visible y, en celular, tapaba "Oportunidades de
+    // Inversión" y "Vender Propiedad" — quien los tocaba podía terminar
+    // abriendo WhatsApp sin querer.
     const floatingWa = document.querySelector('.floating-whatsapp');
-    const heroWaButtons = document.querySelectorAll('.hero .btn-whatsapp');
+    const heroWaButtons = document.querySelectorAll('.hero .btn');
     if (floatingWa && heroWaButtons.length && 'IntersectionObserver' in window) {
       const observer = new IntersectionObserver((entries) => {
         const algunoVisible = entries.some((entry) => entry.isIntersecting);
