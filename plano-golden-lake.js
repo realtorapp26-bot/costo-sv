@@ -22,7 +22,21 @@ const POLY = {
 /* Para ubicar una propiedad: pon su polígono y lote y las coordenadas del pin (x,y) en el plano. */
 const PROPS = [
   {
-    id:"clovis", n:1, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 5 · vendido",
+    /* El lote 4 es el contiguo al 5, que se vendio en noviembre de 2026. Se
+       repite la misma oferta (casa en planos) sobre una porcion de este lote.
+       Todavia NO esta segregado: el area de cada porcion sale recien cuando el
+       topografo la recorta, asi que aca va la medida del lote entero y la de
+       la porcion se declara aproximada, nunca inventada al centimetro. */
+    id:"casa4", n:1, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 4 · porción disponible",
+    price:"$350,000", priceRegular:"$400,000", priceNote:"Promoción en planos · amueblada · la construcción inicia al reservar", poly:7, lote:"4", xy:[477,732], tagLeft:true,
+    kv:[["Terreno","649.13 m² (929 v²) el lote completo; la casa se levanta sobre una porción de ≈ 325 m²"],["Medidas del lote","20.00 m de frente, con lados de 33.14 y 31.77 m"],["Frente a","Calle Barcelona"],["Acceso","A pocos metros de la entrada principal"]],
+    units:[
+      {t:"Porción disponible · ≈ 325 m²", s:"Disponible", ok:true},
+      {t:"Se segrega al reservar", s:"Por recortar"}
+    ]
+  },
+  {
+    id:"clovis", n:2, sinPin:true, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 5 · vendido",
     price:"$350,000", tag:"Vendida", vendida:true, priceNote:"Vendida en noviembre de 2026. El lote contiguo es el próximo a segregar.", poly:7, lote:"5", xy:[544,735],
     kv:[["Terreno","308.33 m² (441 v²), con título propio"],["Medidas","≈ 10 m de frente × 31 m de fondo"],["Frente a","Calle Barcelona"],["Acceso","A pocos metros de la entrada principal"]],
     units:[
@@ -31,12 +45,12 @@ const PROPS = [
     ]
   },
   {
-    id:"mansion", n:2, name:"Mansión", sub:"Ubicación dentro del proyecto por confirmar",
+    id:"mansion", n:3, name:"Mansión", sub:"Ubicación dentro del proyecto por confirmar",
     price:"$2,700,000", priceNote:"", poly:null, lote:null, xy:null,
     kv:[["Tipo","Residencia de lujo"]]
   },
   {
-    id:"terreno", n:3, name:"Terreno", sub:"Ubicación dentro del proyecto por confirmar",
+    id:"terreno", n:4, name:"Terreno", sub:"Ubicación dentro del proyecto por confirmar",
     price:"$129,900", priceNote:"negociable", poly:null, lote:null, xy:null,
     kv:[["Tipo","Lote para construir"],["Terreno","659 v² (460.63 m²)"]]
   }
@@ -50,7 +64,7 @@ const waLink = msg => `https://wa.me/${WA}?text=${encodeURIComponent(msg)}`;
 
 function renderPins(){
   const g = $("#gl-plano-pins"); g.innerHTML = "";
-  PROPS.filter(p=>p.xy).forEach(p=>{
+  PROPS.filter(p=>p.xy&&!p.sinPin).forEach(p=>{
     const ns="http://www.w3.org/2000/svg";
     const pin=document.createElementNS(ns,"g");
     pin.setAttribute("class","pin"); pin.dataset.id=p.id;
@@ -58,7 +72,9 @@ function renderPins(){
     pin.setAttribute("tabindex","0"); pin.setAttribute("role","button");
     pin.setAttribute("aria-label",`${p.name}, ${p.price}`);
     const tag=p.tag||p.price; const w=tag.length*11+22;
-    pin.innerHTML=`<circle class="halo" r="26"/><g class="tag" transform="translate(24 -46)"><rect width="${w}" height="32" rx="16"/><text x="${w/2}" y="22" text-anchor="middle">${tag}</text></g><circle class="dot" r="18"/><text y="7">${p.n}</text>`;
+    // El globo va a la izquierda cuando a la derecha hay etiquetas del plano.
+    const tx=p.tagLeft?-24-w:24;
+    pin.innerHTML=`<circle class="halo" r="26"/><g class="tag" transform="translate(${tx} -46)"><rect width="${w}" height="32" rx="16"/><text x="${w/2}" y="22" text-anchor="middle">${tag}</text></g><circle class="dot" r="18"/><text y="7">${p.n}</text>`;
     pin.addEventListener("click",e=>{e.stopPropagation();showProp(p.id)});
     pin.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();showProp(p.id)}});
     g.appendChild(pin);
@@ -171,7 +187,7 @@ function showLot(p,n){
     <div class="phone">${WA_TXT}</div>`;
 }
 /* Lotes del Polígono 7 */
-const LOT7_HOUSE = {5:"clovis"};
+const LOT7_HOUSE = {4:"casa4", 5:"clovis"};
 /* Lotes de la 7 partidos en porciones (venta de media parcela). Áreas reales
    cuando Walter las dio (lote 5); los lotes 3 y 4 se partieron en dos mitades
    iguales a falta de medidas topográficas exactas de cada porción.
@@ -189,7 +205,6 @@ const LOT7_PORC = {
 /* Lotes enteros: el 6 es el próximo a segregar; del 4 se conocen las medidas
    del plano aunque todavía no se haya partido. */
 const LOT7_LOTE = {
-  4: {medidas:"20.00 m de frente × 20.05 m de fondo, con lados de 33.14 y 31.77 m"},
   6: {estado:"Por segregar"}
 };
 document.querySelectorAll(".lot7").forEach(el=>{
@@ -338,6 +353,6 @@ document.querySelectorAll("#gl-plano-blocks .block").forEach(b=>b.setAttribute("
   $("#gl-plano-tilt").addEventListener("click",e=>{const on=$("#gl-plano-map").classList.toggle("tilt");e.currentTarget.setAttribute("aria-pressed",on);e.currentTarget.textContent=on?"Vista plana":"Vista 3D"});
 })();
 
-renderPins(); renderList(); showProp("clovis");
+renderPins(); renderList(); showProp("casa4");
 
 })();
