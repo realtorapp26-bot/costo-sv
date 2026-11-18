@@ -22,11 +22,11 @@ const POLY = {
 /* Para ubicar una propiedad: pon su polígono y lote y las coordenadas del pin (x,y) en el plano. */
 const PROPS = [
   {
-    id:"clovis", n:1, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 5 · Porción 1 disponible · Porción 2 vendida",
-    price:"$350,000", priceRegular:"$400,000", priceNote:"Promoción en planos · amueblada · la construcción inicia al reservar", poly:7, lote:"5", xy:[544,735],
+    id:"clovis", n:1, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 5 · vendido",
+    price:"$350,000", tag:"Vendida", vendida:true, priceNote:"Vendida en noviembre de 2026. El lote contiguo es el próximo a segregar.", poly:7, lote:"5", xy:[544,735],
     kv:[["Terreno","308.33 m² (441 v²), con título propio"],["Medidas","≈ 10 m de frente × 31 m de fondo"],["Frente a","Calle Barcelona"],["Acceso","A pocos metros de la entrada principal"]],
     units:[
-      {t:"Porción 1 · 308.33 m²", s:"Disponible", ok:true},
+      {t:"Porción 1 · 308.33 m²", s:"Vendida", res:true},
       {t:"Porción 2 · 314.57 m²", s:"Vendida", res:true}
     ]
   },
@@ -92,16 +92,19 @@ function showProp(id){
   const units=(p.units||[]).map(u=>`<div class="unit"><strong>${u.t}</strong><span class="status ${u.ok?"ok":""} ${u.res?"res":""}">${u.s}</span></div>`).join("");
   const kv=p.kv.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join("");
   const where=p.poly?`Polígono ${p.poly}, Lote ${p.lote}`:"Por confirmar";
-  const msg=`Hola Walter, me interesa la propiedad en Golden Lake: ${p.name} (${p.price}). ¿Podemos agendar una visita?`;
+  const msg=p.vendida
+    ? `Hola Walter, vi que ${p.name} (${p.poly?`Polígono ${p.poly}, Lote ${p.lote}`:"Golden Lake"}) ya se vendió. ¿Qué queda disponible en Golden Lake?`
+    : `Hola Walter, me interesa la propiedad en Golden Lake: ${p.name} (${p.price}). ¿Podemos agendar una visita?`;
+  const cta=p.vendida?"Preguntar qué queda disponible":"Agendar visita por WhatsApp";
   $("#gl-plano-panel").innerHTML=`
     <div class="eyebrow">Propiedad ${p.n} · Golden Lake</div>
     <h2>${p.name}</h2>
     ${p.priceRegular?`<div style="font-size:15px;color:var(--muted);text-decoration:line-through;margin-bottom:2px">${p.priceRegular}</div>`:""}
-    <div class="price">${p.price}</div>
+    <div class="price"${p.vendida?' style="text-decoration:line-through;opacity:.55"':""}>${p.price}</div>
     ${p.priceNote?`<div class="note" style="margin:0">${p.priceNote}</div>`:""}
     <dl class="kv"><dt>Ubicación</dt><dd>${where}</dd>${kv}</dl>
     ${units?`<div class="units">${units}</div>`:""}
-    <a class="cta" href="${waLink(msg)}" target="_blank" rel="noopener">Agendar visita por WhatsApp</a>
+    <a class="cta" href="${waLink(msg)}" target="_blank" rel="noopener">${cta}</a>
     <div class="phone">${WA_TXT} · Walter Guerrero, RE/MAX Elite</div>`;
   if(p.xy) scrollToPoint(p.xy);
 }
@@ -150,7 +153,7 @@ function scrollToPoint([x,y]){
 
 
 /* Áreas por lote leídas del cuadro de áreas del plano */
-const LOT_AREA={1:{1:399.45,2:349.5,3:349.5,4:349.5,5:349.5,6:349.5,7:349.5,8:349.5,9:349.5,10:349.5,11:349.5,12:349.5,13:349.5,14:349.5,15:349.5,16:349.5,17:349.5,18:349.5,19:360.59},4:{1:460.63,2:349.5,3:349.5,4:349.5,5:349.5,6:349.5,7:419.95,8:310,9:349.5,10:349.5,11:349.5,12:349.5,13:349.5,14:460.63},5:{1:375.1,2:362.43,3:454.68,4:335,5:691.45,6:409,7:349.5,8:349.5,9:349.5,10:349.5,11:349.5,12:375.1},6:{1:697.32,2:697.32,3:409.17,4:408.47,5:592.34,6:647.81,7:432.18,8:501.83,9:368.15,10:344.13,11:349.5,12:600,13:600,14:600},7:{1:305.72,2:300.33,3:471.64,4:649.13,5:622.9,6:611.94,7:611.74},9:{1:845.34,2:600,3:600,4:600,5:600,6:600},10:{1:784.66,2:838.69,3:838.69,4:838.69,5:838.69,6:838.69,7:832.89},11:{1:832.93,2:838.69,3:742.0,4:2171.74}};
+const LOT_AREA={1:{1:399.45,2:349.5,3:349.5,4:349.5,5:349.5,6:349.5,7:349.5,8:349.5,9:349.5,10:349.5,11:349.5,12:349.5,13:349.5,14:349.5,15:349.5,16:349.5,17:349.5,18:349.5,19:360.59},2:{1:380.57,2:380.51,3:454.17,4:471.94,5:638.98,6:468.63,7:474,8:376.53},3:{1:460.63,2:349.5,3:349.5,4:349.5,5:349.5,6:349.5,7:344.13,8:344.13,9:349.5,10:349.5,11:349.5,12:349.5,13:349.5,14:460.63},4:{1:460.63,2:349.5,3:349.5,4:349.5,5:349.5,6:349.5,7:419.95,8:310,9:349.5,10:349.5,11:349.5,12:349.5,13:349.5,14:460.63},5:{1:375.1,2:362.43,3:454.68,4:335,5:691.45,6:409,7:349.5,8:349.5,9:349.5,10:349.5,11:349.5,12:375.1},6:{1:697.32,2:697.32,3:409.17,4:408.47,5:592.34,6:647.81,7:432.18,8:501.83,9:368.15,10:344.13,11:349.5,12:600,13:600,14:600},7:{1:305.72,2:300.35,3:471.64,4:649.13,5:622.9,6:611.94,7:611.74},8:{1:556.85,2:300,3:300,4:300,5:294.63,6:381.63,7:364.75,8:404.52,9:512.61,10:746.62},9:{1:845.34,2:600,3:600,4:600,5:600,6:600},10:{1:784.66,2:838.69,3:838.69,4:838.69,5:838.69,6:838.69,7:832.89},11:{1:832.93,2:838.69,3:742,4:2171.74}};
 const POLY_WHERE={1:"Franja este, sobre Calle Málaga",2:"Junto a la entrada, sobre la calle interna sur",3:"Entre Calle Valencia y Calle Málaga, al sur de Calle Granada",4:"Entre Calle Valencia y Calle Málaga, al norte de Calle Granada",5:"Al este de las lagunas, sobre Calle Andalucía",6:"Centro del proyecto, entre Calle Andalucía y Calle Valencia",7:"Franja frente al Bulevar Costa del Sol, sobre Calle Barcelona",8:"Entre Calle Andalucía y Calle Barcelona",9:"Franja oeste, sobre Calle Cádiz",10:"Frente a las lagunas y el área verde recreativa",11:"Franja norte, junto a la Calzada Jaltepeque"};
 function showLot(p,n){
   if(p==7) return (LOT7_HOUSE[n]?showProp(LOT7_HOUSE[n]):showLot7(n));
@@ -172,14 +175,15 @@ const LOT7_HOUSE = {5:"clovis"};
 /* Lotes de la 7 partidos en porciones (venta de media parcela). Áreas reales
    cuando Walter las dio (lote 5); los lotes 3 y 4 se partieron en dos mitades
    iguales a falta de medidas topográficas exactas de cada porción.
-   Disponibilidad al 22/10/2026: el lote 5 se vendió completo. */
+   Disponibilidad al 18/11/2026: el lote 5 se vendió completo (las dos
+   porciones). El próximo a trabajar es el lote contiguo. */
 /* Los lotes se venden partidos en dos porciones, pero se recorta una por vez:
    la siguiente se segrega recién cuando se vende la anterior. Por eso el plano
    solo dibuja porciones de los lotes YA segregados; el resto son lotes
-   enteros. Al 22/10/2026 el único lote segregado es el 5 (porción 2 vendida,
-   porción 1 en venta) y el próximo a segregar es el 6. */
+   enteros. Al 18/11/2026 el único lote segregado es el 5, ya vendido por
+   completo; el próximo a segregar es el 6. */
 const LOT7_PORC = {
-  5: {1:{area:308.33,estado:"Disponible",medidas:"≈ 10 m de frente × 31 m de fondo"},
+  5: {1:{area:308.33,estado:"Vendida",medidas:"≈ 10 m de frente × 31 m de fondo"},
       2:{area:314.57,estado:"Vendida"}}
 };
 /* Lotes enteros: el 6 es el próximo a segregar; del 4 se conocen las medidas
