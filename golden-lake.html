@@ -586,7 +586,7 @@
         <button id="gl-plano-tilt" type="button" aria-pressed="false">Vista 3D</button>
       </div>
       <div class="mapscroll" id="gl-plano-mapscroll">
-        <svg id="gl-plano-map" viewBox="200 -12 1160 1042" role="img" aria-label="Plano ilustrativo de la lotificación Golden Lake">
+        <svg id="gl-plano-map" viewBox="250 145 1155 953" role="img" aria-label="Plano ilustrativo de la lotificación Golden Lake">
           <defs>
             <linearGradient id="gl-plano-wg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2A8C94"/><stop offset=".6" stop-color="#1F6E78"/><stop offset="1" stop-color="#174F58"/></linearGradient>
             <pattern id="gl-plano-lotpat" width="24" height="24" patternUnits="userSpaceOnUse" patternTransform="rotate(80)"><line x1="0" y1="0" x2="0" y2="24" stroke="#35524C" stroke-width="1.5"/></pattern>
@@ -594,159 +594,332 @@
             <pattern id="gl-plano-resv" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#1B2A28"/><line x1="0" y1="0" x2="0" y2="10" stroke="#3A4F4B" stroke-width="4"/></pattern>
             <radialGradient id="gl-plano-glow"><stop offset="0" stop-color="#D9AE55" stop-opacity=".35"/><stop offset="1" stop-color="#D9AE55" stop-opacity="0"/></radialGradient>
           </defs>
-          <!-- Calzada Jaltepeque (norte) -->
-          <path class="hwy" d="M200 10 L1360 216" stroke-width="44"/>
-          <path class="road" d="M200 10 L1360 216" stroke-width="36"/>
-          <path class="centerline" d="M200 10 L1360 216"/>
-          <text class="slab" transform="translate(560 64) rotate(10.1)">CALZADA JALTEPEQUE</text>
-          <!-- Bulevar Costa del Sol (sur) -->
-          <path class="hwy" d="M200 792 L1360 1012" stroke-width="58"/>
-          <path class="road" d="M200 792 L1360 1012" stroke-width="48"/>
-          <path class="centerline" d="M200 792 L1360 1012"/>
-          <g id="gl-plano-palms"></g>
-          <text class="slab" transform="translate(420 845) rotate(10.7)" style="font-size:16px">BULEVAR COSTA DEL SOL</text>
-          <text class="slab" transform="translate(1040 950) rotate(10.7)">→ HOTEL TESORO BEACH</text>
-          <text class="slab" transform="translate(215 815) rotate(10.7)">← SAN SALVADOR</text>
-
-          <!-- Perímetro -->
-          <path class="site" d="M432 92 L1296 214 L1238 966 L256 762 Z"/>
-
-          <!-- Áreas verdes -->
-          <path id="gl-plano-greenpath" class="greenz" d="M455 120 L880 128 C918 250 900 380 845 450 C770 530 600 545 470 505 L440 470 Z" opacity=".55"/>
-
-          <!-- Lagunas -->
-          <path id="gl-plano-lag1" class="water" d="M455 132 C530 150 530 330 470 385 C420 350 400 180 455 132 Z"/>
-          <ellipse id="gl-plano-lag2" class="water" cx="682" cy="208" rx="92" ry="46"/>
-          <ellipse id="gl-plano-lag3" class="water" cx="676" cy="322" rx="74" ry="44"/>
-
-          <!-- Detalles: canchas, senderos, equipamiento -->
-          <path class="trail" d="M600 208 C600 150 770 150 772 208 C774 262 752 268 748 322 C746 380 606 382 604 322 C602 268 600 258 600 208 Z"/>
-          <g>
-            <rect class="court" x="548" y="168" width="30" height="52" rx="2" transform="rotate(4 563 194)"/><path class="courtl" d="M549 194 L577 196" transform="rotate(4 563 194)"/>
-            <rect class="court" x="546" y="232" width="30" height="52" rx="2" transform="rotate(4 561 258)"/><path class="courtl" d="M547 258 L575 260" transform="rotate(4 561 258)"/>
-            <rect class="court" x="544" y="296" width="30" height="52" rx="2" transform="rotate(4 559 322)"/><path class="courtl" d="M545 322 L573 324" transform="rotate(4 559 322)"/>
-            <text class="tiny" x="562" y="366">Canchas</text>
+          <!-- Perimetro real, reconstruido del cuadro de mojones del plano
+               aprobado: 16 lados, cierra con 0.14 m de error en 1,194 m. -->
+          <path class="site" d="M1255.0 905.0 L1029.8 919.6 L850.8 930.5 L697.5 941.4 L652.7 946.8 L621.6 951.6 L566.7 961.1 L514.8 972.0 L490.3 977.9 L400.1 336.3 L468.5 333.2 L508.1 327.3 L615.7 283.8 L762.2 233.7 L990.8 231.3 L1157.7 214.7 Z"/>
+          <!-- Areas verdes y lagunas, con las superficies del plano -->
+          <path id="gl-plano-greenpath" class="greenz" d="M771.0 394.6 L487.3 434.5 L511.3 605.3 L795.0 565.4 Z" opacity=".55"/>
+          <path class="greenz" d="M610.2 316.3 L401.5 345.6 L414.3 436.7 L623.0 407.3 Z" opacity=".45"/>
+          <ellipse id="gl-plano-lag1" class="water" cx="671.7" cy="510.4" rx="48.4" ry="46.0" transform="rotate(-8.0 671.7 510.4)"/>
+          <ellipse id="gl-plano-lag2" class="water" cx="568.6" cy="524.9" rx="36.3" ry="36.3" transform="rotate(-8.0 568.6 524.9)"/>
+          <ellipse id="gl-plano-lag3" class="water" cx="673.6" cy="436.9" rx="36.3" ry="16.9" transform="rotate(-8.0 673.6 436.9)"/>
+          <!-- Calles internas: 10 m de derecho de via, segun el plano -->
+          <path class="road-edge" stroke-width="26" d="M1156.2 883.5 L1067.6 253.2"/>
+          <path class="road-edge" stroke-width="26" d="M1013.3 903.5 L924.8 273.3"/>
+          <path class="road-edge" stroke-width="26" d="M859.0 925.2 L770.4 295.0"/>
+          <path class="road-edge" stroke-width="26" d="M574.3 965.2 L499.5 432.7"/>
+          <path class="road-edge" stroke-width="26" d="M1103.5 508.6 L806.3 550.4"/>
+          <path class="road-edge" stroke-width="26" d="M846.7 837.7 L549.8 879.5"/>
+          <path class="road-edge" stroke-width="26" d="M1142.6 786.6 L845.4 828.4"/>
+          <path class="road-edge" stroke-width="26" d="M830.9 725.1 L534.0 766.8"/>
+          <path class="road-edge" stroke-width="26" d="M1093.4 436.5 L796.2 478.3"/>
+          <path class="road-edge" stroke-width="26" d="M787.8 418.4 L490.9 460.1"/>
+          <path class="road" stroke-width="20" d="M1156.2 883.5 L1067.6 253.2"/>
+          <path class="road" stroke-width="20" d="M1013.3 903.5 L924.8 273.3"/>
+          <path class="road" stroke-width="20" d="M859.0 925.2 L770.4 295.0"/>
+          <path class="road" stroke-width="20" d="M574.3 965.2 L499.5 432.7"/>
+          <path class="road" stroke-width="20" d="M1103.5 508.6 L806.3 550.4"/>
+          <path class="road" stroke-width="20" d="M846.7 837.7 L549.8 879.5"/>
+          <path class="road" stroke-width="20" d="M1142.6 786.6 L845.4 828.4"/>
+          <path class="road" stroke-width="20" d="M830.9 725.1 L534.0 766.8"/>
+          <path class="road" stroke-width="20" d="M1093.4 436.5 L796.2 478.3"/>
+          <path class="road" stroke-width="20" d="M787.8 418.4 L490.9 460.1"/>
+          <g id="gl-plano-blocks">
+            <path class="block" data-p="1" d="M1133.0 219.3 L1077.1 227.1 L1174.0 916.4 L1229.8 908.5 Z"/>
+            <path class="block" data-p="2" d="M1131.2 801.4 L881.6 836.5 L893.4 920.4 L1143.0 885.3 Z"/>
+            <path class="block" data-p="3" d="M1092.2 523.6 L975.7 540.0 L1011.1 791.7 L1127.5 775.3 Z"/>
+            <path class="block" data-p="4" d="M1054.4 254.8 L932.6 271.9 L966.8 514.7 L1088.5 497.6 Z"/>
+            <path class="block" data-p="5" d="M905.9 232.8 L777.4 250.9 L807.3 463.3 L935.7 445.2 Z"/>
+            <path class="block" data-p="6" d="M939.4 471.3 L811.0 489.3 L856.5 813.4 L984.9 795.3 Z"/>
+            <path class="block" data-p="7" d="M835.4 852.8 L559.2 891.6 L569.6 965.9 L845.8 927.1 Z"/>
+            <path class="block" data-p="8" d="M819.5 739.9 L544.0 778.6 L556.2 865.4 L831.7 826.7 Z"/>
+            <path class="block" data-p="9" d="M503.6 550.7 L431.7 560.8 L474.9 868.0 L546.8 857.9 Z"/>
+            <path class="block" data-p="10" d="M796.3 574.8 L556.2 608.5 L575.8 747.5 L815.9 713.8 Z"/>
+            <path class="block" data-p="11" d="M759.4 312.4 L477.7 352.0 L490.8 445.4 L772.6 405.8 Z"/>
           </g>
-          <path class="aes" d="M438 102 L520 108 L516 150 L436 146 Z"/><text class="tiny" x="478" y="130">Equip. social</text>
-          <path class="aes" d="M362 330 L414 332 L410 372 L360 370 Z"/><text class="tiny" x="387" y="355">Equip.</text>
+          <g id="gl-plano-hatch"></g>
+          <!-- Lotes: cada uno dibujado con el ancho que le da su area real -->
+          <g id="gl-plano-cells">
+            <path class="cell" data-p="1" data-lot="1" tabindex="0" role="button" aria-label="Polígono 1, Lote 1" d="M1224.1 867.5 L1168.2 875.3 L1174.0 916.4 L1229.8 908.5 Z"/>
+            <path class="cell" data-p="1" data-lot="2" tabindex="0" role="button" aria-label="Polígono 1, Lote 2" d="M1219.0 831.5 L1163.2 839.4 L1168.2 875.3 L1224.1 867.5 Z"/>
+            <path class="cell" data-p="1" data-lot="3" tabindex="0" role="button" aria-label="Polígono 1, Lote 3" d="M1214.0 795.6 L1158.1 803.4 L1163.2 839.4 L1219.0 831.5 Z"/>
+            <path class="cell" data-p="1" data-lot="4" tabindex="0" role="button" aria-label="Polígono 1, Lote 4" d="M1208.9 759.6 L1153.1 767.5 L1158.1 803.4 L1214.0 795.6 Z"/>
+            <path class="cell" data-p="1" data-lot="5" tabindex="0" role="button" aria-label="Polígono 1, Lote 5" d="M1203.9 723.7 L1148.0 731.5 L1153.1 767.5 L1208.9 759.6 Z"/>
+            <path class="cell" data-p="1" data-lot="6" tabindex="0" role="button" aria-label="Polígono 1, Lote 6" d="M1198.8 687.7 L1143.0 695.6 L1148.0 731.5 L1203.9 723.7 Z"/>
+            <path class="cell" data-p="1" data-lot="7" tabindex="0" role="button" aria-label="Polígono 1, Lote 7" d="M1193.8 651.8 L1137.9 659.6 L1143.0 695.6 L1198.8 687.7 Z"/>
+            <path class="cell" data-p="1" data-lot="8" tabindex="0" role="button" aria-label="Polígono 1, Lote 8" d="M1188.7 615.8 L1132.9 623.7 L1137.9 659.6 L1193.8 651.8 Z"/>
+            <path class="cell" data-p="1" data-lot="9" tabindex="0" role="button" aria-label="Polígono 1, Lote 9" d="M1183.6 579.9 L1127.8 587.7 L1132.9 623.7 L1188.7 615.8 Z"/>
+            <path class="cell" data-p="1" data-lot="10" tabindex="0" role="button" aria-label="Polígono 1, Lote 10" d="M1178.6 543.9 L1122.8 551.8 L1127.8 587.7 L1183.6 579.9 Z"/>
+            <path class="cell" data-p="1" data-lot="11" tabindex="0" role="button" aria-label="Polígono 1, Lote 11" d="M1173.5 508.0 L1117.7 515.8 L1122.8 551.8 L1178.6 543.9 Z"/>
+            <path class="cell" data-p="1" data-lot="12" tabindex="0" role="button" aria-label="Polígono 1, Lote 12" d="M1168.5 472.0 L1112.7 479.9 L1117.7 515.8 L1173.5 508.0 Z"/>
+            <path class="cell" data-p="1" data-lot="13" tabindex="0" role="button" aria-label="Polígono 1, Lote 13" d="M1163.4 436.1 L1107.6 443.9 L1112.7 479.9 L1168.5 472.0 Z"/>
+            <path class="cell" data-p="1" data-lot="14" tabindex="0" role="button" aria-label="Polígono 1, Lote 14" d="M1158.4 400.1 L1102.6 408.0 L1107.6 443.9 L1163.4 436.1 Z"/>
+            <path class="cell" data-p="1" data-lot="15" tabindex="0" role="button" aria-label="Polígono 1, Lote 15" d="M1153.3 364.2 L1097.5 372.0 L1102.6 408.0 L1158.4 400.1 Z"/>
+            <path class="cell" data-p="1" data-lot="16" tabindex="0" role="button" aria-label="Polígono 1, Lote 16" d="M1148.3 328.3 L1092.4 336.1 L1097.5 372.0 L1153.3 364.2 Z"/>
+            <path class="cell" data-p="1" data-lot="17" tabindex="0" role="button" aria-label="Polígono 1, Lote 17" d="M1143.2 292.3 L1087.4 300.2 L1092.4 336.1 L1148.3 328.3 Z"/>
+            <path class="cell" data-p="1" data-lot="18" tabindex="0" role="button" aria-label="Polígono 1, Lote 18" d="M1138.2 256.4 L1082.3 264.2 L1087.4 300.2 L1143.2 292.3 Z"/>
+            <path class="cell" data-p="1" data-lot="19" tabindex="0" role="button" aria-label="Polígono 1, Lote 19" d="M1133.0 219.3 L1077.1 227.1 L1082.3 264.2 L1138.2 256.4 Z"/>
+            <path class="cell" data-p="2" data-lot="4" tabindex="0" role="button" aria-label="Polígono 2, Lote 4" d="M1137.1 843.4 L1067.3 853.2 L1073.2 895.1 L1143.0 885.3 Z"/>
+            <path class="cell" data-p="2" data-lot="3" tabindex="0" role="button" aria-label="Polígono 2, Lote 3" d="M1067.3 853.2 L1000.1 862.6 L1006.0 904.6 L1073.2 895.1 Z"/>
+            <path class="cell" data-p="2" data-lot="2" tabindex="0" role="button" aria-label="Polígono 2, Lote 2" d="M1000.1 862.6 L943.8 870.5 L949.7 912.5 L1006.0 904.6 Z"/>
+            <path class="cell" data-p="2" data-lot="1" tabindex="0" role="button" aria-label="Polígono 2, Lote 1" d="M943.8 870.5 L887.5 878.4 L893.4 920.4 L949.7 912.5 Z"/>
+            <path class="cell" data-p="2" data-lot="5" tabindex="0" role="button" aria-label="Polígono 2, Lote 5" d="M1131.2 801.4 L1049.8 812.9 L1055.7 854.8 L1137.1 843.4 Z"/>
+            <path class="cell" data-p="2" data-lot="6" tabindex="0" role="button" aria-label="Polígono 2, Lote 6" d="M1049.8 812.9 L990.0 821.3 L995.9 863.2 L1055.7 854.8 Z"/>
+            <path class="cell" data-p="2" data-lot="7" tabindex="0" role="button" aria-label="Polígono 2, Lote 7" d="M990.0 821.3 L929.6 829.8 L935.5 871.7 L995.9 863.2 Z"/>
+            <path class="cell" data-p="2" data-lot="8" tabindex="0" role="button" aria-label="Polígono 2, Lote 8" d="M929.6 829.8 L881.6 836.5 L887.5 878.4 L935.5 871.7 Z"/>
+            <path class="cell" data-p="3" data-lot="1" tabindex="0" role="button" aria-label="Polígono 3, Lote 1" d="M1121.2 729.9 L1062.9 738.1 L1069.3 783.5 L1127.5 775.3 Z"/>
+            <path class="cell" data-p="3" data-lot="2" tabindex="0" role="button" aria-label="Polígono 3, Lote 2" d="M1116.3 695.4 L1058.1 703.6 L1062.9 738.1 L1121.2 729.9 Z"/>
+            <path class="cell" data-p="3" data-lot="3" tabindex="0" role="button" aria-label="Polígono 3, Lote 3" d="M1111.5 660.9 L1053.2 669.1 L1058.1 703.6 L1116.3 695.4 Z"/>
+            <path class="cell" data-p="3" data-lot="4" tabindex="0" role="button" aria-label="Polígono 3, Lote 4" d="M1106.6 626.5 L1048.4 634.7 L1053.2 669.1 L1111.5 660.9 Z"/>
+            <path class="cell" data-p="3" data-lot="5" tabindex="0" role="button" aria-label="Polígono 3, Lote 5" d="M1101.8 592.0 L1043.5 600.2 L1048.4 634.7 L1106.6 626.5 Z"/>
+            <path class="cell" data-p="3" data-lot="6" tabindex="0" role="button" aria-label="Polígono 3, Lote 6" d="M1096.9 557.5 L1038.7 565.7 L1043.5 600.2 L1101.8 592.0 Z"/>
+            <path class="cell" data-p="3" data-lot="7" tabindex="0" role="button" aria-label="Polígono 3, Lote 7" d="M1092.2 523.6 L1033.9 531.8 L1038.7 565.7 L1096.9 557.5 Z"/>
+            <path class="cell" data-p="3" data-lot="14" tabindex="0" role="button" aria-label="Polígono 3, Lote 14" d="M1062.9 738.1 L1004.7 746.3 L1011.1 791.7 L1069.3 783.5 Z"/>
+            <path class="cell" data-p="3" data-lot="13" tabindex="0" role="button" aria-label="Polígono 3, Lote 13" d="M1058.1 703.6 L999.8 711.8 L1004.7 746.3 L1062.9 738.1 Z"/>
+            <path class="cell" data-p="3" data-lot="12" tabindex="0" role="button" aria-label="Polígono 3, Lote 12" d="M1053.2 669.1 L995.0 677.3 L999.8 711.8 L1058.1 703.6 Z"/>
+            <path class="cell" data-p="3" data-lot="11" tabindex="0" role="button" aria-label="Polígono 3, Lote 11" d="M1048.4 634.7 L990.2 642.8 L995.0 677.3 L1053.2 669.1 Z"/>
+            <path class="cell" data-p="3" data-lot="10" tabindex="0" role="button" aria-label="Polígono 3, Lote 10" d="M1043.5 600.2 L985.3 608.4 L990.2 642.8 L1048.4 634.7 Z"/>
+            <path class="cell" data-p="3" data-lot="9" tabindex="0" role="button" aria-label="Polígono 3, Lote 9" d="M1038.7 565.7 L980.5 573.9 L985.3 608.4 L1043.5 600.2 Z"/>
+            <path class="cell" data-p="3" data-lot="8" tabindex="0" role="button" aria-label="Polígono 3, Lote 8" d="M1033.9 531.8 L975.7 540.0 L980.5 573.9 L1038.7 565.7 Z"/>
+            <path class="cell" data-p="4" data-lot="1" tabindex="0" role="button" aria-label="Polígono 4, Lote 1" d="M1082.5 455.0 L1021.7 463.6 L1027.6 506.1 L1088.5 497.6 Z"/>
+            <path class="cell" data-p="4" data-lot="2" tabindex="0" role="button" aria-label="Polígono 4, Lote 2" d="M1078.0 422.7 L1017.1 431.3 L1021.7 463.6 L1082.5 455.0 Z"/>
+            <path class="cell" data-p="4" data-lot="3" tabindex="0" role="button" aria-label="Polígono 4, Lote 3" d="M1073.4 390.4 L1012.6 399.0 L1017.1 431.3 L1078.0 422.7 Z"/>
+            <path class="cell" data-p="4" data-lot="4" tabindex="0" role="button" aria-label="Polígono 4, Lote 4" d="M1068.9 358.2 L1008.0 366.7 L1012.6 399.0 L1073.4 390.4 Z"/>
+            <path class="cell" data-p="4" data-lot="5" tabindex="0" role="button" aria-label="Polígono 4, Lote 5" d="M1064.4 325.9 L1003.5 334.4 L1008.0 366.7 L1068.9 358.2 Z"/>
+            <path class="cell" data-p="4" data-lot="6" tabindex="0" role="button" aria-label="Polígono 4, Lote 6" d="M1059.8 293.6 L999.0 302.1 L1003.5 334.4 L1064.4 325.9 Z"/>
+            <path class="cell" data-p="4" data-lot="7" tabindex="0" role="button" aria-label="Polígono 4, Lote 7" d="M1054.4 254.8 L993.5 263.3 L999.0 302.1 L1059.8 293.6 Z"/>
+            <path class="cell" data-p="4" data-lot="14" tabindex="0" role="button" aria-label="Polígono 4, Lote 14" d="M1021.4 461.7 L960.5 470.3 L966.8 514.7 L1027.6 506.1 Z"/>
+            <path class="cell" data-p="4" data-lot="13" tabindex="0" role="button" aria-label="Polígono 4, Lote 13" d="M1016.7 428.0 L955.8 436.6 L960.5 470.3 L1021.4 461.7 Z"/>
+            <path class="cell" data-p="4" data-lot="12" tabindex="0" role="button" aria-label="Polígono 4, Lote 12" d="M1011.9 394.3 L951.0 402.9 L955.8 436.6 L1016.7 428.0 Z"/>
+            <path class="cell" data-p="4" data-lot="11" tabindex="0" role="button" aria-label="Polígono 4, Lote 11" d="M1007.2 360.6 L946.3 369.2 L951.0 402.9 L1011.9 394.3 Z"/>
+            <path class="cell" data-p="4" data-lot="10" tabindex="0" role="button" aria-label="Polígono 4, Lote 10" d="M1002.4 326.9 L941.6 335.5 L946.3 369.2 L1007.2 360.6 Z"/>
+            <path class="cell" data-p="4" data-lot="9" tabindex="0" role="button" aria-label="Polígono 4, Lote 9" d="M997.7 293.2 L936.8 301.8 L941.6 335.5 L1002.4 326.9 Z"/>
+            <path class="cell" data-p="4" data-lot="8" tabindex="0" role="button" aria-label="Polígono 4, Lote 8" d="M993.5 263.3 L932.6 271.9 L936.8 301.8 L997.7 293.2 Z"/>
+            <path class="cell" data-p="5" data-lot="1" tabindex="0" role="button" aria-label="Polígono 5, Lote 1" d="M931.5 414.9 L867.3 423.9 L871.5 454.3 L935.7 445.2 Z"/>
+            <path class="cell" data-p="5" data-lot="2" tabindex="0" role="button" aria-label="Polígono 5, Lote 2" d="M927.4 385.6 L863.1 394.6 L867.3 423.9 L931.5 414.9 Z"/>
+            <path class="cell" data-p="5" data-lot="3" tabindex="0" role="button" aria-label="Polígono 5, Lote 3" d="M922.2 348.9 L858.0 357.9 L863.1 394.6 L927.4 385.6 Z"/>
+            <path class="cell" data-p="5" data-lot="4" tabindex="0" role="button" aria-label="Polígono 5, Lote 4" d="M918.4 321.8 L854.2 330.8 L858.0 357.9 L922.2 348.9 Z"/>
+            <path class="cell" data-p="5" data-lot="5" tabindex="0" role="button" aria-label="Polígono 5, Lote 5" d="M910.5 265.9 L846.3 274.9 L854.2 330.8 L918.4 321.8 Z"/>
+            <path class="cell" data-p="5" data-lot="6" tabindex="0" role="button" aria-label="Polígono 5, Lote 6" d="M905.9 232.8 L841.7 241.9 L846.3 274.9 L910.5 265.9 Z"/>
+            <path class="cell" data-p="5" data-lot="12" tabindex="0" role="button" aria-label="Polígono 5, Lote 12" d="M866.2 416.7 L802.0 425.7 L807.3 463.3 L871.5 454.3 Z"/>
+            <path class="cell" data-p="5" data-lot="11" tabindex="0" role="button" aria-label="Polígono 5, Lote 11" d="M861.3 381.8 L797.1 390.8 L802.0 425.7 L866.2 416.7 Z"/>
+            <path class="cell" data-p="5" data-lot="10" tabindex="0" role="button" aria-label="Polígono 5, Lote 10" d="M856.4 346.8 L792.2 355.8 L797.1 390.8 L861.3 381.8 Z"/>
+            <path class="cell" data-p="5" data-lot="9" tabindex="0" role="button" aria-label="Polígono 5, Lote 9" d="M851.5 311.8 L787.3 320.8 L792.2 355.8 L856.4 346.8 Z"/>
+            <path class="cell" data-p="5" data-lot="8" tabindex="0" role="button" aria-label="Polígono 5, Lote 8" d="M846.6 276.8 L782.4 285.9 L787.3 320.8 L851.5 311.8 Z"/>
+            <path class="cell" data-p="5" data-lot="7" tabindex="0" role="button" aria-label="Polígono 5, Lote 7" d="M841.7 241.9 L777.4 250.9 L782.4 285.9 L846.6 276.8 Z"/>
+            <path class="cell" data-p="6" data-lot="1" tabindex="0" role="button" aria-label="Polígono 6, Lote 1" d="M976.8 737.2 L912.5 746.2 L920.7 804.4 L984.9 795.3 Z"/>
+            <path class="cell" data-p="6" data-lot="2" tabindex="0" role="button" aria-label="Polígono 6, Lote 2" d="M968.6 679.0 L904.4 688.0 L912.5 746.2 L976.8 737.2 Z"/>
+            <path class="cell" data-p="6" data-lot="3" tabindex="0" role="button" aria-label="Polígono 6, Lote 3" d="M963.8 644.9 L899.6 653.9 L904.4 688.0 L968.6 679.0 Z"/>
+            <path class="cell" data-p="6" data-lot="4" tabindex="0" role="button" aria-label="Polígono 6, Lote 4" d="M959.0 610.8 L894.8 619.8 L899.6 653.9 L963.8 644.9 Z"/>
+            <path class="cell" data-p="6" data-lot="5" tabindex="0" role="button" aria-label="Polígono 6, Lote 5" d="M952.1 561.4 L887.8 570.4 L894.8 619.8 L959.0 610.8 Z"/>
+            <path class="cell" data-p="6" data-lot="6" tabindex="0" role="button" aria-label="Polígono 6, Lote 6" d="M944.5 507.3 L880.2 516.4 L887.8 570.4 L952.1 561.4 Z"/>
+            <path class="cell" data-p="6" data-lot="7" tabindex="0" role="button" aria-label="Polígono 6, Lote 7" d="M939.4 471.3 L875.2 480.3 L880.2 516.4 L944.5 507.3 Z"/>
+            <path class="cell" data-p="6" data-lot="14" tabindex="0" role="button" aria-label="Polígono 6, Lote 14" d="M912.6 746.6 L848.4 755.6 L856.5 813.4 L920.7 804.4 Z"/>
+            <path class="cell" data-p="6" data-lot="13" tabindex="0" role="button" aria-label="Polígono 6, Lote 13" d="M904.5 688.8 L840.2 697.8 L848.4 755.6 L912.6 746.6 Z"/>
+            <path class="cell" data-p="6" data-lot="12" tabindex="0" role="button" aria-label="Polígono 6, Lote 12" d="M896.3 631.0 L832.1 640.0 L840.2 697.8 L904.5 688.8 Z"/>
+            <path class="cell" data-p="6" data-lot="11" tabindex="0" role="button" aria-label="Polígono 6, Lote 11" d="M891.6 597.3 L827.4 606.3 L832.1 640.0 L896.3 631.0 Z"/>
+            <path class="cell" data-p="6" data-lot="10" tabindex="0" role="button" aria-label="Polígono 6, Lote 10" d="M887.0 564.1 L822.7 573.2 L827.4 606.3 L891.6 597.3 Z"/>
+            <path class="cell" data-p="6" data-lot="9" tabindex="0" role="button" aria-label="Polígono 6, Lote 9" d="M882.0 528.7 L817.7 537.7 L822.7 573.2 L887.0 564.1 Z"/>
+            <path class="cell" data-p="6" data-lot="8" tabindex="0" role="button" aria-label="Polígono 6, Lote 8" d="M875.2 480.3 L811.0 489.3 L817.7 537.7 L882.0 528.7 Z"/>
+            <path class="cell" data-p="7" data-lot="1" tabindex="0" role="button" aria-label="Polígono 7, Lote 1" d="M835.4 852.8 L811.8 856.1 L822.2 930.4 L845.8 927.1 Z"/>
+            <path class="cell" data-p="7" data-lot="2" tabindex="0" role="button" aria-label="Polígono 7, Lote 2" d="M811.8 856.1 L788.5 859.4 L799.0 933.7 L822.2 930.4 Z"/>
+            <path class="cell" data-p="7" data-lot="3" tabindex="0" role="button" aria-label="Polígono 7, Lote 3" d="M788.5 859.4 L752.1 864.5 L762.5 938.8 L799.0 933.7 Z"/>
+            <path class="cell" data-p="7" data-lot="4" tabindex="0" role="button" aria-label="Polígono 7, Lote 4" d="M752.1 864.5 L701.9 871.5 L712.3 945.8 L762.5 938.8 Z"/>
+            <path class="cell" data-p="7" data-lot="5" tabindex="0" role="button" aria-label="Polígono 7, Lote 5" d="M701.9 871.5 L653.7 878.3 L664.2 952.6 L712.3 945.8 Z"/>
+            <path class="cell" data-p="7" data-lot="6" tabindex="0" role="button" aria-label="Polígono 7, Lote 6" d="M653.7 878.3 L606.4 885.0 L616.9 959.2 L664.2 952.6 Z"/>
+            <path class="cell" data-p="7" data-lot="7" tabindex="0" role="button" aria-label="Polígono 7, Lote 7" d="M606.4 885.0 L559.2 891.6 L569.6 965.9 L616.9 959.2 Z"/>
+            <path class="cell" data-p="8" data-lot="1" tabindex="0" role="button" aria-label="Polígono 8, Lote 1" d="M825.6 783.3 L738.0 795.6 L744.1 839.0 L831.7 826.7 Z"/>
+            <path class="cell" data-p="8" data-lot="2" tabindex="0" role="button" aria-label="Polígono 8, Lote 2" d="M738.0 795.6 L690.8 802.2 L696.9 845.6 L744.1 839.0 Z"/>
+            <path class="cell" data-p="8" data-lot="3" tabindex="0" role="button" aria-label="Polígono 8, Lote 3" d="M690.8 802.2 L643.7 808.9 L649.8 852.2 L696.9 845.6 Z"/>
+            <path class="cell" data-p="8" data-lot="4" tabindex="0" role="button" aria-label="Polígono 8, Lote 4" d="M643.7 808.9 L596.5 815.5 L602.6 858.9 L649.8 852.2 Z"/>
+            <path class="cell" data-p="8" data-lot="5" tabindex="0" role="button" aria-label="Polígono 8, Lote 5" d="M596.5 815.5 L550.1 822.0 L556.2 865.4 L602.6 858.9 Z"/>
+            <path class="cell" data-p="8" data-lot="10" tabindex="0" role="button" aria-label="Polígono 8, Lote 10" d="M819.5 739.9 L734.2 751.9 L740.3 795.3 L825.6 783.3 Z"/>
+            <path class="cell" data-p="8" data-lot="9" tabindex="0" role="button" aria-label="Polígono 8, Lote 9" d="M734.2 751.9 L675.6 760.1 L681.7 803.5 L740.3 795.3 Z"/>
+            <path class="cell" data-p="8" data-lot="8" tabindex="0" role="button" aria-label="Polígono 8, Lote 8" d="M675.6 760.1 L629.3 766.6 L635.4 810.0 L681.7 803.5 Z"/>
+            <path class="cell" data-p="8" data-lot="7" tabindex="0" role="button" aria-label="Polígono 8, Lote 7" d="M629.3 766.6 L587.7 772.5 L593.8 815.9 L635.4 810.0 Z"/>
+            <path class="cell" data-p="8" data-lot="6" tabindex="0" role="button" aria-label="Polígono 8, Lote 6" d="M587.7 772.5 L544.0 778.6 L550.1 822.0 L593.8 815.9 Z"/>
+            <path class="cell" data-p="9" data-lot="1" tabindex="0" role="button" aria-label="Polígono 9, Lote 1" d="M537.3 790.4 L465.4 800.5 L474.9 868.0 L546.8 857.9 Z"/>
+            <path class="cell" data-p="9" data-lot="2" tabindex="0" role="button" aria-label="Polígono 9, Lote 2" d="M530.5 742.5 L458.7 752.6 L465.4 800.5 L537.3 790.4 Z"/>
+            <path class="cell" data-p="9" data-lot="3" tabindex="0" role="button" aria-label="Polígono 9, Lote 3" d="M523.8 694.5 L451.9 704.6 L458.7 752.6 L530.5 742.5 Z"/>
+            <path class="cell" data-p="9" data-lot="4" tabindex="0" role="button" aria-label="Polígono 9, Lote 4" d="M517.1 646.6 L445.2 656.7 L451.9 704.6 L523.8 694.5 Z"/>
+            <path class="cell" data-p="9" data-lot="5" tabindex="0" role="button" aria-label="Polígono 9, Lote 5" d="M510.3 598.7 L438.4 608.8 L445.2 656.7 L517.1 646.6 Z"/>
+            <path class="cell" data-p="9" data-lot="6" tabindex="0" role="button" aria-label="Polígono 9, Lote 6" d="M503.6 550.7 L431.7 560.8 L438.4 608.8 L510.3 598.7 Z"/>
+            <path class="cell" data-p="10" data-lot="7" tabindex="0" role="button" aria-label="Polígono 10, Lote 7" d="M796.3 574.8 L761.9 579.6 L781.4 718.6 L815.9 713.8 Z"/>
+            <path class="cell" data-p="10" data-lot="6" tabindex="0" role="button" aria-label="Polígono 10, Lote 6" d="M761.9 579.6 L727.3 584.5 L746.8 723.5 L781.4 718.6 Z"/>
+            <path class="cell" data-p="10" data-lot="5" tabindex="0" role="button" aria-label="Polígono 10, Lote 5" d="M727.3 584.5 L692.6 589.4 L712.1 728.4 L746.8 723.5 Z"/>
+            <path class="cell" data-p="10" data-lot="4" tabindex="0" role="button" aria-label="Polígono 10, Lote 4" d="M692.6 589.4 L658.0 594.2 L677.5 733.2 L712.1 728.4 Z"/>
+            <path class="cell" data-p="10" data-lot="3" tabindex="0" role="button" aria-label="Polígono 10, Lote 3" d="M658.0 594.2 L623.3 599.1 L642.8 738.1 L677.5 733.2 Z"/>
+            <path class="cell" data-p="10" data-lot="2" tabindex="0" role="button" aria-label="Polígono 10, Lote 2" d="M623.3 599.1 L588.6 604.0 L608.2 743.0 L642.8 738.1 Z"/>
+            <path class="cell" data-p="10" data-lot="1" tabindex="0" role="button" aria-label="Polígono 10, Lote 1" d="M588.6 604.0 L556.2 608.5 L575.8 747.5 L608.2 743.0 Z"/>
+            <path class="cell" data-p="11" data-lot="4" tabindex="0" role="button" aria-label="Polígono 11, Lote 4" d="M759.4 312.4 L626.0 331.1 L639.1 424.6 L772.6 405.8 Z"/>
+            <path class="cell" data-p="11" data-lot="3" tabindex="0" role="button" aria-label="Polígono 11, Lote 3" d="M626.0 331.1 L580.4 337.5 L593.5 431.0 L639.1 424.6 Z"/>
+            <path class="cell" data-p="11" data-lot="2" tabindex="0" role="button" aria-label="Polígono 11, Lote 2" d="M580.4 337.5 L528.9 344.8 L542.0 438.2 L593.5 431.0 Z"/>
+            <path class="cell" data-p="11" data-lot="1" tabindex="0" role="button" aria-label="Polígono 11, Lote 1" d="M528.9 344.8 L477.7 352.0 L490.8 445.4 L542.0 438.2 Z"/>
+          </g>
+          <g id="gl-plano-lotlines">
+            <text class="lotn" x="1199.0" y="895.4">1</text>
+            <text class="lotn" x="1193.6" y="856.9">2</text>
+            <text class="lotn" x="1188.6" y="821.0">3</text>
+            <text class="lotn" x="1183.5" y="785.0">4</text>
+            <text class="lotn" x="1178.5" y="749.1">5</text>
+            <text class="lotn" x="1173.4" y="713.1">6</text>
+            <text class="lotn" x="1168.4" y="677.2">7</text>
+            <text class="lotn" x="1163.3" y="641.2">8</text>
+            <text class="lotn" x="1158.3" y="605.3">9</text>
+            <text class="lotn" x="1153.2" y="569.3">10</text>
+            <text class="lotn" x="1148.2" y="533.4">11</text>
+            <text class="lotn" x="1143.1" y="497.4">12</text>
+            <text class="lotn" x="1138.0" y="461.5">13</text>
+            <text class="lotn" x="1133.0" y="425.5">14</text>
+            <text class="lotn" x="1127.9" y="389.6">15</text>
+            <text class="lotn" x="1122.9" y="353.6">16</text>
+            <text class="lotn" x="1117.8" y="317.7">17</text>
+            <text class="lotn" x="1112.8" y="281.8">18</text>
+            <text class="lotn" x="1107.7" y="245.2">19</text>
+            <text class="lotn" x="1105.1" y="872.7">4</text>
+            <text class="lotn" x="1036.6" y="882.4">3</text>
+            <text class="lotn" x="974.9" y="891.0">2</text>
+            <text class="lotn" x="918.6" y="899.0">1</text>
+            <text class="lotn" x="1093.4" y="831.6">5</text>
+            <text class="lotn" x="1022.8" y="841.5">6</text>
+            <text class="lotn" x="962.8" y="850.0">7</text>
+            <text class="lotn" x="908.6" y="857.6">8</text>
+            <text class="lotn" x="1095.2" y="760.2">1</text>
+            <text class="lotn" x="1089.6" y="720.2">2</text>
+            <text class="lotn" x="1084.8" y="685.8">3</text>
+            <text class="lotn" x="1079.9" y="651.3">4</text>
+            <text class="lotn" x="1075.1" y="616.8">5</text>
+            <text class="lotn" x="1070.2" y="582.4">6</text>
+            <text class="lotn" x="1065.4" y="548.2">7</text>
+            <text class="lotn" x="1037.0" y="768.4">14</text>
+            <text class="lotn" x="1031.4" y="728.4">13</text>
+            <text class="lotn" x="1026.5" y="694.0">12</text>
+            <text class="lotn" x="1021.7" y="659.5">11</text>
+            <text class="lotn" x="1016.8" y="625.0">10</text>
+            <text class="lotn" x="1012.0" y="590.6">9</text>
+            <text class="lotn" x="1007.2" y="556.4">8</text>
+            <text class="lotn" x="1055.1" y="484.1">1</text>
+            <text class="lotn" x="1049.8" y="446.6">2</text>
+            <text class="lotn" x="1045.3" y="414.4">3</text>
+            <text class="lotn" x="1040.7" y="382.1">4</text>
+            <text class="lotn" x="1036.2" y="349.8">5</text>
+            <text class="lotn" x="1031.7" y="317.5">6</text>
+            <text class="lotn" x="1026.7" y="282.0">7</text>
+            <text class="lotn" x="994.1" y="491.7">14</text>
+            <text class="lotn" x="988.6" y="452.6">13</text>
+            <text class="lotn" x="983.9" y="418.9">12</text>
+            <text class="lotn" x="979.1" y="385.2">11</text>
+            <text class="lotn" x="974.4" y="351.6">10</text>
+            <text class="lotn" x="969.6" y="317.9">9</text>
+            <text class="lotn" x="965.2" y="286.1">8</text>
+            <text class="lotn" x="901.5" y="438.1">1</text>
+            <text class="lotn" x="897.3" y="408.3">2</text>
+            <text class="lotn" x="892.7" y="375.3">3</text>
+            <text class="lotn" x="888.2" y="343.3">4</text>
+            <text class="lotn" x="882.4" y="301.9">5</text>
+            <text class="lotn" x="876.1" y="257.4">6</text>
+            <text class="lotn" x="836.8" y="443.5">12</text>
+            <text class="lotn" x="831.7" y="407.3">11</text>
+            <text class="lotn" x="826.8" y="372.3">10</text>
+            <text class="lotn" x="821.8" y="337.3">9</text>
+            <text class="lotn" x="816.9" y="302.3">8</text>
+            <text class="lotn" x="812.0" y="267.4">7</text>
+            <text class="lotn" x="948.7" y="774.3">1</text>
+            <text class="lotn" x="940.6" y="716.1">2</text>
+            <text class="lotn" x="934.1" y="669.9">3</text>
+            <text class="lotn" x="929.3" y="635.8">4</text>
+            <text class="lotn" x="923.4" y="594.1">5</text>
+            <text class="lotn" x="916.2" y="542.4">6</text>
+            <text class="lotn" x="909.8" y="497.3">7</text>
+            <text class="lotn" x="884.5" y="783.5">14</text>
+            <text class="lotn" x="876.4" y="725.7">13</text>
+            <text class="lotn" x="868.3" y="667.9">12</text>
+            <text class="lotn" x="861.9" y="622.1">11</text>
+            <text class="lotn" x="857.2" y="588.7">10</text>
+            <text class="lotn" x="852.4" y="554.4">9</text>
+            <text class="lotn" x="846.5" y="512.5">8</text>
+            <text class="lotn" x="828.8" y="895.1">1</text>
+            <text class="lotn" x="805.4" y="898.4">2</text>
+            <text class="lotn" x="775.5" y="902.6">3</text>
+            <text class="lotn" x="635.3" y="922.3">6</text>
+            <text class="lotn" x="588.0" y="928.9">7</text>
+            <text class="lotn" x="784.9" y="814.6">1</text>
+            <text class="lotn" x="717.5" y="824.1">2</text>
+            <text class="lotn" x="670.3" y="830.7">3</text>
+            <text class="lotn" x="623.1" y="837.4">4</text>
+            <text class="lotn" x="576.3" y="843.9">5</text>
+            <text class="lotn" x="779.9" y="771.1">10</text>
+            <text class="lotn" x="707.9" y="781.2">9</text>
+            <text class="lotn" x="655.5" y="788.6">8</text>
+            <text class="lotn" x="611.6" y="794.8">7</text>
+            <text class="lotn" x="568.9" y="800.7">6</text>
+            <text class="lotn" x="506.1" y="832.7">1</text>
+            <text class="lotn" x="498.0" y="775.0">2</text>
+            <text class="lotn" x="491.2" y="727.0">3</text>
+            <text class="lotn" x="484.5" y="679.1">4</text>
+            <text class="lotn" x="477.8" y="631.2">5</text>
+            <text class="lotn" x="471.0" y="583.3">6</text>
+            <text class="lotn" x="788.9" y="650.2">7</text>
+            <text class="lotn" x="754.4" y="655.1">6</text>
+            <text class="lotn" x="719.7" y="659.9">5</text>
+            <text class="lotn" x="685.0" y="664.8">4</text>
+            <text class="lotn" x="650.4" y="669.7">3</text>
+            <text class="lotn" x="615.7" y="674.5">2</text>
+            <text class="lotn" x="582.2" y="679.3">1</text>
+            <text class="lotn" x="699.3" y="372.0">4</text>
+            <text class="lotn" x="609.8" y="384.6">3</text>
+            <text class="lotn" x="561.2" y="391.4">2</text>
+            <text class="lotn" x="509.8" y="398.6">1</text>
+          </g>
+          <g id="gl-plano-lamps"></g>
+          <!-- Lote 5 del Poligono 7: segregado y vendido en nov-2026.
+               Porcion 1 (308.33 m2) y Porcion 2 (314.57 m2). -->
+          <g id="gl-plano-p7">
+            <path class="lot7 por1" data-lot="5" data-por="1" d="M701.9 871.5 L678.1 874.9 L688.5 949.2 L712.3 945.8 Z"/>
+            <path class="lot7 por2" data-lot="5" data-por="2" d="M678.1 874.9 L653.7 878.3 L664.2 952.6 L688.5 949.2 Z"/>
+            <text class="lnum" data-lotn="5" x="683.0" y="915.6">5</text>
+          </g>
+          <ellipse cx="732.2" cy="905.2" rx="58" ry="40" fill="url(#gl-plano-glow)" pointer-events="none"/>
+          <g class="house res" pointer-events="none" transform="translate(702 891) rotate(-8)"><rect class="fp" width="22" height="26" rx="2"/><path d="M-3 0 L11 -10 L25 0 Z"/></g>
+          <g class="house" pointer-events="none" transform="translate(738 894) rotate(-8)"><rect class="fp" width="22" height="26" rx="2"/><path d="M-3 0 L11 -10 L25 0 Z"/></g>
+          <text class="lnum" data-lotn="4" x="698.2" y="939.2">4</text>
+          <!-- Etiquetas de poligonos -->
+          <g id="gl-plano-plabels">
+            <text class="plab" x="1153.5" y="573.8">1</text>
+            <text class="plab" x="1012.3" y="866.9">2</text>
+            <text class="plab" x="1051.6" y="663.6">3</text>
+            <text class="plab" x="1010.6" y="390.7">4</text>
+            <text class="plab" x="856.6" y="354.1">5</text>
+            <text class="plab" x="898.0" y="648.3">6</text>
+            <text class="plab" x="521.2" y="940.8">7</text>
+            <text class="plab" x="687.9" y="808.6">8</text>
+            <text class="plab" x="489.2" y="715.4">9</text>
+            <text class="plab" x="686.0" y="667.2">10</text>
+            <text class="plab" x="625.1" y="384.9">11</text>
+          </g>
+          <!-- Nombres de calles -->
+          <text class="slab" transform="translate(1133.1 719.6) rotate(-98.0)">C. MALAGA</text>
+          <text class="slab" transform="translate(990.3 739.7) rotate(-98.0)">C. VALENCIA</text>
+          <text class="slab" transform="translate(836.0 761.3) rotate(-98.0)">C. ANDALUCIA</text>
+          <text class="slab" transform="translate(554.9 826.8) rotate(-98.0)">C. CADIZ</text>
+          <text class="slab" transform="translate(834.5 532.7) rotate(-8.0)">C. GRANADA</text>
+          <text class="slab" transform="translate(577.9 861.8) rotate(-8.0)">C. BARCELONA</text>
+          <text class="flab" x="671.7" y="510.4">Laguna 1</text>
+          <text class="flab" x="568.6" y="524.9">Laguna 2</text>
+          <text class="flab" x="673.6" y="436.9">Laguna 3</text>
+          <text class="psub" x="657.0" y="612.7">Área verde recreativa</text>
+          <text class="tiny" x="512.4" y="377.6">Área ecológica</text>
+          <path class="centerline" d="M1329.9 916.5 L443.2 1041.1"/>
+          <g id="gl-plano-palms"></g>
+          <text class="slab" transform="translate(941.7 1019.0) rotate(-8.0)" style="font-size:16px">BULEVAR COSTA DEL SOL</text>
+          <text class="slab" transform="translate(681.9 239.5) rotate(-8.0)">CALZADA JALTEPEQUE</text>
+          <rect x="878.5" y="938.4" width="26" height="19" rx="4" fill="var(--ink)" transform="rotate(-8.0 878.5 938.4)"/>
+          <text class="flab" x="892.5" y="972.4" style="font-size:13px">Entrada · Caseta de control</text>
+          <text class="slab" transform="translate(515.1 1079.0) rotate(-8.0)">← SAN SALVADOR</text>
+          <text class="slab" transform="translate(1156.0 967.8) rotate(-8.0)">HOTEL TESORO BEACH →</text>
           <g id="gl-plano-ripples"></g>
           <g id="gl-plano-trees"></g>
-          <text class="flab" x="462" y="262">Laguna 1</text>
-          <text class="flab" x="682" y="214">Laguna 2</text>
-          <text class="flab" x="676" y="328">Laguna 3</text>
-          <text class="psub" x="560" y="440">Área verde recreativa</text>
-
-          <!-- Polígonos -->
-          <g id="gl-plano-blocks">
-            <path class="block" data-p="11" d="M590 102 L872 116 C890 180 896 240 890 300 L805 300 L800 150 L590 145 Z"/>
-            <path class="block" filter="url(#gl-plano-sh)" data-p="10" d="M442 470 C560 525 720 520 820 440 C850 400 865 360 868 318 L905 318 C900 390 880 430 858 460 C760 572 560 585 432 560 Z"/>
-            <path class="block" data-p="9"  d="M360 380 L406 380 L386 676 L286 676 Z"/>
-            <path class="block" data-p="8"  d="M412 600 C520 615 620 612 706 600 L784 772 L412 696 Z" transform="translate(0 -4)"/>
-            <path class="block" data-p="7"  d="M282 700 L780 782 L780 866 L288 764 Z"/>
-            <path class="block" data-p="6"  d="M740 596 C800 560 840 520 872 486 L990 486 L992 784 L818 790 L800 748 Z"/>
-            <path class="block" data-p="5"  d="M905 146 L1042 164 L1022 444 L888 444 C918 390 922 260 905 146 Z"/>
-            <path class="block" data-p="4"  d="M1074 172 L1182 196 L1168 462 L1046 456 Z"/>
-            <path class="block" data-p="3"  d="M1024 496 L1162 500 L1142 820 L1020 810 Z"/>
-            <path class="block" data-p="2"  d="M812 818 L1136 858 L1134 936 L820 870 Z"/>
-            <path class="block" data-p="1"  d="M1212 208 L1290 222 L1236 958 L1166 944 Z"/>
-          </g>
-
-          <g id="gl-plano-hatch"></g>
-          <!-- Calles internas -->
-          <g>
-            <path class="road-edge" stroke-width="26" d="M402 582 C560 610 760 598 872 472 C935 395 935 230 882 110"/>
-            <path class="road-edge" stroke-width="26" d="M718 590 L800 800"/>
-            <path class="road-edge" stroke-width="26" d="M395 690 L800 776"/>
-            <path class="road-edge" stroke-width="26" d="M420 385 L395 690"/>
-            <path class="road-edge" stroke-width="26" d="M880 460 L1180 480"/>
-            <path class="road-edge" stroke-width="26" d="M1058 168 L1004 800"/>
-            <path class="road-edge" stroke-width="26" d="M1196 205 L1150 950"/>
-            <path class="road-edge" stroke-width="26" d="M800 800 L1150 842"/>
-            <path class="road" stroke-width="20" d="M402 582 C560 610 760 598 872 472 C935 395 935 230 882 110"/>
-            <path class="road" stroke-width="20" d="M718 590 L800 800"/>
-            <path class="road" stroke-width="20" d="M395 690 L800 776"/>
-            <path class="road" stroke-width="20" d="M420 385 L395 690"/>
-            <path class="road" stroke-width="20" d="M880 460 L1180 480"/>
-            <path class="road" stroke-width="20" d="M1058 168 L1004 800"/>
-            <path class="road" stroke-width="20" d="M1196 205 L1150 950"/>
-            <path class="road" stroke-width="20" d="M800 800 L1150 842"/>
-          </g>
-
-          <g id="gl-plano-cells"></g>
-          <g id="gl-plano-lotlines"></g>
-          <g id="gl-plano-lamps"></g>
-          <!-- Poligono 7: una hilera, numerada de DERECHA a IZQUIERDA
-               como el plano aprobado: el lote 1 pegado a la Caseta de
-               Control y el 7 en el extremo opuesto. El ancho de cada
-               lote es proporcional a su area del cuadro del plano. -->
-          <g id="gl-plano-p7">
-            <path class="lot7" data-lot="7" d="M282.0 700.0 L367.3 714.0 L372.2 781.5 L288.0 764.0 Z"/>
-            <text class="lnum" data-lotn="7" x="327" y="743">7</text>
-            <path class="lot7" data-lot="6" d="M367.3 714.0 L452.5 728.1 L456.5 798.9 L372.2 781.5 Z"/>
-            <text class="lnum" data-lotn="6" x="412" y="759">6</text>
-            <path class="lot7 por1" data-lot="5" data-por="1" d="M452.5 728.1 L495.5 735.2 L498.9 807.7 L456.5 798.9 Z"/>
-            <path class="lot7 por2" data-lot="5" data-por="2" d="M495.5 735.2 L539.3 742.4 L542.2 816.7 L498.9 807.7 Z"/>
-            <text class="lnum" data-lotn="5" x="498" y="775">5</text>
-            <path class="lot7" data-lot="4" d="M539.3 742.4 L629.8 757.3 L631.6 835.2 L542.2 816.7 Z"/>
-            <text class="lnum" data-lotn="4" x="554" y="814">4</text>
-            <path class="lot7" data-lot="3" d="M629.8 757.3 L695.5 768.1 L696.6 848.7 L631.6 835.2 Z"/>
-            <text class="lnum" data-lotn="3" x="663" y="806">3</text>
-            <path class="lot7" data-lot="2" d="M695.5 768.1 L737.4 775.0 L737.9 857.3 L696.6 848.7 Z"/>
-            <text class="lnum" data-lotn="2" x="717" y="816">2</text>
-            <path class="lot7" data-lot="1" d="M737.4 775.0 L780.0 782.0 L780.0 866.0 L737.9 857.3 Z"/>
-            <text class="lnum" data-lotn="1" x="759" y="824">1</text>
-          </g>
-
-          <ellipse cx="586" cy="788" rx="68" ry="50" fill="url(#gl-plano-glow)" pointer-events="none"/>
-          <g class="house res" pointer-events="none" transform="translate(552 772) rotate(10)"><rect class="fp" width="24" height="30" rx="2"/><path d="M-3 0 L12 -11 L27 0 Z"/></g>
-          <g class="house" pointer-events="none" transform="translate(592 779) rotate(10)"><rect class="fp" width="24" height="30" rx="2"/><path d="M-3 0 L12 -11 L27 0 Z"/></g>
-          <!-- Etiquetas de polígonos -->
-          <g id="gl-plano-plabels">
-            <text class="plab" x="700" y="132">11</text>
-            <text class="plab" x="630" y="548">10</text>
-            <text class="plab" x="340" y="540">9</text>
-            <text class="plab" x="560" y="668">8</text>
-            <text class="slab" x="212" y="722" style="font-size:14px;font-weight:500">POL. 7</text>
-            <text class="plab" x="892" y="660">6</text>
-            <text class="plab" x="968" y="310">5</text>
-            <text class="plab" x="1116" y="330">4</text>
-            <text class="plab" x="1090" y="665">3</text>
-            <text class="plab" x="975" y="878">2</text>
-            <text class="plab" x="1222" y="600">1</text>
-          </g>
-
-          <!-- Calles: nombres -->
-          <text class="slab" transform="translate(600 624) rotate(-2)">C. ANDALUCÍA</text>
-          <text class="slab" transform="translate(404 706) rotate(12)">C. BARCELONA</text>
-          <text class="slab" transform="translate(970 474) rotate(3.5)">C. GRANADA</text>
-          <text class="slab" transform="translate(1045 640) rotate(-86)">C. VALENCIA</text>
-          <text class="slab" transform="translate(1188 440) rotate(-86)">C. MÁLAGA</text>
-          <text class="slab" transform="translate(416 560) rotate(-86)">C. CÁDIZ</text>
-
-          <!-- Entrada y casetas -->
-          <g>
-            <rect x="786" y="806" width="30" height="22" rx="4" fill="var(--ink)"/>
-            <path class="gate" d="M770 796 L792 800"/><circle cx="770" cy="796" r="4" fill="var(--gold)"/>
-            <text class="flab" x="800" y="862" style="font-size:14px">Entrada · Caseta de control</text>
-            <rect x="885" y="100" width="24" height="18" rx="4" fill="var(--ink)"/>
-            <text class="tiny" x="940" y="96" style="text-anchor:start">Caseta 2</text>
-          </g>
-
-          <path class="sea" d="M200 880 Q230 872 260 880 T320 880" transform="translate(0 0)"/>
-          <text class="slab" transform="translate(248 912) rotate(10.7)" style="fill:#5FA9B1">↓ HACIA LA PLAYA</text>
-          <g class="scale" transform="translate(1180 1000)"><line x1="0" y1="0" x2="141" y2="0"/><line x1="0" y1="-6" x2="0" y2="6"/><line x1="141" y1="-6" x2="141" y2="6"/><text class="tiny" x="70" y="-10">≈ 50 m</text></g>
-          <g transform="translate(250 400)">
-            <path class="sunarc" d="M60 -120 Q-10 -60 0 0"/>
-            <g class="sun"><circle r="10"/><path d="M0 -17 V-14 M0 14 V17 M-17 0 H-14 M14 0 H17 M-12 -12 L-10 -10 M10 10 L12 12 M-12 12 L-10 10 M10 -10 L12 -12"/></g>
-            <text class="tiny" x="0" y="34" style="fill:#E9B949">Atardecer</text>
-          </g>
-          <!-- Rosa de los vientos -->
-          <g transform="translate(1290 90)">
-            <circle r="30" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>
-            <path d="M0 -24 L8 4 L0 -2 L-8 4 Z" fill="var(--ink)"/>
-            <text class="flab" y="20" style="font-size:13px">N</text>
-          </g>
-
+          <g class="scale" transform="translate(976.0 192.8)"><line x1="0" y1="0" x2="121.0" y2="0"/><line x1="0" y1="-6" x2="0" y2="6"/><line x1="121.0" y1="-6" x2="121.0" y2="6"/><text class="tiny" x="60.5" y="-10">50 m</text></g>
           <g id="gl-plano-pins"></g>
         </svg>
       </div>

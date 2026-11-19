@@ -28,7 +28,7 @@ const PROPS = [
        topografo la recorta, asi que aca va la medida del lote entero y la de
        la porcion se declara aproximada, nunca inventada al centimetro. */
     id:"casa4", n:1, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 4 · porción disponible",
-    price:"$350,000", priceRegular:"$400,000", priceNote:"Promoción en planos · amueblada · la construcción inicia al reservar", poly:7, lote:"4", xy:[586,758],
+    price:"$350,000", priceRegular:"$400,000", priceNote:"Promoción en planos · amueblada · la construcción inicia al reservar", poly:7, lote:"4", xy:[673,892],
     kv:[["Terreno","649.13 m² (929 v²) el lote completo; la casa se levanta sobre una porción de ≈ 325 m²"],["Medidas del lote","20.00 m de frente, con lados de 33.14 y 31.77 m"],["Frente a","Calle Barcelona"],["Acceso","A pocos metros de la entrada principal"]],
     units:[
       {t:"Porción disponible · ≈ 325 m²", s:"Disponible", ok:true},
@@ -255,73 +255,43 @@ function showLot7(n,por,el){
     if(near) continue;
     const r=5+rnd()*7; trees.appendChild(mk("circle",{cx:pt.x.toFixed(1),cy:pt.y.toFixed(1),r:r.toFixed(1),class:"tree"+(rnd()>.6?" hi":"")})); n++;
   }
-  const palms=$("#gl-plano-palms");
-  for(let x=230;x<1340;x+=62){const y=792+(x-200)*0.1897;
-    const g=mk("g",{transform:`translate(${x} ${(y+34).toFixed(1)})`,class:"palm"});
-    ["M0 0 q-10 -6 -16 2","M0 0 q10 -6 16 2","M0 0 q-4 -12 -12 -14","M0 0 q4 -12 12 -14"].forEach(d=>g.appendChild(mk("path",{d})));
-    palms.appendChild(g);}
+  const palms=$("#gl-plano-palms"), eje=$(".centerline");
+  if(eje){
+    const Lp=eje.getTotalLength();
+    for(let t=20;t<Lp-20;t+=62){
+      const q=eje.getPointAtLength(t);
+      const g=mk("g",{transform:`translate(${q.x.toFixed(1)} ${(q.y+30).toFixed(1)})`,class:"palm"});
+      ["M0 0 q-10 -6 -16 2","M0 0 q10 -6 16 2","M0 0 q-4 -12 -12 -14","M0 0 q4 -12 12 -14"].forEach(d=>g.appendChild(mk("path",{d})));
+      palms.appendChild(g);
+    }
+  }
   const rip=$("#gl-plano-ripples");
-  [[682,208,70,30],[676,322,54,28],[466,258,26,80]].forEach(([cx,cy,rx,ry],i)=>{
-    rip.appendChild(mk("ellipse",{cx,cy:cy+10,rx,ry,class:"ripple",style:`animation-delay:${i*1.3}s`}));
-    rip.appendChild(mk("ellipse",{cx,cy:cy+10,rx:rx*.6,ry:ry*.6,class:"ripple",style:`animation-delay:${i*1.3+2}s`}));
+  lags.forEach((l,i)=>{
+    if(!l) return;
+    const cx=+l.getAttribute("cx"), cy=+l.getAttribute("cy");
+    const rx=+l.getAttribute("rx"), ry=+l.getAttribute("ry");
+    const tr=l.getAttribute("transform")||"";
+    [[0.78,0],[0.46,2]].forEach(([k,dly])=>{
+      rip.appendChild(mk("ellipse",{cx,cy,rx:(rx*k).toFixed(1),ry:(ry*k).toFixed(1),
+        class:"ripple",transform:tr,style:`animation-delay:${(i*1.3+dly).toFixed(1)}s`}));
+    });
   });
   /* escalonar la entrada de los bloques */
   document.querySelectorAll("#gl-plano-blocks .block,#gl-plano-p7 .lot7").forEach((b,i)=>b.style.animationDelay=(i*40)+"ms");
 })();
 
-/* Lotes de cada polígono (divisiones aproximadas según el plano) */
-(function lots(){
-  const ns="http://www.w3.org/2000/svg", mk=(t,a)=>{const e=document.createElementNS(ns,t);for(const k in a)e.setAttribute(k,a[k]);return e};
-  const g=$("#gl-plano-lotlines"), cells=$("#gl-plano-cells"), hidden=mk("g",{visibility:"hidden"}); $("#gl-plano-map").appendChild(hidden);
-  const B=[
-    {p:9,rails:["M360 382 L288 674","M405 382 L386 674"],cols:6,orden:[[6,5,4,3,2,1]]},
-    {p:4,rails:["M1074 174 L1048 454","M1128 186 L1108 458","M1180 198 L1167 460"],cols:7,orden:[[7,6,5,4,3,2,1],[8,9,10,11,12,13,14]]},
-    {p:3,rails:["M1026 498 L1022 808","M1093 500 L1081 814","M1160 502 L1141 818"],cols:7,orden:[[7,6,5,4,3,2,1],[8,9,10,11,12,13,14]]},
-    {p:5,rails:["M907 148 C924 262 920 390 890 442","M973 156 L956 442","M1040 166 L1021 442"],cols:6,orden:[[6,5,4,3,2,1],[7,8,9,10,11,12]]},
-    {p:1,rails:["M1213 210 L1168 942","M1288 224 L1235 956"],cols:19,orden:[[19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1]]},
-    {p:2,rails:["M814 820 L1134 860","M822 868 L1132 934"],cols:8},
-    {p:6,rails:["M760 606 L816 786","M880 492 L905 788","M988 488 L990 782"],cols:7},
-    {p:8,rails:["M414 600 C520 613 620 610 704 598","M414 646 L742 682","M414 690 L782 766"],cols:5,orden:[[6,7,8,9,10],[5,4,3,2,1]]},
-    {p:10,rails:["M444 472 C560 527 720 522 820 442 C850 402 865 362 868 320","M434 558 C560 583 760 570 856 460 C878 430 898 390 903 320"],cols:7,orden:[[1,2,3,4,5,6,7]]},
-    {p:11,rails:["M592 104 L870 118","M592 143 L800 148"],cols:4}
-  ];
-  const pathOf=d=>{const p=mk("path",{d});hidden.appendChild(p);return p};
-  B.forEach(b=>{
-    const rows=b.rails.length-1, P=b.p, rails=b.rails.map(pathOf);
-    for(let r=1;r<rows;r++) g.appendChild(mk("path",{d:b.rails[r],class:"lotline2"}));
-    for(let r=0;r<rows;r++){
-      /* b.orden trae la numeracion REAL leida del plano aprobado, fila por
-         fila. Donde todavia no se pudo leer se cae al patron en serpiente,
-         que es una suposicion: esos poligonos quedan marcados como
-         pendientes de verificar contra el plano. */
-      const nums=b.orden ? b.orden[r].slice()
-        : (()=>{const n=Array.from({length:b.cols},(_,k)=>r*b.cols+k+1); if(r%2) n.reverse(); return n;})();
-      const areas=nums.map(n=>LOT_AREA[P]?.[n]??1), tot=areas.reduce((x,y)=>x+y,0);
-      let acc=0; const fr=[0,...areas.map(v=>(acc+=v)/tot)];
-      const at=(p,t)=>p.getPointAtLength(p.getTotalLength()*t);
-      const A=fr.map(t=>at(rails[r],t)), Bp=fr.map(t=>at(rails[r+1],t));
-      for(let k=1;k<b.cols;k++) g.appendChild(mk("line",{x1:A[k].x,y1:A[k].y,x2:Bp[k].x,y2:Bp[k].y,class:"lotline2"}));
-      nums.forEach((N,k)=>{
-        const c=[A[k],A[k+1],Bp[k],Bp[k+1]];
-        const cell=mk("path",{d:`M${c[0].x} ${c[0].y} L${c[1].x} ${c[1].y} L${c[3].x} ${c[3].y} L${c[2].x} ${c[2].y} Z`,class:"cell",tabindex:"0",role:"button","aria-label":`Polígono ${P}, Lote ${N}`});
-        cell.dataset.p=P; cell.dataset.lot=N;
-        cell.addEventListener("click",e=>{e.stopPropagation();showLot(P,N)});
-        cell.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();showLot(P,N)}});
-        cell.addEventListener("mousemove",e=>tipOn(e,`<b>Polígono ${P} · Lote ${N}</b>${LOT_AREA[P]?.[N]?` · ${fmt(LOT_AREA[P][N])} m²`:""}`));
-        cell.addEventListener("mouseleave",tipOff);
-        cells.appendChild(cell);
-        const t=mk("text",{x:(c.reduce((a,p)=>a+p.x,0)/4).toFixed(1),y:(c.reduce((a,p)=>a+p.y,0)/4+3.5).toFixed(1),class:"lotn"});
-        t.textContent=N; g.appendChild(t);
-      });
-    }
+/* Los lotes ya vienen dibujados en el SVG, cada uno con el ancho que le da
+   su area real del plano aprobado. Aca solo se les engancha la interaccion.
+   Antes este bloque los generaba a partir de "rieles" y una numeracion en
+   serpiente inventada; de ahi venian los lotes al reves que Walter detecto. */
+(function lotes(){
+  document.querySelectorAll("#gl-plano-cells .cell").forEach(cell=>{
+    const P=+cell.dataset.p, N=+cell.dataset.lot;
+    cell.addEventListener("click",e=>{e.stopPropagation();showLot(P,N)});
+    cell.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();showLot(P,N)}});
+    cell.addEventListener("mousemove",e=>tipOn(e,`<b>Polígono ${P} · Lote ${N}</b>${LOT_AREA[P]?.[N]?` · ${fmt(LOT_AREA[P][N])} m²`:""}`));
+    cell.addEventListener("mouseleave",tipOff);
   });
-  /* Alumbrado a lo largo de las calles */
-  const lamps=$("#gl-plano-lamps");
-  ["M402 582 C560 610 760 598 872 472 C935 395 935 230 882 110","M718 590 L800 800","M395 690 L800 776","M420 385 L395 690","M880 460 L1180 480","M1058 168 L1004 800","M1196 205 L1150 950","M800 800 L1150 842"].forEach(d=>{
-    const p=mk("path",{d});hidden.appendChild(p);const L=p.getTotalLength();
-    for(let l=30;l<L-20;l+=70){const q=p.getPointAtLength(l);lamps.appendChild(mk("circle",{cx:q.x,cy:q.y,r:9,class:"lampglow"}));lamps.appendChild(mk("circle",{cx:q.x,cy:q.y,r:2.2,class:"lamp"}));}
-  });
-  hidden.remove();
 })();
 
 /* Tooltip */
@@ -350,7 +320,7 @@ document.querySelectorAll("#gl-plano-blocks .block").forEach(b=>b.setAttribute("
     if(!n||n<1||n>max){$("#gl-plano-f-msg").textContent=`El Polígono ${p} tiene lotes del 1 al ${max}.`;return}
     $("#gl-plano-f-msg").textContent="";
     showLot(p,n);
-    const el=document.querySelector(p==7?`.lot7[data-lot="${n}"]`:`.cell[data-p="${p}"][data-lot="${n}"]`);
+    const el=document.querySelector(`.cell[data-p="${p}"][data-lot="${n}"]`);
     if(el&&z>1){const bb=el.getBBox(); scrollToPoint([bb.x+bb.width/2,bb.y+bb.height/2]);}
   };
   $("#gl-plano-f-go").addEventListener("click",go);
