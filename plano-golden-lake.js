@@ -28,7 +28,7 @@ const PROPS = [
        topografo la recorta, asi que aca va la medida del lote entero y la de
        la porcion se declara aproximada, nunca inventada al centimetro. */
     id:"casa4", n:1, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 4 · porción disponible",
-    price:"$350,000", priceRegular:"$400,000", priceNote:"Promoción en planos · amueblada · la construcción inicia al reservar", poly:7, lote:"4", xy:[477,732], tagLeft:true,
+    price:"$350,000", priceRegular:"$400,000", priceNote:"Promoción en planos · amueblada · la construcción inicia al reservar", poly:7, lote:"4", xy:[377,714], tagLeft:true,
     kv:[["Terreno","649.13 m² (929 v²) el lote completo; la casa se levanta sobre una porción de ≈ 325 m²"],["Medidas del lote","20.00 m de frente, con lados de 33.14 y 31.77 m"],["Frente a","Calle Barcelona"],["Acceso","A pocos metros de la entrada principal"]],
     units:[
       {t:"Porción disponible · ≈ 325 m²", s:"Disponible", ok:true},

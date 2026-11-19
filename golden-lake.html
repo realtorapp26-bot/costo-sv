@@ -675,27 +675,30 @@
           <g id="gl-plano-cells"></g>
           <g id="gl-plano-lotlines"></g>
           <g id="gl-plano-lamps"></g>
-          <!-- Polígono 7: lotes 1 a 7 -->
+          <!-- Poligono 7: dos hileras. 1-4 sobre Calle Barcelona,
+               5-7 sobre el Bulevar. Anchos proporcionales al area real
+               de cada lote segun el cuadro del plano aprobado. -->
           <g id="gl-plano-p7">
-            <path class="lot7" data-lot="1" d="M282.0 700.0 L324.6 707.0 L324.6 771.6 L282.0 762.8 Z"/>
-            <text class="lnum" data-lotn="1" x="303" y="741">1</text>
-            <path class="lot7" data-lot="2" d="M324.6 707.0 L366.5 713.9 L366.5 780.3 L324.6 771.6 Z"/>
-            <text class="lnum" data-lotn="2" x="346" y="749">2</text>
-            <path class="lot7" data-lot="3" d="M366.5 713.9 L432.2 724.7 L432.2 793.9 L366.5 780.3 Z"/>
-            <text class="lnum" data-lotn="3" x="399" y="759">3</text>
-            <path class="lot7" data-lot="4" d="M432.2 724.7 L522.7 739.6 L522.7 812.6 L432.2 793.9 Z"/>
-            <path class="lot7 por1" data-lot="5" data-por="1" d="M522.7 739.6 L565.7 746.7 L565.7 821.5 L522.7 812.6 Z"/>
-            <path class="lot7 por2" data-lot="5" data-por="2" d="M565.7 746.7 L609.5 753.9 L609.5 830.6 L565.7 821.5 Z"/>
-            <text class="lnum" data-lotn="5" x="566" y="790">5</text>
-            <path class="lot7" data-lot="6" d="M609.5 753.9 L694.7 768.0 L694.7 848.3 L609.5 830.6 Z"/>
-            <text class="lnum" data-lotn="6" x="652" y="806">6</text>
-            <path class="lot7" data-lot="7" d="M694.7 768.0 L780.0 782.0 L780.0 866.0 L694.7 848.3 Z"/>
-            <text class="lnum" data-lotn="7" x="737" y="822">7</text>
+            <path class="lot7" data-lot="4" d="M282.0 700.0 L469.2 730.8 L471.1 766.6 L285.0 732.0 Z"/>
+            <text class="lnum" data-lotn="4" x="338" y="748">4</text>
+            <path class="lot7" data-lot="3" d="M469.2 730.8 L605.2 753.2 L606.3 791.7 L471.1 766.6 Z"/>
+            <text class="lnum" data-lotn="3" x="538" y="764">3</text>
+            <path class="lot7" data-lot="2" d="M605.2 753.2 L691.8 767.5 L692.4 807.7 L606.3 791.7 Z"/>
+            <text class="lnum" data-lotn="2" x="649" y="784">2</text>
+            <path class="lot7" data-lot="1" d="M691.8 767.5 L780.0 782.0 L780.0 824.0 L692.4 807.7 Z"/>
+            <text class="lnum" data-lotn="1" x="736" y="799">1</text>
+            <path class="lot7 por1" data-lot="5" data-por="1" d="M285.0 732.0 L367.7 747.4 L370.2 781.0 L288.0 764.0 Z"/>
+            <path class="lot7 por2" data-lot="5" data-por="2" d="M367.7 747.4 L452.0 763.0 L454.0 798.4 L370.2 781.0 Z"/>
+            <text class="lnum" data-lotn="5" x="370" y="768">5</text>
+            <path class="lot7" data-lot="6" d="M452.0 763.0 L616.0 793.5 L617.0 832.2 L454.0 798.4 Z"/>
+            <text class="lnum" data-lotn="6" x="535" y="800">6</text>
+            <path class="lot7" data-lot="7" d="M616.0 793.5 L780.0 824.0 L780.0 866.0 L617.0 832.2 Z"/>
+            <text class="lnum" data-lotn="7" x="698" y="832">7</text>
           </g>
 
-          <ellipse cx="477" cy="768" rx="70" ry="55" fill="url(#gl-plano-glow)" pointer-events="none"/>
-          <g class="house res" pointer-events="none" transform="translate(444 752) rotate(10)"><rect class="fp" width="24" height="30" rx="2"/><path d="M-3 0 L12 -11 L27 0 Z"/></g>
-          <g class="house" pointer-events="none" transform="translate(488 759) rotate(10)"><rect class="fp" width="24" height="30" rx="2"/><path d="M-3 0 L12 -11 L27 0 Z"/></g>
+          <ellipse cx="377" cy="732" rx="62" ry="40" fill="url(#gl-plano-glow)" pointer-events="none"/>
+          <g class="house res" pointer-events="none" transform="translate(351 718) rotate(9)"><rect class="fp" width="24" height="30" rx="2"/><path d="M-3 0 L12 -11 L27 0 Z"/></g>
+          <g class="house" pointer-events="none" transform="translate(381 722) rotate(9)"><rect class="fp" width="24" height="30" rx="2"/><path d="M-3 0 L12 -11 L27 0 Z"/></g>
           <!-- Etiquetas de polígonos -->
           <g id="gl-plano-plabels">
             <text class="plab" x="700" y="132">11</text>
@@ -713,7 +716,7 @@
 
           <!-- Calles: nombres -->
           <text class="slab" transform="translate(600 624) rotate(-2)">C. ANDALUCÍA</text>
-          <text class="slab" transform="translate(500 718) rotate(12)">C. BARCELONA</text>
+          <text class="slab" transform="translate(425 702) rotate(12)">C. BARCELONA</text>
           <text class="slab" transform="translate(970 474) rotate(3.5)">C. GRANADA</text>
           <text class="slab" transform="translate(1045 640) rotate(-86)">C. VALENCIA</text>
           <text class="slab" transform="translate(1188 440) rotate(-86)">C. MÁLAGA</text>
