@@ -28,16 +28,17 @@ const PROPS = [
        topografo la recorta, asi que aca va la medida del lote entero y la de
        la porcion se declara aproximada, nunca inventada al centimetro. */
     id:"casa4", n:1, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 4 · porción disponible",
+    notaUnidades:"Ninguna de las dos porciones está segregada todavía: el lote se recorta al reservar y el topógrafo fija las medidas definitivas. Los tamaños de arriba salen de las medidas del plano aprobado.",
     price:"$350,000", priceRegular:"$400,000", tag:null, priceNote:"Promoción en planos · amueblada · la construcción inicia al reservar", poly:7, lote:"4", xy:[342,776],
-    kv:[["Terreno","321.14 m² (460 v²) la porción en venta, de un lote de 649.13 m² (929 v²)"],["Medidas del lote","20.00 m de frente, con lados de 33.14 y 31.77 m"],["Frente a","Calle Barcelona"],["Acceso","A pocos metros de la entrada principal"]],
+    kv:[["Terreno","321.14 m² (460 v²) — la mitad del lote, que mide 649.13 m² (929 v²)"],["Medidas del lote","20.00 m de frente, con lados de 33.14 y 31.77 m"],["Frente a","Calle Barcelona"],["Acceso","A pocos metros de la entrada principal"]],
     units:[
-      {t:"Porción 1 · 321.14 m² (460 v²)", s:"Disponible", ok:true},
+      {t:"Porción 1 · 321.14 m² (460 v²)", s:"En venta · por recortar", ok:true},
       {t:"Porción 2 · 327.99 m² (469 v²)", s:"Por recortar"}
     ]
   },
   {
-    id:"clovis", n:2, sinPin:true, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 5 · vendido",
-    price:"$350,000", tag:"Vendida", vendida:true, priceNote:"Vendida en noviembre de 2026. El lote contiguo es el próximo a segregar.", poly:7, lote:"5", xy:[544,735],
+    id:"clovis", n:2, xy:[297,776], name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 5 · vendido",
+    price:"$350,000", tag:null, vendida:true, priceNote:"Vendida en noviembre de 2026. El lote contiguo es el próximo a segregar.", poly:7, lote:"5",
     kv:[["Terreno","308.33 m² (441 v²), con título propio"],["Medidas","≈ 10 m de frente × 31 m de fondo"],["Frente a","Calle Barcelona"],["Acceso","A pocos metros de la entrada principal"]],
     units:[
       {t:"Porción 1 · 308.33 m²", s:"Vendida", res:true},
@@ -67,7 +68,7 @@ function renderPins(){
   PROPS.filter(p=>p.xy&&!p.sinPin).forEach(p=>{
     const ns="http://www.w3.org/2000/svg";
     const pin=document.createElementNS(ns,"g");
-    pin.setAttribute("class","pin"); pin.dataset.id=p.id;
+    pin.setAttribute("class", p.vendida?"pin vendido":"pin"); pin.dataset.id=p.id;
     pin.setAttribute("transform",`translate(${p.xy[0]} ${p.xy[1]})`);
     pin.setAttribute("tabindex","0"); pin.setAttribute("role","button");
     pin.setAttribute("aria-label",`${p.name}, ${p.price}`);
@@ -127,6 +128,7 @@ function showProp(id){
     ${p.priceNote?`<div class="note" style="margin:0">${p.priceNote}</div>`:""}
     <dl class="kv"><dt>Ubicación</dt><dd>${where}</dd>${kv}</dl>
     ${units?`<div class="units">${units}</div>`:""}
+    ${p.notaUnidades?`<p class="note">${p.notaUnidades}</p>`:""}
     <a class="cta" href="${waLink(msg)}" target="_blank" rel="noopener">${cta}</a>
     <div class="phone">${WA_TXT} · Walter Guerrero, RE/MAX Elite</div>`;
   if(p.xy) scrollToPoint(p.xy);
@@ -213,7 +215,7 @@ const LOT7_PORC = {
      sea que es un trapecio. Partido por la mitad del frente da 321.14 y
      327.99 m2, que suman los 649.13 del cuadro de areas al centavo. Son
      medidas calculadas, no recortadas: las definitivas las da el topografo. */
-  4: {1:{area:321.14,estado:"Disponible",medidas:"≈ 10 m de frente × 31.77 m de fondo",calculada:true},
+  4: {1:{area:321.14,estado:"En venta · por recortar",enVenta:true,medidas:"≈ 10 m de frente × 31.77 m de fondo",calculada:true},
       2:{area:327.99,estado:"Por recortar",medidas:"≈ 10 m de frente × 33.14 m de fondo",calculada:true}}
 };
 /* Lotes enteros: el 6 es el próximo a segregar; del 4 se conocen las medidas
@@ -243,7 +245,7 @@ document.querySelectorAll(".lot7").forEach(el=>{
   el.setAttribute("aria-label",`Polígono 7, Lote ${n}${por?` · Porción ${por}`:""}`);
   const go=()=>{
     const pc=por&&LOT7_PORC[n]?.[por];
-    if(LOT7_HOUSE[n] && (!pc || pc.estado==="Disponible")) return showProp(LOT7_HOUSE[n]);
+    if(LOT7_HOUSE[n] && (!pc || pc.enVenta)) return showProp(LOT7_HOUSE[n]);
     showLot7(n,por,el);
   };
   el.addEventListener("click",e=>{e.stopPropagation();go()});
@@ -260,7 +262,7 @@ function showLot7(n,por,el){
   // Una porción "Por segregar" todavía no existe como parcela: se recorta
   // cuando se vende la anterior. Conviene decirlo para que nadie pregunte
   // por algo que todavía no se puede escriturar.
-  const aviso=(estado==="Por segregar"||estado==="Por recortar")
+  const aviso=(estado&&/segregar|recortar/.test(estado))
     ? `${por?"Esta porción":"Este lote"} todavía no está segregad${por?"a":"o"}: se recorta una vez vendida la porción anterior. Pregúntame por la disponibilidad.`
     : "Pregúntame por la disponibilidad de este lote y por las casas que se están construyendo en el Polígono 7.";
   $("#gl-plano-panel").innerHTML=`

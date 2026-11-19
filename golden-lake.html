@@ -340,7 +340,7 @@
            recortar. La primera es la que se vende; la segunda queda en
            reserva, por eso va mas apagada. La linea del medio es punteada
            porque la segregacion todavia no esta hecha. */
-        .lot7.porcion-a{fill:var(--gold-soft);stroke:var(--gold);stroke-width:2.5}
+        .lot7.porcion-a{fill:var(--gold-soft);stroke:var(--gold);stroke-width:2.5;stroke-dasharray:7 4}
         .lot7.porcion-b{fill:rgba(224,178,74,.13);stroke:rgba(224,178,74,.45);stroke-width:1.5;stroke-dasharray:4 3}
         .corte{stroke:var(--gold);stroke-width:2;stroke-dasharray:5 4;opacity:.85;fill:none;pointer-events:none}
         /* Lotes ya vendidos. Van en rojo apagado, no en el dorado de lo
@@ -365,6 +365,11 @@
         .pin text{font-family:var(--display);font-weight:700;font-size:11px;fill:var(--pin-ink);text-anchor:middle;pointer-events:none}
         .pin .halo{fill:var(--gold);opacity:.25;animation:pulse 2.4s ease-out infinite;transform-box:fill-box;transform-origin:center}
         .pin.sel circle.dot{stroke:var(--ink)}
+        /* Marcador de una propiedad ya vendida: mismo rojo que su lote, y sin
+           el latido del halo, que llama a la accion sobre algo disponible. */
+        .pin.vendido circle.dot{fill:#c64a42;stroke:var(--surface)}
+        .pin.vendido text{fill:#fdeeec}
+        .pin.vendido .halo{fill:#c64a42;opacity:.2;animation:none}
         @keyframes pulse{0%{transform:scale(.6);opacity:.45}100%{transform:scale(1.8);opacity:0}}
         @media (prefers-reduced-motion:reduce){.pin .halo{animation:none}}
         
