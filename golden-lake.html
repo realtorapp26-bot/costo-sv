@@ -350,6 +350,9 @@
           cursor:pointer;transition:fill .15s}
         .lotevendido:hover{fill:rgba(198,74,66,.44)}
         .corte-firme{stroke:rgba(214,96,86,.9);stroke-width:2;fill:none;pointer-events:none}
+        .aprox{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;
+          color:var(--gold);opacity:.85;border:1px solid rgba(224,178,74,.4);border-radius:4px;
+          padding:1px 6px;margin-left:6px;vertical-align:1px}
         .lnum{font-family:var(--display);font-weight:700;font-size:20px;fill:var(--ink);text-anchor:middle;pointer-events:none}
         .water{fill:url(#gl-plano-wg);stroke:var(--water-deep);stroke-width:2}
         .greenz{fill:var(--green)}
@@ -659,8 +662,8 @@
             <path class="lotevendido" data-lot="5" data-por="2" d="M297 736 L327 736 L327 817 L297 817 Z"/>
             <path class="corte-firme" d="M297 736 L297 817"/>
             <!-- Lote 4: en venta. La division es simbolica, aun sin segregar -->
-            <path class="lot7 sel porcion-a" data-lot="4" d="M327 736 L356 736 L356 817 L327 817 Z"/>
-            <path class="lot7 porcion-b" data-lot="4" d="M358 736 L388 736 L388 817 L358 817 Z"/>
+            <path class="lot7 sel porcion-a" data-lot="4" data-por="1" d="M327 736 L356 736 L356 817 L327 817 Z"/>
+            <path class="lot7 porcion-b" data-lot="4" data-por="2" d="M358 736 L388 736 L388 817 L358 817 Z"/>
             <path class="corte" d="M357 734 L357 819"/>
           </g>
           <ellipse cx="342" cy="776" rx="30" ry="46" fill="url(#gl-plano-glow)" pointer-events="none"/>

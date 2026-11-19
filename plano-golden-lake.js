@@ -29,10 +29,10 @@ const PROPS = [
        la porcion se declara aproximada, nunca inventada al centimetro. */
     id:"casa4", n:1, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 4 · porción disponible",
     price:"$350,000", priceRegular:"$400,000", tag:null, priceNote:"Promoción en planos · amueblada · la construcción inicia al reservar", poly:7, lote:"4", xy:[342,776],
-    kv:[["Terreno","649.13 m² (929 v²) el lote completo; la casa se levanta sobre una porción de ≈ 325 m²"],["Medidas del lote","20.00 m de frente, con lados de 33.14 y 31.77 m"],["Frente a","Calle Barcelona"],["Acceso","A pocos metros de la entrada principal"]],
+    kv:[["Terreno","321.14 m² (460 v²) la porción en venta, de un lote de 649.13 m² (929 v²)"],["Medidas del lote","20.00 m de frente, con lados de 33.14 y 31.77 m"],["Frente a","Calle Barcelona"],["Acceso","A pocos metros de la entrada principal"]],
     units:[
-      {t:"Porción disponible · ≈ 325 m²", s:"Disponible", ok:true},
-      {t:"Se segrega al reservar", s:"Por recortar"}
+      {t:"Porción 1 · 321.14 m² (460 v²)", s:"Disponible", ok:true},
+      {t:"Porción 2 · 327.99 m² (469 v²)", s:"Por recortar"}
     ]
   },
   {
@@ -207,7 +207,14 @@ const LOT7_HOUSE = {4:"casa4", 5:"clovis"};
    completo; el próximo a segregar es el 6. */
 const LOT7_PORC = {
   5: {1:{area:308.33,estado:"Vendida",medidas:"≈ 10 m de frente × 31 m de fondo"},
-      2:{area:314.57,estado:"Vendida"}}
+      2:{area:314.57,estado:"Vendida"}},
+  /* El lote 4 todavia no esta segregado, pero su tamano se puede calcular: el
+     plano le da 20.00 m de frente y dos fondos distintos, 31.77 y 33.14 m, o
+     sea que es un trapecio. Partido por la mitad del frente da 321.14 y
+     327.99 m2, que suman los 649.13 del cuadro de areas al centavo. Son
+     medidas calculadas, no recortadas: las definitivas las da el topografo. */
+  4: {1:{area:321.14,estado:"Disponible",medidas:"≈ 10 m de frente × 31.77 m de fondo",calculada:true},
+      2:{area:327.99,estado:"Por recortar",medidas:"≈ 10 m de frente × 33.14 m de fondo",calculada:true}}
 };
 /* Lotes enteros: el 6 es el próximo a segregar; del 4 se conocen las medidas
    del plano aunque todavía no se haya partido. */
@@ -234,7 +241,11 @@ document.querySelectorAll(".lot7").forEach(el=>{
   if(LOT7_HOUSE[n]) el.classList.add("house");
   el.setAttribute("tabindex","0"); el.setAttribute("role","button");
   el.setAttribute("aria-label",`Polígono 7, Lote ${n}${por?` · Porción ${por}`:""}`);
-  const go=()=>{ if(LOT7_HOUSE[n]) return showProp(LOT7_HOUSE[n]); showLot7(n,por,el); };
+  const go=()=>{
+    const pc=por&&LOT7_PORC[n]?.[por];
+    if(LOT7_HOUSE[n] && (!pc || pc.estado==="Disponible")) return showProp(LOT7_HOUSE[n]);
+    showLot7(n,por,el);
+  };
   el.addEventListener("click",e=>{e.stopPropagation();go()});
   el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}});
 });
@@ -249,13 +260,13 @@ function showLot7(n,por,el){
   // Una porción "Por segregar" todavía no existe como parcela: se recorta
   // cuando se vende la anterior. Conviene decirlo para que nadie pregunte
   // por algo que todavía no se puede escriturar.
-  const aviso=estado==="Por segregar"
+  const aviso=(estado==="Por segregar"||estado==="Por recortar")
     ? `${por?"Esta porción":"Este lote"} todavía no está segregad${por?"a":"o"}: se recorta una vez vendida la porción anterior. Pregúntame por la disponibilidad.`
     : "Pregúntame por la disponibilidad de este lote y por las casas que se están construyendo en el Polígono 7.";
   $("#gl-plano-panel").innerHTML=`
     <div class="eyebrow">Polígono 7 · ${titulo}</div>
     <h2>${titulo}</h2>
-    <dl class="kv"><dt>Polígono</dt><dd>7 · franja frente al Bulevar Costa del Sol</dd><dt>Frente a</dt><dd>Calle Barcelona</dd><dt>Tamaño</dt><dd>${fmt2(area)} m² (${v2(area)} v²)</dd>${medidas?`<dt>Medidas</dt><dd>${medidas}</dd>`:""}${estado?`<dt>Estado</dt><dd>${estado}</dd>`:""}</dl>
+    <dl class="kv"><dt>Polígono</dt><dd>7 · franja frente al Bulevar Costa del Sol</dd><dt>Frente a</dt><dd>Calle Barcelona</dd><dt>Tamaño</dt><dd>${fmt2(area)} m² (${v2(area)} v²)${porc?.calculada?" <span class=\"aprox\">calculada, pendiente de recorte</span>":""}</dd>${medidas?`<dt>Medidas</dt><dd>${medidas}</dd>`:""}${estado?`<dt>Estado</dt><dd>${estado}</dd>`:""}</dl>
     <p class="note">${aviso}</p>
     <a class="cta" href="${waLink(`Hola Walter, me interesa el ${titulo} del Polígono 7 en Golden Lake.`)}" target="_blank" rel="noopener">Preguntar por el ${titulo}</a>
     <div class="phone">${WA_TXT}</div>`;
