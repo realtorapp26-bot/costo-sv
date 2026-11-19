@@ -28,7 +28,7 @@ const PROPS = [
        topografo la recorta, asi que aca va la medida del lote entero y la de
        la porcion se declara aproximada, nunca inventada al centimetro. */
     id:"casa4", n:1, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 4 · porción disponible",
-    price:"$350,000", priceRegular:"$400,000", priceNote:"Promoción en planos · amueblada · la construcción inicia al reservar", poly:7, lote:"4", xy:[212,770],
+    price:"$350,000", priceRegular:"$400,000", priceNote:"Promoción en planos · amueblada · la construcción inicia al reservar", poly:7, lote:"4", xy:[349,772],
     kv:[["Terreno","649.13 m² (929 v²) el lote completo; la casa se levanta sobre una porción de ≈ 325 m²"],["Medidas del lote","20.00 m de frente, con lados de 33.14 y 31.77 m"],["Frente a","Calle Barcelona"],["Acceso","A pocos metros de la entrada principal"]],
     units:[
       {t:"Porción disponible · ≈ 325 m²", s:"Disponible", ok:true},
@@ -103,8 +103,10 @@ function showProp(id){
   const p=PROPS.find(x=>x.id===id); if(!p) return;
   clearSel();
   document.querySelectorAll(`[data-id="${id}"]`).forEach(el=>el.classList.add("sel"));
-  if(p.poly) document.querySelector(`.block[data-p="${p.poly}"]`)?.classList.add("sel");
-  if(p.poly==7) document.querySelector(`.lot7[data-lot="${p.lote}"]`)?.classList.add("sel");
+  /* Si el lote esta dibujado aparte, se ilumina solo el; si no, la manzana. */
+  const lote=p.poly?document.querySelector(`.lot7[data-lot="${p.lote}"]`):null;
+  if(lote) lote.classList.add("sel");
+  else if(p.poly) document.querySelector(`.block[data-p="${p.poly}"]`)?.classList.add("sel");
   const units=(p.units||[]).map(u=>`<div class="unit"><strong>${u.t}</strong><span class="status ${u.ok?"ok":""} ${u.res?"res":""}">${u.s}</span></div>`).join("");
   const kv=p.kv.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join("");
   const where=p.poly?`Polígono ${p.poly}, Lote ${p.lote}`:"Por confirmar";
