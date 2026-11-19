@@ -301,6 +301,18 @@
         
         .mapcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:0}
         .maptools{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}
+        .planonota{font-family:var(--mono);font-size:11px;letter-spacing:.06em;
+          color:var(--muted);opacity:.75;border-left:1px solid var(--line);padding-left:12px}
+        .irprop{background:var(--gold);color:#13211f;border:0;border-radius:999px;
+          padding:7px 16px;font-weight:650;font-size:13px;cursor:pointer;white-space:nowrap}
+        .irprop:hover{filter:brightness(1.08)}
+        @media (max-width:700px){
+          .planonota{display:none}
+          .irprop{width:100%;text-align:center}
+          /* la etiqueta se queda pegada a sus controles en vez de irse sola */
+          .finder label[for="gl-plano-f-pol"]{flex:0 0 auto;margin-right:2px}
+          .finder .sp{flex:1 0 100%;height:0}
+        }
         .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted)}
         .legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
         .zoom{display:flex;gap:6px}
@@ -561,15 +573,9 @@
     <section class="mapcard" aria-label="Plano de Golden Lake">
       <div class="maptools">
         <div class="legend">
-          <span><i style="background:var(--gold)"></i>Propiedad en venta</span>
-          <span><i style="background:var(--lot)"></i>Polígono de lotes</span>
-          <span><i style="background:var(--water)"></i>Laguna</span>
-          <span><i style="background:var(--green)"></i>Área verde</span>
-        </div>
-        <div class="layers" role="group" aria-label="Capas del plano">
-          <label class="chip"><input type="checkbox" id="gl-plano-l-nums" checked>Números</label>
-          <label class="chip"><input type="checkbox" id="gl-plano-l-lamps" checked>Alumbrado</label>
-          <label class="chip"><input type="checkbox" id="gl-plano-l-trees" checked>Vegetación</label>
+          <span><i style="background:var(--gold)"></i>En venta</span>
+          <span><i style="background:#17707c"></i>Lagunas</span>
+          <span class="planonota">Plano aprobado · ARQYTOP · dic 2020</span>
         </div>
         <div class="zoom">
           <button id="gl-plano-zout" type="button" aria-label="Alejar">−</button>
@@ -577,13 +583,13 @@
         </div>
       </div>
       <div class="finder">
+        <button id="gl-plano-ir" type="button" class="irprop">Ver la propiedad en venta</button>
+        <span class="sp"></span>
         <label for="gl-plano-f-pol">Buscar lote:</label>
         <select id="gl-plano-f-pol" aria-label="Polígono"></select>
-        <input id="gl-plano-f-lot" type="number" min="1" placeholder="Lote" aria-label="Número de lote">
+        <input id="gl-plano-f-lot" type="number" min="1" placeholder="N°" aria-label="Número de lote">
         <button id="gl-plano-f-go" type="button">Ver</button>
         <span class="msg" id="gl-plano-f-msg" aria-live="polite"></span>
-        <span class="sp"></span>
-        <button id="gl-plano-tilt" type="button" aria-pressed="false">Vista 3D</button>
       </div>
       <div class="mapscroll" id="gl-plano-mapscroll">
         <svg id="gl-plano-map" viewBox="0 0 996 842" role="img" aria-label="Plano aprobado de la lotificación Golden Lake">

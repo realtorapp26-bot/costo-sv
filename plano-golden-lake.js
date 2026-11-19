@@ -263,10 +263,6 @@ document.querySelectorAll(".lot7").forEach(l=>{
   });
   l.addEventListener("mouseleave",tipOff);});
 
-[["gl-plano-l-nums","no-nums"],["gl-plano-l-lamps","no-lamps"],["gl-plano-l-trees","no-trees"]].forEach(([id,cls])=>{
-  $("#"+id).addEventListener("change",e=>$("#gl-plano-map").classList.toggle(cls,!e.target.checked));
-});
-document.querySelectorAll("#gl-plano-blocks .block").forEach(b=>b.setAttribute("filter","url(#gl-plano-sh)"));
 /* Buscador de lotes y vista 3D */
 (function(){
   const sel=$("#gl-plano-f-pol");
@@ -281,7 +277,13 @@ document.querySelectorAll("#gl-plano-blocks .block").forEach(b=>b.setAttribute("
   };
   $("#gl-plano-f-go").addEventListener("click",go);
   $("#gl-plano-f-lot").addEventListener("keydown",e=>{if(e.key==="Enter")go()});
-  $("#gl-plano-tilt").addEventListener("click",e=>{const on=$("#gl-plano-map").classList.toggle("tilt");e.currentTarget.setAttribute("aria-pressed",on);e.currentTarget.textContent=on?"Vista plana":"Vista 3D"});
+  /* Lleva el plano a la propiedad en venta: con el plano completo a la vista
+     el Lote 4 es un rectangulo chico, y conviene un atajo para encontrarlo. */
+  $("#gl-plano-ir").addEventListener("click",()=>{
+    const p=PROPS.find(x=>x.xy&&!x.sinPin); if(!p) return;
+    if(z<2.1) setZoom(2.1);
+    showProp(p.id);
+  });
 })();
 
 renderPins(); renderList(); showProp("casa4");
