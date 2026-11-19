@@ -79,7 +79,7 @@ function renderPins(){
       const tx=p.tagLeft?-24-w:24;
       globo=`<g class="tag" transform="translate(${tx} -46)"><rect width="${w}" height="32" rx="16"/><text x="${w/2}" y="22" text-anchor="middle">${tag}</text></g>`;
     }
-    pin.innerHTML=`<circle class="halo" r="26"/>${globo}<circle class="dot" r="18"/><text y="7">${p.n}</text>`;
+    pin.innerHTML=`<circle class="halo" r="15"/>${globo}<circle class="dot" r="9.5"/><text y="4">${p.n}</text>`;
     pin.addEventListener("click",e=>{e.stopPropagation();showProp(p.id)});
     pin.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();showProp(p.id)}});
     g.appendChild(pin);
