@@ -336,6 +336,13 @@
         .lot7:hover{fill:var(--lot-hi)}
         .lot7.house{fill:var(--gold-soft);stroke:var(--gold);stroke-width:2.5}
         .lot7.sel{stroke:var(--ink);stroke-width:3}
+        /* El Lote 4 se muestra partido en las dos porciones que se van a
+           recortar. La primera es la que se vende; la segunda queda en
+           reserva, por eso va mas apagada. La linea del medio es punteada
+           porque la segregacion todavia no esta hecha. */
+        .lot7.porcion-a{fill:var(--gold-soft);stroke:var(--gold);stroke-width:2.5}
+        .lot7.porcion-b{fill:rgba(224,178,74,.13);stroke:rgba(224,178,74,.45);stroke-width:1.5;stroke-dasharray:4 3}
+        .corte{stroke:var(--gold);stroke-width:2;stroke-dasharray:5 4;opacity:.85;fill:none;pointer-events:none}
         .lnum{font-family:var(--display);font-weight:700;font-size:20px;fill:var(--ink);text-anchor:middle;pointer-events:none}
         .water{fill:url(#gl-plano-wg);stroke:var(--water-deep);stroke-width:2}
         .greenz{fill:var(--green)}
@@ -638,11 +645,17 @@
           <g id="gl-plano-ripples"></g>
           <g id="gl-plano-trees"></g>
           <g id="gl-plano-plabels"></g>
-          <!-- Lo unico que se ilumina: el Lote 4, que es el que esta en venta -->
+          <!-- Lo unico que se ilumina es el Lote 4. Se muestra partido en
+               las dos porciones en que se va a recortar: el lote entero mide
+               649.13 m2 y la casa va sobre una de ellas. La division es
+               simbolica -el topografo todavia no la hizo- y por eso la linea
+               del medio va punteada y la segunda porcion mas apagada. -->
           <g id="gl-plano-p7">
-            <path class="lot7 sel" data-lot="4" d="M320 729 L378 728 L378 815 L320 816 Z"/>
+            <path class="lot7 sel porcion-a" data-lot="4" d="M320 729 L348 729 L348 816 L320 816 Z"/>
+            <path class="lot7 porcion-b" data-lot="4" d="M350 729 L378 728 L378 815 L350 816 Z"/>
+            <path class="corte" d="M349 727 L349 818"/>
           </g>
-          <ellipse cx="349" cy="772" rx="46" ry="56" fill="url(#gl-plano-glow)" pointer-events="none"/>
+          <ellipse cx="334" cy="772" rx="34" ry="52" fill="url(#gl-plano-glow)" pointer-events="none"/>
           <g id="gl-plano-pins"></g>
         </svg>
       </div>
