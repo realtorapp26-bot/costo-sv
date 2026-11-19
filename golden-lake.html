@@ -367,9 +367,9 @@
         .pin.sel circle.dot{stroke:var(--ink)}
         /* Marcador de una propiedad ya vendida: mismo rojo que su lote, y sin
            el latido del halo, que llama a la accion sobre algo disponible. */
-        .pin.vendido circle.dot{fill:#c64a42;stroke:var(--surface)}
-        .pin.vendido text{fill:#fdeeec}
-        .pin.vendido .halo{fill:#c64a42;opacity:.2;animation:none}
+        .pin.vendido circle.dot{fill:#f4e2df;stroke:#a8362d;stroke-width:2.5}
+        .pin.vendido text{fill:#8c251d}
+        .pin.vendido .halo{fill:#c64a42;opacity:.26;animation:none}
         @keyframes pulse{0%{transform:scale(.6);opacity:.45}100%{transform:scale(1.8);opacity:0}}
         @media (prefers-reduced-motion:reduce){.pin .halo{animation:none}}
         
