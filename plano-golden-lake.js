@@ -274,15 +274,15 @@ function showLot7(n,por,el){
   const ns="http://www.w3.org/2000/svg", mk=(t,a)=>{const e=document.createElementNS(ns,t);for(const k in a)e.setAttribute(k,a[k]);return e};
   const g=$("#gl-plano-lotlines"), cells=$("#gl-plano-cells"), hidden=mk("g",{visibility:"hidden"}); $("#gl-plano-map").appendChild(hidden);
   const B=[
-    {p:9,rails:["M360 382 L288 674","M405 382 L386 674"],cols:6},
-    {p:4,rails:["M1074 174 L1048 454","M1128 186 L1108 458","M1180 198 L1167 460"],cols:7},
-    {p:3,rails:["M1026 498 L1022 808","M1093 500 L1081 814","M1160 502 L1141 818"],cols:7},
-    {p:5,rails:["M907 148 C924 262 920 390 890 442","M973 156 L956 442","M1040 166 L1021 442"],cols:6},
-    {p:1,rails:["M1213 210 L1168 942","M1288 224 L1235 956"],cols:19},
+    {p:9,rails:["M360 382 L288 674","M405 382 L386 674"],cols:6,orden:[[6,5,4,3,2,1]]},
+    {p:4,rails:["M1074 174 L1048 454","M1128 186 L1108 458","M1180 198 L1167 460"],cols:7,orden:[[7,6,5,4,3,2,1],[8,9,10,11,12,13,14]]},
+    {p:3,rails:["M1026 498 L1022 808","M1093 500 L1081 814","M1160 502 L1141 818"],cols:7,orden:[[7,6,5,4,3,2,1],[8,9,10,11,12,13,14]]},
+    {p:5,rails:["M907 148 C924 262 920 390 890 442","M973 156 L956 442","M1040 166 L1021 442"],cols:6,orden:[[6,5,4,3,2,1],[7,8,9,10,11,12]]},
+    {p:1,rails:["M1213 210 L1168 942","M1288 224 L1235 956"],cols:19,orden:[[19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1]]},
     {p:2,rails:["M814 820 L1134 860","M822 868 L1132 934"],cols:8},
     {p:6,rails:["M760 606 L816 786","M880 492 L905 788","M988 488 L990 782"],cols:7},
-    {p:8,rails:["M414 600 C520 613 620 610 704 598","M414 646 L742 682","M414 690 L782 766"],cols:5},
-    {p:10,rails:["M444 472 C560 527 720 522 820 442 C850 402 865 362 868 320","M434 558 C560 583 760 570 856 460 C878 430 898 390 903 320"],cols:7},
+    {p:8,rails:["M414 600 C520 613 620 610 704 598","M414 646 L742 682","M414 690 L782 766"],cols:5,orden:[[6,7,8,9,10],[5,4,3,2,1]]},
+    {p:10,rails:["M444 472 C560 527 720 522 820 442 C850 402 865 362 868 320","M434 558 C560 583 760 570 856 460 C878 430 898 390 903 320"],cols:7,orden:[[1,2,3,4,5,6,7]]},
     {p:11,rails:["M592 104 L870 118","M592 143 L800 148"],cols:4}
   ];
   const pathOf=d=>{const p=mk("path",{d});hidden.appendChild(p);return p};
@@ -290,7 +290,12 @@ function showLot7(n,por,el){
     const rows=b.rails.length-1, P=b.p, rails=b.rails.map(pathOf);
     for(let r=1;r<rows;r++) g.appendChild(mk("path",{d:b.rails[r],class:"lotline2"}));
     for(let r=0;r<rows;r++){
-      const nums=Array.from({length:b.cols},(_,k)=>r*b.cols+k+1); if(r%2) nums.reverse();
+      /* b.orden trae la numeracion REAL leida del plano aprobado, fila por
+         fila. Donde todavia no se pudo leer se cae al patron en serpiente,
+         que es una suposicion: esos poligonos quedan marcados como
+         pendientes de verificar contra el plano. */
+      const nums=b.orden ? b.orden[r].slice()
+        : (()=>{const n=Array.from({length:b.cols},(_,k)=>r*b.cols+k+1); if(r%2) n.reverse(); return n;})();
       const areas=nums.map(n=>LOT_AREA[P]?.[n]??1), tot=areas.reduce((x,y)=>x+y,0);
       let acc=0; const fr=[0,...areas.map(v=>(acc+=v)/tot)];
       const at=(p,t)=>p.getPointAtLength(p.getTotalLength()*t);
