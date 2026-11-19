@@ -28,7 +28,7 @@ const PROPS = [
        topografo la recorta, asi que aca va la medida del lote entero y la de
        la porcion se declara aproximada, nunca inventada al centimetro. */
     id:"casa4", n:1, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 4 · porción disponible",
-    price:"$350,000", priceRegular:"$400,000", priceNote:"Promoción en planos · amueblada · la construcción inicia al reservar", poly:7, lote:"4", xy:[334,772],
+    price:"$350,000", priceRegular:"$400,000", tag:null, priceNote:"Promoción en planos · amueblada · la construcción inicia al reservar", poly:7, lote:"4", xy:[334,772],
     kv:[["Terreno","649.13 m² (929 v²) el lote completo; la casa se levanta sobre una porción de ≈ 325 m²"],["Medidas del lote","20.00 m de frente, con lados de 33.14 y 31.77 m"],["Frente a","Calle Barcelona"],["Acceso","A pocos metros de la entrada principal"]],
     units:[
       {t:"Porción disponible · ≈ 325 m²", s:"Disponible", ok:true},
@@ -71,10 +71,15 @@ function renderPins(){
     pin.setAttribute("transform",`translate(${p.xy[0]} ${p.xy[1]})`);
     pin.setAttribute("tabindex","0"); pin.setAttribute("role","button");
     pin.setAttribute("aria-label",`${p.name}, ${p.price}`);
-    const tag=p.tag||p.price; const w=tag.length*11+22;
-    // El globo va a la izquierda cuando a la derecha hay etiquetas del plano.
-    const tx=p.tagLeft?-24-w:24;
-    pin.innerHTML=`<circle class="halo" r="26"/><g class="tag" transform="translate(${tx} -46)"><rect width="${w}" height="32" rx="16"/><text x="${w/2}" y="22" text-anchor="middle">${tag}</text></g><circle class="dot" r="18"/><text y="7">${p.n}</text>`;
+    const tag=p.tag===null?"":(p.tag||p.price);
+    let globo="";
+    if(tag){
+      const w=tag.length*11+22;
+      // El globo va a la izquierda cuando a la derecha hay etiquetas del plano.
+      const tx=p.tagLeft?-24-w:24;
+      globo=`<g class="tag" transform="translate(${tx} -46)"><rect width="${w}" height="32" rx="16"/><text x="${w/2}" y="22" text-anchor="middle">${tag}</text></g>`;
+    }
+    pin.innerHTML=`<circle class="halo" r="26"/>${globo}<circle class="dot" r="18"/><text y="7">${p.n}</text>`;
     pin.addEventListener("click",e=>{e.stopPropagation();showProp(p.id)});
     pin.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();showProp(p.id)}});
     g.appendChild(pin);
