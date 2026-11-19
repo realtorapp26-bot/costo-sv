@@ -599,6 +599,17 @@
                sitio. La forma es exacta porque no se redibujo nada. -->
           <image href="golden-lake-plano.webp" x="0" y="0" width="996" height="842"
                  preserveAspectRatio="xMidYMid meet"/>
+          <!-- Color sobre el plano: agua y verde. El plano en papel es
+               blanco y negro; esto le devuelve la lectura rapida de donde
+               estan las lagunas y las areas verdes. -->
+          <g style="mix-blend-mode:screen" pointer-events="none">
+            <path fill="#10402f" opacity=".6" style="filter:blur(16px)" d="M168 158 C170 122 240 108 318 116 C412 126 496 158 514 220 C530 282 500 372 440 414 C376 458 254 468 196 426 C150 392 150 296 160 240 Z"/>
+          </g>
+          <g style="mix-blend-mode:screen" pointer-events="none">
+            <ellipse cx="92" cy="262" rx="62" ry="100" transform="rotate(-4 92 262)" fill="#17707c" opacity=".78" style="filter:blur(9px)"/>
+            <ellipse cx="314" cy="191" rx="88" ry="58" transform="rotate(-4 314 191)" fill="#17707c" opacity=".78" style="filter:blur(9px)"/>
+            <ellipse cx="336" cy="307" rx="66" ry="48" transform="rotate(-4 336 307)" fill="#17707c" opacity=".78" style="filter:blur(9px)"/>
+          </g>
           <!-- Zonas para tocar cada poligono -->
           <g id="gl-plano-blocks">
             <path class="block" data-p="1" d="M878 50 L962 50 L962 828 L878 828 Z"/>
