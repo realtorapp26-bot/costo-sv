@@ -343,6 +343,13 @@
         .lot7.porcion-a{fill:var(--gold-soft);stroke:var(--gold);stroke-width:2.5}
         .lot7.porcion-b{fill:rgba(224,178,74,.13);stroke:rgba(224,178,74,.45);stroke-width:1.5;stroke-dasharray:4 3}
         .corte{stroke:var(--gold);stroke-width:2;stroke-dasharray:5 4;opacity:.85;fill:none;pointer-events:none}
+        /* Lotes ya vendidos. Van en rojo apagado, no en el dorado de lo
+           disponible, y con el corte en linea firme porque su segregacion
+           ya esta hecha y escriturada. */
+        .lotevendido{fill:rgba(198,74,66,.3);stroke:rgba(214,96,86,.85);stroke-width:2;
+          cursor:pointer;transition:fill .15s}
+        .lotevendido:hover{fill:rgba(198,74,66,.44)}
+        .corte-firme{stroke:rgba(214,96,86,.9);stroke-width:2;fill:none;pointer-events:none}
         .lnum{font-family:var(--display);font-weight:700;font-size:20px;fill:var(--ink);text-anchor:middle;pointer-events:none}
         .water{fill:url(#gl-plano-wg);stroke:var(--water-deep);stroke-width:2}
         .greenz{fill:var(--green)}
@@ -581,6 +588,7 @@
       <div class="maptools">
         <div class="legend">
           <span><i style="background:var(--gold)"></i>En venta</span>
+          <span><i style="background:#c64a42"></i>Vendido</span>
           <span><i style="background:#17707c"></i>Lagunas</span>
           <span class="planonota">Plano aprobado · ARQYTOP · dic 2020</span>
         </div>
@@ -645,17 +653,17 @@
           <g id="gl-plano-ripples"></g>
           <g id="gl-plano-trees"></g>
           <g id="gl-plano-plabels"></g>
-          <!-- Lo unico que se ilumina es el Lote 4. Se muestra partido en
-               las dos porciones en que se va a recortar: el lote entero mide
-               649.13 m2 y la casa va sobre una de ellas. La division es
-               simbolica -el topografo todavia no la hizo- y por eso la linea
-               del medio va punteada y la segunda porcion mas apagada. -->
           <g id="gl-plano-p7">
-            <path class="lot7 sel porcion-a" data-lot="4" d="M320 729 L348 729 L348 816 L320 816 Z"/>
-            <path class="lot7 porcion-b" data-lot="4" d="M350 729 L378 728 L378 815 L350 816 Z"/>
-            <path class="corte" d="M349 727 L349 818"/>
+            <!-- Lote 5: vendido en noviembre de 2026, las dos porciones -->
+            <path class="lotevendido" data-lot="5" data-por="1" d="M268 736 L297 736 L297 817 L268 817 Z"/>
+            <path class="lotevendido" data-lot="5" data-por="2" d="M297 736 L327 736 L327 817 L297 817 Z"/>
+            <path class="corte-firme" d="M297 736 L297 817"/>
+            <!-- Lote 4: en venta. La division es simbolica, aun sin segregar -->
+            <path class="lot7 sel porcion-a" data-lot="4" d="M327 736 L356 736 L356 817 L327 817 Z"/>
+            <path class="lot7 porcion-b" data-lot="4" d="M358 736 L388 736 L388 817 L358 817 Z"/>
+            <path class="corte" d="M357 734 L357 819"/>
           </g>
-          <ellipse cx="334" cy="772" rx="30" ry="46" fill="url(#gl-plano-glow)" pointer-events="none"/>
+          <ellipse cx="342" cy="776" rx="30" ry="46" fill="url(#gl-plano-glow)" pointer-events="none"/>
           <g id="gl-plano-pins"></g>
         </svg>
       </div>

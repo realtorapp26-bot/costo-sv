@@ -28,7 +28,7 @@ const PROPS = [
        topografo la recorta, asi que aca va la medida del lote entero y la de
        la porcion se declara aproximada, nunca inventada al centimetro. */
     id:"casa4", n:1, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 4 · porción disponible",
-    price:"$350,000", priceRegular:"$400,000", tag:null, priceNote:"Promoción en planos · amueblada · la construcción inicia al reservar", poly:7, lote:"4", xy:[334,772],
+    price:"$350,000", priceRegular:"$400,000", tag:null, priceNote:"Promoción en planos · amueblada · la construcción inicia al reservar", poly:7, lote:"4", xy:[342,776],
     kv:[["Terreno","649.13 m² (929 v²) el lote completo; la casa se levanta sobre una porción de ≈ 325 m²"],["Medidas del lote","20.00 m de frente, con lados de 33.14 y 31.77 m"],["Frente a","Calle Barcelona"],["Acceso","A pocos metros de la entrada principal"]],
     units:[
       {t:"Porción disponible · ≈ 325 m²", s:"Disponible", ok:true},
@@ -214,6 +214,21 @@ const LOT7_PORC = {
 const LOT7_LOTE = {
   6: {estado:"Por segregar"}
 };
+document.querySelectorAll(".lotevendido").forEach(el=>{
+  const n=+el.dataset.lot, por=el.dataset.por;
+  el.setAttribute("tabindex","0"); el.setAttribute("role","button");
+  el.setAttribute("aria-label",`Polígono 7, Lote ${n}, Porción ${por} — vendida`);
+  const ir=()=>{ if(LOT7_HOUSE[n]) return showProp(LOT7_HOUSE[n]); showLot7(n,por,el); };
+  el.addEventListener("click",e=>{e.stopPropagation();ir()});
+  el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();ir()}});
+  el.addEventListener("mousemove",e=>{
+    const pc=LOT7_PORC[n]?.[por];
+    tipOn(e, pc?`<b>Lote ${n} · Porción ${por}</b> · ${fmt2(pc.area)} m² · Vendida`
+               :`<b>Polígono 7 · Lote ${n}</b> · Vendido`);
+  });
+  el.addEventListener("mouseleave",tipOff);
+});
+
 document.querySelectorAll(".lot7").forEach(el=>{
   const n=+el.dataset.lot, por=el.dataset.por;
   if(LOT7_HOUSE[n]) el.classList.add("house");
