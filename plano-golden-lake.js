@@ -28,7 +28,7 @@ const PROPS = [
        topografo la recorta, asi que aca va la medida del lote entero y la de
        la porcion se declara aproximada, nunca inventada al centimetro. */
     id:"casa4", n:1, name:"Casa nueva en Golden Lake", sub:"Polígono 7 · Lote 4 · porción disponible",
-    price:"$350,000", priceRegular:"$400,000", priceNote:"Promoción en planos · amueblada · la construcción inicia al reservar", poly:7, lote:"4", xy:[673,892],
+    price:"$350,000", priceRegular:"$400,000", priceNote:"Promoción en planos · amueblada · la construcción inicia al reservar", poly:7, lote:"4", xy:[212,770],
     kv:[["Terreno","649.13 m² (929 v²) el lote completo; la casa se levanta sobre una porción de ≈ 325 m²"],["Medidas del lote","20.00 m de frente, con lados de 33.14 y 31.77 m"],["Frente a","Calle Barcelona"],["Acceso","A pocos metros de la entrada principal"]],
     units:[
       {t:"Porción disponible · ≈ 325 m²", s:"Disponible", ok:true},
@@ -239,60 +239,14 @@ function showLot7(n,por,el){
     <div class="phone">${WA_TXT}</div>`;
 }
 
-/* Decoración: rayado de lotes, árboles, palmeras, reflejos */
-(function deco(){
-  const ns="http://www.w3.org/2000/svg", mk=(t,a)=>{const e=document.createElementNS(ns,t);for(const k in a)e.setAttribute(k,a[k]);return e};
-  const hatch=$("#gl-plano-hatch");
-  document.querySelectorAll("#gl-plano-blocks .block").forEach(b=>{ if(b.dataset.p!=="7"){const c=b.cloneNode();c.removeAttribute("filter");c.setAttribute("class","lothatch");c.removeAttribute("data-p");hatch.appendChild(c);} });
-  const green=$("#gl-plano-greenpath"), lags=["#gl-plano-lag1","#gl-plano-lag2","#gl-plano-lag3"].map(q=>$(q)), svg=$("#gl-plano-map");
-  const pt=svg.createSVGPoint(); let seed=7; const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
-  const trees=$("#gl-plano-trees"); let n=0,tries=0;
-  while(n<70&&tries<3000){tries++;
-    pt.x=440+rnd()*460; pt.y=120+rnd()*420;
-    if(!green.isPointInFill(pt)) continue;
-    if(lags.some(l=>{const p=svg.createSVGPoint();p.x=pt.x;p.y=pt.y;const m=l.getCTM&&null;return l.isPointInFill(p)||l.isPointInStroke(p)})) continue;
-    let near=false; for(const l of lags){const bb=l.getBBox(); if(pt.x>bb.x-10&&pt.x<bb.x+bb.width+10&&pt.y>bb.y-10&&pt.y<bb.y+bb.height+10){near=true;break}}
-    if(near) continue;
-    const r=5+rnd()*7; trees.appendChild(mk("circle",{cx:pt.x.toFixed(1),cy:pt.y.toFixed(1),r:r.toFixed(1),class:"tree"+(rnd()>.6?" hi":"")})); n++;
-  }
-  const palms=$("#gl-plano-palms"), eje=$(".centerline");
-  if(eje){
-    const Lp=eje.getTotalLength();
-    for(let t=20;t<Lp-20;t+=62){
-      const q=eje.getPointAtLength(t);
-      const g=mk("g",{transform:`translate(${q.x.toFixed(1)} ${(q.y+30).toFixed(1)})`,class:"palm"});
-      ["M0 0 q-10 -6 -16 2","M0 0 q10 -6 16 2","M0 0 q-4 -12 -12 -14","M0 0 q4 -12 12 -14"].forEach(d=>g.appendChild(mk("path",{d})));
-      palms.appendChild(g);
-    }
-  }
-  const rip=$("#gl-plano-ripples");
-  lags.forEach((l,i)=>{
-    if(!l) return;
-    const cx=+l.getAttribute("cx"), cy=+l.getAttribute("cy");
-    const rx=+l.getAttribute("rx"), ry=+l.getAttribute("ry");
-    const tr=l.getAttribute("transform")||"";
-    [[0.78,0],[0.46,2]].forEach(([k,dly])=>{
-      rip.appendChild(mk("ellipse",{cx,cy,rx:(rx*k).toFixed(1),ry:(ry*k).toFixed(1),
-        class:"ripple",transform:tr,style:`animation-delay:${(i*1.3+dly).toFixed(1)}s`}));
-    });
-  });
-  /* escalonar la entrada de los bloques */
-  document.querySelectorAll("#gl-plano-blocks .block,#gl-plano-p7 .lot7").forEach((b,i)=>b.style.animationDelay=(i*40)+"ms");
-})();
+/* El mapa es la foto del plano aprobado, que ya trae su propio dibujo: ya no
+   se generan arboles, palmeras ni rayado de lotes. Solo se escalona la
+   entrada de las zonas para que no aparezcan todas de golpe. */
+document.querySelectorAll("#gl-plano-blocks .block").forEach((b,i)=>b.style.animationDelay=(i*40)+"ms");
 
-/* Los lotes ya vienen dibujados en el SVG, cada uno con el ancho que le da
-   su area real del plano aprobado. Aca solo se les engancha la interaccion.
-   Antes este bloque los generaba a partir de "rieles" y una numeracion en
-   serpiente inventada; de ahi venian los lotes al reves que Walter detecto. */
-(function lotes(){
-  document.querySelectorAll("#gl-plano-cells .cell").forEach(cell=>{
-    const P=+cell.dataset.p, N=+cell.dataset.lot;
-    cell.addEventListener("click",e=>{e.stopPropagation();showLot(P,N)});
-    cell.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();showLot(P,N)}});
-    cell.addEventListener("mousemove",e=>tipOn(e,`<b>Polígono ${P} · Lote ${N}</b>${LOT_AREA[P]?.[N]?` · ${fmt(LOT_AREA[P][N])} m²`:""}`));
-    cell.addEventListener("mouseleave",tipOff);
-  });
-})();
+/* El mapa es ahora el plano aprobado: no hay lotes dibujados encima, asi que
+   la interaccion es por poligono. El lote individual se consulta con el
+   buscador de arriba, que sigue dando area, ubicacion y medidas exactas. */
 
 /* Tooltip */
 function tipOn(e,html){const tip=$("#gl-plano-tip");tip.innerHTML=html;tip.hidden=false;tip.style.left=(e.clientX+14)+"px";tip.style.top=(e.clientY+14)+"px"}
@@ -320,7 +274,7 @@ document.querySelectorAll("#gl-plano-blocks .block").forEach(b=>b.setAttribute("
     if(!n||n<1||n>max){$("#gl-plano-f-msg").textContent=`El Polígono ${p} tiene lotes del 1 al ${max}.`;return}
     $("#gl-plano-f-msg").textContent="";
     showLot(p,n);
-    const el=document.querySelector(`.cell[data-p="${p}"][data-lot="${n}"]`);
+    const el=document.querySelector(`.block[data-p="${p}"]`);
     if(el&&z>1){const bb=el.getBBox(); scrollToPoint([bb.x+bb.width/2,bb.y+bb.height/2]);}
   };
   $("#gl-plano-f-go").addEventListener("click",go);
