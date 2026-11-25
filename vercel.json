@@ -9,7 +9,7 @@
     "formats": ["image/webp"]
   },
   "crons": [
-    { "path": "/api/resumen-diario", "schedule": "0 14 * * *" },
+    { "path": "/api/resumen-diario", "schedule": "0 1 * * *" },
     { "path": "/api/chequear-disponibilidad", "schedule": "0 15 * * *" }
   ],
   "rewrites": [
