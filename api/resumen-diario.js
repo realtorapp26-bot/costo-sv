@@ -233,6 +233,23 @@ export default async function handler(req, res) {
             resumirCambiosParaIa(cambios, commits),
         ].filter(Boolean).join('\n');
 
+        // Modo prueba (?probar=1): devuelve lo que se juntó sin gastar una
+        // llamada al modelo y sin mandarle un mensaje a Walter. Sirve para
+        // verificar en producción que la bitácora y GitHub se leen bien.
+        if (req.query?.probar === '1') {
+            res.status(200).json({
+                ok: true,
+                prueba: true,
+                bitacora_legible: !aviso,
+                aviso: aviso || null,
+                cambios_contenido: cambios.length,
+                commits: commits === null ? null : commits.length,
+                datos_para_el_modelo: lineas,
+                bloque_literal: bloqueCambiosSitio(cambios, aviso, commits),
+            });
+            return;
+        }
+
         const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
