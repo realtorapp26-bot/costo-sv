@@ -17,6 +17,8 @@
 //    como segunda confirmación en general).
 // ============================================================
 
+import { enviarResumen } from '../lib/resumenDiario.js';
+
 const SUPA_URL = 'https://iseoyfiteeobzvtfjhoe.supabase.co';
 const SITE_URL = 'https://guerrero-properties.com';
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36';
@@ -108,6 +110,14 @@ export default async function handler(req, res) {
     return;
   }
 
+  // Este cron es también el que manda el mensaje de la mañana. No es que el
+  // chequeo y el resumen tengan que ver entre sí: el plan Hobby solo permite
+  // DOS tareas programadas y las dos ya estaban usadas, así que el mensaje de
+  // la mañana viaja con el único cron que corre a esa hora. Va en su propio
+  // try: si el chequeo falla, el resumen se manda igual, y al revés.
+  const resumenManana = await enviarResumen({ momento: 'manana' })
+    .catch((e) => { console.error('chequear-disponibilidad resumen:', e); return { error: e.message }; });
+
   try {
     const propRes = await fetch(
       `${SUPA_URL}/rest/v1/propiedades?select=id,titulo,slug,link_referencia,fotos&publicada=eq.true`,
@@ -136,9 +146,10 @@ export default async function handler(req, res) {
       ok: true,
       total: propiedades.length,
       sospechosas: sospechosas.map((p) => ({ titulo: p.titulo, slug: p.slug, motivo: p.motivo })),
+      resumen_manana: resumenManana,
     });
   } catch (err) {
     console.error('api/chequear-disponibilidad:', err);
-    res.status(502).json({ error: err.message });
+    res.status(502).json({ error: err.message, resumen_manana: resumenManana });
   }
 }
