@@ -184,6 +184,14 @@ export function useToggleCaptacionPropia() {
         .from('propiedades')
         .update({ captacion_propia, updated_at: new Date().toISOString() })
         .eq('id', id);
+      // Mientras la migración 20261126000000 no esté aplicada, la columna no
+      // existe y Postgres responde 42703. Sin esto el error que ve Walter es
+      // "column does not exist", que no le dice qué tiene que hacer.
+      if (error?.code === '42703') {
+        throw new Error(
+          'Falta aplicar la migración de "Mis Propiedades" en el SQL Editor de Supabase (20261126000000_propiedades_captacion_propia.sql).',
+        );
+      }
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['propiedades'] }),

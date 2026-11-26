@@ -15,6 +15,15 @@ export function PropiedadesPage() {
   const { data: propiedades = [], isLoading, error } = usePropiedades();
   const togglePublicada = useTogglePublicada();
   const toggleCaptacion = useToggleCaptacionPropia();
+
+  // La estrella es un clic suelto, no un formulario: si la escritura falla no
+  // hay ningun lugar donde se note, asi que el error se avisa directo.
+  function marcarCaptacion(id: string, valor: boolean) {
+    toggleCaptacion.mutate(
+      { id, captacion_propia: valor },
+      { onError: (e) => alert((e as Error).message) },
+    );
+  }
   const eliminarMutacion = useDeletePropiedad();
 
   const [params, setParams] = useSearchParams();
@@ -273,7 +282,7 @@ export function PropiedadesPage() {
                 seleccionada={seleccionadas.has(p.id)}
                 onSeleccionar={(marcada) => toggleSeleccion(p.id, marcada)}
                 onTogglePublicada={() => togglePublicada.mutate({ id: p.id, publicada: !p.publicada })}
-                onToggleCaptacion={() => toggleCaptacion.mutate({ id: p.id, captacion_propia: !p.captacion_propia })}
+                onToggleCaptacion={() => marcarCaptacion(p.id, !p.captacion_propia)}
                 onEditar={() => editar(p)}
                 onEliminar={() => eliminar(p)}
               />
@@ -320,7 +329,7 @@ export function PropiedadesPage() {
                     </td>
                     <td className="px-2 py-3">
                       <button
-                        onClick={() => toggleCaptacion.mutate({ id: p.id, captacion_propia: !p.captacion_propia })}
+                        onClick={() => marcarCaptacion(p.id, !p.captacion_propia)}
                         title={p.captacion_propia ? 'Es tu captación — clic para desmarcarla' : 'Marcarla como captación propia'}
                         aria-label={p.captacion_propia ? 'Quitar de mis propiedades' : 'Agregar a mis propiedades'}
                         className={cx(

@@ -682,6 +682,7 @@
                     method: 'PATCH', headers: { ...headers, Prefer: 'return=minimal' },
                     body: JSON.stringify({ captacion_propia: nuevoValor }),
                 });
+                if (res.status === 400 || res.status === 404) throw new Error("La columna de \"Mis Propiedades\" todavia no existe en la base. Falta aplicar la migracion 20261126000000_propiedades_captacion_propia.sql en el SQL Editor de Supabase.");
                 if (!res.ok) throw new Error('no se pudo guardar (' + res.status + ')');
             } catch (ex) {
                 p.captacion_propia = !nuevoValor;   // se revierte: la base manda
