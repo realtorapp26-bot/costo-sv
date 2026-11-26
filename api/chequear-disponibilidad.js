@@ -3,9 +3,17 @@
 //
 //  Disparado por Vercel Cron (ver vercel.json). Para cada propiedad
 //  publicada, revisa si su link de RE/MAX Connect (link_referencia) y/o
-//  su foto principal siguen respondiendo. Si alguna ya no responde, manda
-//  un aviso por Telegram para que Walter la revise y la quite a mano —
-//  nunca se despublica sola, esto es solo un aviso.
+//  su foto principal siguen respondiendo.
+//
+//  Qué hace cuando algo no responde (decidido con Walter el 2026-11-25):
+//  cuenta los días SEGUIDOS que lleva sin responder en
+//  propiedades.dias_sin_responder, y al tercero la oculta sola
+//  (publicada = false). En cuanto vuelve a responder, el contador se pone
+//  en cero. No se borra nada nunca: ocultar es reversible con un clic.
+//  Antes solo avisaba; se pasó a ocultar porque una ficha dada de baja en
+//  RE/MAX puede quedar días en el sitio si el aviso se pasa por alto.
+//  El umbral de tres días es lo que evita que un corte de red de un día
+//  baje una propiedad que está perfectamente bien.
 //
 //  Por qué estas dos señales:
 //  - El link de la ficha individual (share.remax-ccamls.com/show/...) SÍ
@@ -24,6 +32,12 @@ const SITE_URL = 'https://guerrero-properties.com';
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36';
 const HOST_CHEQUEABLE = /(^|\.)remax-ccamls\.com$/i;
 const TIMEOUT_MS = 8000;
+const CAMPOS = 'id,titulo,slug,link_referencia,fotos';
+
+// Días seguidos sin responder antes de ocultar la propiedad. Tres y no uno
+// porque el chequeo corre una vez al día: con uno, un corte de red o un rato
+// de mantenimiento del CDN bastaría para bajar una propiedad que está bien.
+const DIAS_PARA_OCULTAR = 3;
 
 async function vivo(url) {
   const controlador = new AbortController();
@@ -96,6 +110,29 @@ async function chequearPropiedad(p) {
   return { ...p, linkChequeable, linkVivo, fotoVivo, sospechosa, motivo };
 }
 
+// Escribe en la propiedad. Si falla no se corta el chequeo de las demás: se
+// deja el error en el log y esa propiedad se trata como "todavía en aviso",
+// para no decirle a Walter que se ocultó algo que en realidad sigue visible.
+async function guardar(serviceKey, id, campos) {
+  try {
+    const r = await fetch(`${SUPA_URL}/rest/v1/propiedades?id=eq.${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify(campos),
+    });
+    if (!r.ok) console.error('chequear-disponibilidad guardar:', id, r.status, await r.text());
+    return r.ok;
+  } catch (e) {
+    console.error('chequear-disponibilidad guardar:', id, e.message);
+    return false;
+  }
+}
+
 export default async function handler(req, res) {
   if (process.env.CRON_SECRET && req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
     res.status(401).json({ error: 'No autorizado' });
@@ -119,21 +156,77 @@ export default async function handler(req, res) {
     .catch((e) => { console.error('chequear-disponibilidad resumen:', e); return { error: e.message }; });
 
   try {
-    const propRes = await fetch(
-      `${SUPA_URL}/rest/v1/propiedades?select=id,titulo,slug,link_referencia,fotos&publicada=eq.true`,
+    // dias_sin_responder lo agrega la migración
+    // 20261126050000_propiedades_dias_sin_responder.sql. Si todavía no corrió,
+    // PostgREST responde 400 y se vuelve al comportamiento de antes: avisar
+    // sin ocultar nada. Nunca se deja de avisar por una migración pendiente.
+    let conContador = true;
+    let propRes = await fetch(
+      `${SUPA_URL}/rest/v1/propiedades?select=${CAMPOS},dias_sin_responder&publicada=eq.true`,
       { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
     );
+    if (propRes.status === 400) {
+      conContador = false;
+      propRes = await fetch(
+        `${SUPA_URL}/rest/v1/propiedades?select=${CAMPOS}&publicada=eq.true`,
+        { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } }
+      );
+    }
     if (!propRes.ok) throw new Error('propiedades: ' + (await propRes.text()));
     const propiedades = await propRes.json();
 
     const resultados = await Promise.all(propiedades.map(chequearPropiedad));
-    const sospechosas = resultados.filter((p) => p.sospechosa);
 
-    if (sospechosas.length) {
-      const lineas = sospechosas.map((p) =>
-        `• ${p.titulo}\n  ${p.motivo}\n  ${SITE_URL}/propiedad/${encodeURIComponent(p.slug || p.id)}`
-      );
-      const mensaje = `⚠️ Revisar disponibilidad — Costo SV\n\n${sospechosas.length} propiedad${sospechosas.length === 1 ? '' : 'es'} publicada${sospechosas.length === 1 ? '' : 's'} que podría${sospechosas.length === 1 ? '' : 'n'} ya no estar disponible${sospechosas.length === 1 ? '' : 's'} en RE/MAX Connect:\n\n${lineas.join('\n\n')}\n\nRevisalas y quitalas del sitio si ya no están — esto es solo un aviso, no se despublican solas.`;
+    // Una propiedad se oculta recién al tercer día seguido de no responder.
+    // Un corte de red de un día no baja nada: en cuanto vuelve a responder el
+    // contador se pone en cero y hay que empezar a fallar de nuevo desde uno.
+    const ocultadas = [];
+    const enAviso = [];
+    if (conContador) {
+      for (const p of resultados) {
+        const antes = Number(p.dias_sin_responder) || 0;
+        if (!p.sospechosa) {
+          if (antes !== 0) await guardar(serviceKey, p.id, { dias_sin_responder: 0 });
+          continue;
+        }
+        const dias = antes + 1;
+        if (dias >= DIAS_PARA_OCULTAR) {
+          // El contador vuelve a cero junto con el ocultado: si Walter la
+          // vuelve a publicar, arranca de nuevo con los tres días completos.
+          const ok = await guardar(serviceKey, p.id, { publicada: false, dias_sin_responder: 0 });
+          (ok ? ocultadas : enAviso).push({ ...p, dias });
+        } else {
+          await guardar(serviceKey, p.id, { dias_sin_responder: dias });
+          enAviso.push({ ...p, dias });
+        }
+      }
+    } else {
+      for (const p of resultados) if (p.sospechosa) enAviso.push({ ...p, dias: null });
+    }
+
+    if (ocultadas.length || enAviso.length) {
+      const ficha = (p) => `${SITE_URL}/propiedad/${encodeURIComponent(p.slug || p.id)}`;
+      const bloques = [];
+      if (ocultadas.length) {
+        bloques.push(
+          `🔒 Ocultada${ocultadas.length === 1 ? '' : 's'} del sitio (${DIAS_PARA_OCULTAR} días seguidos sin responder):\n\n` +
+          ocultadas.map((p) => `• ${p.titulo}\n  ${p.motivo}\n  ${ficha(p)}`).join('\n\n') +
+          `\n\nSi alguna sigue disponible, volvé a publicarla desde Administrar Publicaciones.`
+        );
+      }
+      if (enAviso.length) {
+        bloques.push(
+          `⚠️ Sin responder, todavía publicada${enAviso.length === 1 ? '' : 's'}:\n\n` +
+          enAviso.map((p) => {
+            const cuenta = p.dias ? `día ${p.dias} de ${DIAS_PARA_OCULTAR}` : 'aviso';
+            return `• ${p.titulo}\n  ${p.motivo} (${cuenta})\n  ${ficha(p)}`;
+          }).join('\n\n') +
+          (conContador
+            ? `\n\nSi sigue${enAviso.length === 1 ? '' : 'n'} así, se oculta${enAviso.length === 1 ? '' : 'n'} sola${enAviso.length === 1 ? '' : 's'} al día ${DIAS_PARA_OCULTAR}.`
+            : `\n\nFalta aplicar la migración de "días sin responder", así que por ahora esto es solo un aviso y no se oculta nada solo.`)
+        );
+      }
+      const mensaje = `Disponibilidad — Costo SV\n\n${bloques.join('\n\n———\n\n')}`;
       const tgRes = await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -145,7 +238,9 @@ export default async function handler(req, res) {
     res.status(200).json({
       ok: true,
       total: propiedades.length,
-      sospechosas: sospechosas.map((p) => ({ titulo: p.titulo, slug: p.slug, motivo: p.motivo })),
+      con_contador: conContador,
+      ocultadas: ocultadas.map((p) => ({ titulo: p.titulo, slug: p.slug, motivo: p.motivo, dias: p.dias })),
+      en_aviso: enAviso.map((p) => ({ titulo: p.titulo, slug: p.slug, motivo: p.motivo, dias: p.dias })),
       resumen_manana: resumenManana,
     });
   } catch (err) {
