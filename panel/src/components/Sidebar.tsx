@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { cx } from './ui';
 
 const SITE = 'https://guerrero-properties.com';
@@ -8,6 +8,9 @@ interface Item {
   icon: string;
   to?: string;
   href?: string;
+  // "Propiedades" y "Mis propiedades" comparten la misma ruta y se
+  // diferencian solo por ?mias=1, así que hay que decir cuál es cuál.
+  soloMias?: boolean;
   soon?: boolean;
 }
 interface Group {
@@ -20,7 +23,9 @@ const GROUPS: Group[] = [
   {
     title: 'Trabajo diario',
     items: [
-      { label: 'Propiedades', icon: 'fas fa-house', to: '/propiedades' },
+      { label: 'Propiedades', icon: 'fas fa-house', to: '/propiedades', soloMias: false },
+      // Mismo listado, con el filtro de captaciones propias ya aplicado.
+      { label: 'Mis propiedades', icon: 'fas fa-star', to: '/propiedades?mias=1', soloMias: true },
       { label: 'Leads web', icon: 'fas fa-user-group', to: '/leads' },
       { label: 'Búsquedas activas', icon: 'fas fa-magnifying-glass', soon: true },
       { label: 'Publicidad inteligente', icon: 'fas fa-bullhorn', soon: true },
@@ -60,6 +65,17 @@ const linkBase =
   'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition';
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
+  const { search } = useLocation();
+
+  // true = el ítem queda activo con la URL actual. NavLink compara nada más
+  // el pathname, así que sin esto "Propiedades" y "Mis propiedades" se
+  // marcarían como activas a la vez.
+  function estaActivo(it: Item, rutaCoincide: boolean) {
+    if (!rutaCoincide) return false;
+    if (it.soloMias === undefined) return true;
+    return it.soloMias === new URLSearchParams(search).has('mias');
+  }
+
   return (
     <nav className="flex h-full flex-col gap-6 p-4">
       <div className="px-2">
@@ -85,7 +101,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                     className={({ isActive }) =>
                       cx(
                         linkBase,
-                        isActive
+                        estaActivo(it, isActive)
                           ? 'bg-navy text-white'
                           : 'text-slate-600 hover:bg-slate-100',
                       )

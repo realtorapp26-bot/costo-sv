@@ -24,20 +24,18 @@ const AGENTE = {
   email: 'walter.guerrero@remax.com.sv',
   foto: '/assets/walter-guerrero-retocada.png',
 };
+import { precioFmt, areaFmt } from '../lib/formato.js';
+
 const FOTO_RESPALDO = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80';
 
 // El precio se carga a mano desde el panel, así que llega como venga:
 // "125000", "$125000", "US$ 129,900" o "Consultar". Si es un número suelto se
 // le ponen los separadores de miles — "$125000" se lee descuidado justo en la
 // página que recibe el 80% del tráfico. Cualquier otro texto se respeta.
-function precioLegible(valor) {
+function precioLegible(valor, tipoContrato) {
   const txt = String(valor == null ? '' : valor).trim();
   if (!txt) return 'Consultar';
-  const m = txt.match(/^(US\$|\$|USD\s*)?\s*(\d[\d,]*)(\.\d{1,2})?$/i);
-  if (!m) return txt;
-  const entero = m[2].replace(/,/g, '');
-  if (entero.length < 4) return txt;                    // 500 no necesita separador
-  return (m[1] ? m[1].trim() : '$') + entero.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (m[3] || '');
+  return precioFmt(txt, tipoContrato);
 }
 
 const esc = (s) => String(s == null ? '' : s)
@@ -62,7 +60,7 @@ const imgOpt = (url, w, q) => {
 };
 
 const precioNumero = (p) => {
-  const n = Number(String(p == null ? '' : p).replace(/[^0-9.]/g, ''));
+  const n = Number(String(precioFmt(p)).replace(/[^0-9]/g, ''));
   return Number.isFinite(n) && n > 0 ? n : null;
 };
 
@@ -155,14 +153,14 @@ function render(p) {
   };
   const metaDesc = descripcion
     ? recorte(descripcion, 158)
-    : recorte(`${p.titulo} en ${contrato.toLowerCase()}${p.ubicacion ? ' — ' + p.ubicacion : ''}. ${p.precio || ''}. Contactá a Walter Guerrero, RE/MAX Elite.`, 158);
+    : recorte(`${p.titulo} en ${contrato.toLowerCase()}${p.ubicacion ? ' — ' + p.ubicacion : ''}. ${precioLegible(p.precio, p.tipo_contrato)}. Contactá a Walter Guerrero, RE/MAX Elite.`, 158);
 
   const chips = [
     p.habitaciones ? `<span><i class="fas fa-bed"></i> ${esc(p.habitaciones)} hab</span>` : '',
     p.banos ? `<span><i class="fas fa-bath"></i> ${esc(p.banos)} baños</span>` : '',
-    p.m2 ? `<span><i class="fas fa-vector-square"></i> ${esc(p.m2)} m²</span>` : '',
-    p.tamano_lote ? `<span><i class="fas fa-ruler-combined"></i> Lote ${esc(p.tamano_lote)}</span>` : '',
-    p.tamano_construccion ? `<span><i class="fas fa-drafting-compass"></i> Construcción ${esc(p.tamano_construccion)}</span>` : '',
+    p.m2 ? `<span><i class="fas fa-vector-square"></i> ${esc(areaFmt(p.m2))}</span>` : '',
+    p.tamano_lote ? `<span><i class="fas fa-ruler-combined"></i> Lote ${esc(areaFmt(p.tamano_lote))}</span>` : '',
+    p.tamano_construccion ? `<span><i class="fas fa-drafting-compass"></i> Construcción ${esc(areaFmt(p.tamano_construccion))}</span>` : '',
     fmtFecha(p.fecha_publicacion) ? `<span><i class="fas fa-calendar-day"></i> Publicado: ${esc(fmtFecha(p.fecha_publicacion))}</span>` : '',
   ].filter(Boolean).join('');
 
@@ -204,7 +202,7 @@ function render(p) {
     (p.video_url && !ytId) ? `<a href="${esc(p.video_url)}" target="_blank" rel="noopener"><i class="fas fa-play-circle"></i> Video de la propiedad</a>` : '',
   ].filter(Boolean).join('');
 
-  const waMsg = `Hola Walter, me interesa "${p.titulo}" (${p.precio || ''}) que vi en ${url}. ¿Me das más información?`;
+  const waMsg = `Hola Walter, me interesa "${p.titulo}" (${precioLegible(p.precio, p.tipo_contrato)}) que vi en ${url}. ¿Me das más información?`;
   const waHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waMsg)}`;
 
   const galeriaThumbs = fotos.length > 1
@@ -274,19 +272,19 @@ function render(p) {
     src="https://www.facebook.com/tr?id=${PIXEL_ID}&ev=PageView&noscript=1"
     /></noscript>
     <!-- End Meta Pixel Code -->
-    <title>${esc(p.titulo)} — ${esc(p.precio || contrato)} | Walter Guerrero RE/MAX Elite</title>
+    <title>${esc(p.titulo)} — ${esc(p.precio ? precioLegible(p.precio, p.tipo_contrato) : contrato)} | Walter Guerrero RE/MAX Elite</title>
     <meta name="description" content="${esc(metaDesc)}">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="${esc(url)}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Walter Guerrero · RE/MAX Elite">
     <meta property="og:locale" content="es_SV">
-    <meta property="og:title" content="${esc(p.titulo)} — ${esc(p.precio || '')}">
+    <meta property="og:title" content="${esc(p.titulo)} — ${esc(p.precio ? precioLegible(p.precio, p.tipo_contrato) : '')}">
     <meta property="og:description" content="${esc(metaDesc)}">
     <meta property="og:url" content="${esc(url)}">
     <meta property="og:image" content="${esc(foto0)}">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="${esc(p.titulo)} — ${esc(p.precio || '')}">
+    <meta name="twitter:title" content="${esc(p.titulo)} — ${esc(p.precio ? precioLegible(p.precio, p.tipo_contrato) : '')}">
     <meta name="twitter:description" content="${esc(metaDesc)}">
     <meta name="twitter:image" content="${esc(foto0)}">
     <meta name="theme-color" content="#0f172a">
@@ -428,7 +426,7 @@ function render(p) {
 
             <aside class="ficha-aside">
                 <div class="ficha-precio-label">Precio</div>
-                <div class="ficha-precio">${esc(precioLegible(p.precio))}</div>
+                <div class="ficha-precio">${esc(precioLegible(p.precio, p.tipo_contrato))}</div>
                 <a data-whatsapp data-wa="${esc(waMsg)}" href="${esc(waHref)}" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> Consultar por WhatsApp</a>
 
                 <!-- Captura de datos. Antes la ficha SOLO ofrecía WhatsApp: si la
@@ -528,14 +526,14 @@ function render(p) {
     <script>
         window.DOSSIER_DATA = ${JSON.stringify({
           id: p.id, slug, url,
-          titulo: p.titulo, precio: p.precio || 'Consultar',
+          titulo: p.titulo, precio: precioLegible(p.precio, p.tipo_contrato),
           ubicacion: p.ubicacion || '',
           contrato,
           categoria: p.categoria || '',
           idExterno: p.id_externo || '',
           habitaciones: p.habitaciones || '', banos: p.banos || '',
-          garage: !!p.garage, m2: p.m2 || '',
-          tamanoLote: p.tamano_lote || '', tamanoConstruccion: p.tamano_construccion || '',
+          garage: !!p.garage, m2: areaFmt(p.m2),
+          tamanoLote: areaFmt(p.tamano_lote), tamanoConstruccion: areaFmt(p.tamano_construccion),
           tipo: p.tipo_propiedad_detalle || '',
           nueva: !!p.propiedad_nueva, comunidadCerrada: !!p.comunidad_cerrada, hoa: !!p.hoa,
           fechaPublicacion: fmtFecha(p.fecha_publicacion) || null,

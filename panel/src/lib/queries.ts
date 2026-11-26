@@ -173,6 +173,23 @@ export function useTogglePublicada() {
   });
 }
 
+// Marca o desmarca una propiedad como captación propia. Va por su propia
+// mutación (y no por useUpdatePropiedad) para que el botón de la estrella no
+// tenga que mandar el formulario completo.
+export function useToggleCaptacionPropia() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, captacion_propia }: { id: string; captacion_propia: boolean }) => {
+      const { error } = await supabase
+        .from('propiedades')
+        .update({ captacion_propia, updated_at: new Date().toISOString() })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['propiedades'] }),
+  });
+}
+
 export function useDeletePropiedad() {
   const qc = useQueryClient();
   return useMutation({

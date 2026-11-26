@@ -47,6 +47,10 @@
       "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
     },
     {
+      "source": "/formato.js",
+      "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
+    },
+    {
       "source": "/dossier.js",
       "headers": [{ "key": "Cache-Control", "value": "no-store, must-revalidate" }]
     },

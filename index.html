@@ -204,7 +204,7 @@
                     <div class="gl-home-card-body">
                         <span class="gl-home-card-badge">Listo para construir</span>
                         <h3 class="gl-home-card-titulo">Terreno en Golden Lake</h3>
-                        <div class="gl-home-card-precio">$129,900</div>
+                        <div class="gl-home-card-precio">$125,000</div>
                         <p class="gl-home-card-nota">Negociable · 659 v² (460.63 m²)</p>
                         <ul class="gl-home-card-bullets">
                             <li><i class="fas fa-circle-check"></i> Título propio, libre de gravámenes</li>
@@ -213,7 +213,7 @@
                         </ul>
                         <div class="gl-home-card-ctas">
                             <a href="golden-lake.html#golden-lake-plano" class="btn btn-outline">Ver en el plano</a>
-                            <a data-whatsapp data-wa="Hola Walter, me interesa el terreno en Golden Lake de $129,900 (659 v²). ¿Sigue disponible?" href="#" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                            <a data-whatsapp data-wa="Hola Walter, me interesa el terreno en Golden Lake de $125,000 (659 v²). ¿Sigue disponible?" href="#" class="btn btn-whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</a>
                         </div>
                     </div>
                 </div>
@@ -310,6 +310,7 @@
     </div>
 
     <script src="config.js?v=2"></script>
+    <script src="formato.js?v=1"></script>
     <script src="app.js?v=3"></script>
     <script>
         (function () {
@@ -328,7 +329,7 @@
                 const meta = [
                     p.habitaciones ? `<span><i class="fas fa-bed"></i> ${p.habitaciones} Hab</span>` : '',
                     p.banos ? `<span><i class="fas fa-bath"></i> ${p.banos} Baños</span>` : '',
-                    p.m2 ? `<span><i class="fas fa-vector-square"></i> ${p.m2} m²</span>` : '',
+                    p.m2 ? `<span><i class="fas fa-vector-square"></i> ${window.areaFmt(p.m2)}</span>` : '',
                 ].filter(Boolean).join('');
                 return `
                     <div class="prop-card">
@@ -336,10 +337,11 @@
                             <span class="prop-badge">${p.categoria}</span>
                             ${p.tipo_contrato ? `<span class="prop-badge-estado">${p.tipo_contrato}</span>` : ''}
                             ${p.video_url ? `<span class="prop-badge-video"><i class="fas fa-play"></i> Video</span>` : ''}
+                            ${p.captacion_propia ? `<span class="prop-badge-directo" title="Walter representa directamente al propietario"><i class="fas fa-star"></i> Trato directo</span>` : ''}
                             <img loading="lazy" decoding="async" src="${window.imgOpt ? window.imgOpt(fotos[0], 600, 70) : fotos[0]}" alt="${p.titulo}" onerror="this.src='${FOTO_RESPALDO}'"
                                  data-share-titulo="${p.titulo.replace(/"/g, '&quot;')}" data-share-id="${p.id}"
                                  data-share-slug="${slug}"
-                                 data-share-precio="${String(p.precio || '').replace(/"/g, '&quot;')}"
+                                 data-share-precio="${String(window.precioFmt(p.precio, p.tipo_contrato) || '').replace(/"/g, '&quot;')}"
                                  onclick="abrirLightboxImg(this, 'propiedad', 'propiedades.html')">
                         </div>
                         <div class="prop-content">
@@ -348,7 +350,7 @@
                             <div class="prop-meta">${meta}</div>
                             <div class="prop-footer">
                                 <div class="prop-price-label">Precio</div>
-                                <div class="prop-price">${p.precio}</div>
+                                <div class="prop-price">${window.precioFmt(p.precio, p.tipo_contrato)}</div>
                             </div>
                             <a href="${fichaUrl}" class="btn btn-outline" style="width: 100%;">Ver detalles</a>
                         </div>
@@ -356,9 +358,24 @@
                 `;
             }
 
-            fetch(`${SUPA_URL}/rest/v1/propiedades?select=*&publicada=eq.true&order=orden.asc.nullslast,created_at.desc&limit=3`, {
-                headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
-            })
+                        // Las captaciones propias van primero: son las que Walter captó con
+            // contrato directo ("Mis Propiedades" en el panel). Si tiene menos de
+            // 3 marcadas, el resto de las tarjetas se completa con el inventario
+            // general en el orden manual de siempre -- la portada nunca queda corta.
+            const ORDEN_CON_CAPTACION = 'captacion_propia.desc,orden.asc.nullslast,created_at.desc';
+            const ORDEN_BASE = 'orden.asc.nullslast,created_at.desc';
+            const traerPortada = (orden) =>
+                fetch(`${SUPA_URL}/rest/v1/propiedades?select=*&publicada=eq.true&order=${orden}&limit=3`, {
+                    headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
+                });
+
+            // Ordenar por captacion_propia requiere que la migración
+            // 20261126000000_propiedades_captacion_propia.sql ya esté aplicada. Si
+            // todavía no corrió, PostgREST responde 400 por la columna inexistente
+            // y la portada quedaría SIN propiedades -- por eso se reintenta con el
+            // orden de siempre en vez de dejar el bloque vacío.
+            traerPortada(ORDEN_CON_CAPTACION)
+                .then((res) => (res.ok ? res : traerPortada(ORDEN_BASE)))
                 .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
                 .then((propiedades) => {
                     if (!propiedades.length) {

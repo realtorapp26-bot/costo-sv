@@ -66,6 +66,7 @@ export function ImportarPropiedad({
           await crear.mutateAsync({
             orden: null,
             publicada: true,
+            captacion_propia: false,
             titulo: p.titulo,
             precio: p.precio || 'Precio a consultar',
             ubicacion: p.ubicacion,

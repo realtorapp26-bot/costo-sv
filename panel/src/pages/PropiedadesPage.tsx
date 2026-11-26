@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import type { Categoria, Propiedad, TipoContrato } from '../lib/types';
 import { CATEGORIAS, PUBLICADA_CLASE, TIPO_CONTRATO_LABEL } from '../lib/enums';
 import { normalizar } from '../lib/format';
-import { useDeletePropiedad, usePropiedades, useTogglePublicada } from '../lib/queries';
+import { useDeletePropiedad, usePropiedades, useToggleCaptacionPropia, useTogglePublicada } from '../lib/queries';
 import type { PropiedadCampos } from '../lib/queries';
 import { Badge, Button, Card, ChipRow, EmptyState, StatCard, cx, inputClass } from '../components/ui';
 import { PropiedadFormModal } from './PropiedadFormModal';
@@ -14,6 +14,7 @@ type FiltroPublicada = 'si' | 'no';
 export function PropiedadesPage() {
   const { data: propiedades = [], isLoading, error } = usePropiedades();
   const togglePublicada = useTogglePublicada();
+  const toggleCaptacion = useToggleCaptacionPropia();
   const eliminarMutacion = useDeletePropiedad();
 
   const [params, setParams] = useSearchParams();
@@ -21,6 +22,7 @@ export function PropiedadesPage() {
   const [fCategoria, setFCategoria] = useState<Categoria | null>(null);
   const [fContrato, setFContrato] = useState<TipoContrato | null>(null);
   const [fPublicada, setFPublicada] = useState<FiltroPublicada | null>(null);
+  const [soloMias, setSoloMias] = useState(params.get('mias') === '1');
   const [formAbierto, setFormAbierto] = useState(false);
   const [editando, setEditando] = useState<Propiedad | null>(null);
   const [borrador, setBorrador] = useState<Partial<PropiedadCampos> | null>(null);
@@ -43,9 +45,14 @@ export function PropiedadesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [propiedades]);
 
+  useEffect(() => {
+    setSoloMias(params.get('mias') === '1');
+  }, [params]);
+
   const filtradas = useMemo(() => {
     const q = normalizar(busqueda);
     return propiedades.filter((p) => {
+      if (soloMias && !p.captacion_propia) return false;
       if (fCategoria && p.categoria !== fCategoria) return false;
       if (fContrato && p.tipo_contrato !== fContrato) return false;
       if (fPublicada === 'si' && !p.publicada) return false;
@@ -56,12 +63,13 @@ export function PropiedadesPage() {
       }
       return true;
     });
-  }, [propiedades, fCategoria, fContrato, fPublicada, busqueda]);
+  }, [propiedades, soloMias, fCategoria, fContrato, fPublicada, busqueda]);
 
   const kpis = useMemo(
     () => ({
       publicadas: propiedades.filter((p) => p.publicada).length,
       ocultas: propiedades.filter((p) => !p.publicada).length,
+      mias: propiedades.filter((p) => p.captacion_propia).length,
       total: propiedades.length,
       mostradas: filtradas.length,
     }),
@@ -132,7 +140,16 @@ export function PropiedadesPage() {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-serif text-xl font-bold text-navy">Propiedades</h1>
+        <div>
+          <h1 className="font-serif text-xl font-bold text-navy">
+            {soloMias ? 'Mis propiedades' : 'Propiedades'}
+          </h1>
+          {soloMias && (
+            <p className="text-xs text-slate-500">
+              Las que captaste vos con contrato directo. Son las que el sitio muestra destacadas.
+            </p>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={() => setImportarAbierto((v) => !v)}>
             <i className="fas fa-cloud-arrow-down" />
@@ -159,7 +176,7 @@ export function PropiedadesPage() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard label="Publicadas" value={kpis.publicadas} icon="fas fa-eye" tono="emerald" />
         <StatCard label="Ocultas" value={kpis.ocultas} icon="fas fa-eye-slash" tono="amber" />
-        <StatCard label="Total" value={kpis.total} icon="fas fa-house" tono="navy" />
+        <StatCard label="Mis propiedades" value={kpis.mias} icon="fas fa-star" tono="navy" />
         <StatCard label="Mostradas" value={kpis.mostradas} icon="fas fa-filter" tono="blue" />
       </div>
 
@@ -185,6 +202,30 @@ export function PropiedadesPage() {
           activo={fPublicada}
           onChange={setFPublicada}
         />
+        <div className="flex items-center gap-2 pt-1">
+          <span className="w-[4.5rem] shrink-0 text-xs font-semibold uppercase tracking-wider text-slate-400">
+            Captación
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              const nuevo = !soloMias;
+              setSoloMias(nuevo);
+              if (nuevo) params.set('mias', '1');
+              else params.delete('mias');
+              setParams(params, { replace: true });
+            }}
+            className={cx(
+              'rounded-full border px-3 py-1 text-xs font-semibold transition',
+              soloMias
+                ? 'border-gold bg-gold/15 text-navy'
+                : 'border-slate-200 text-slate-600 hover:bg-slate-100',
+            )}
+          >
+            <i className={cx(soloMias ? 'fas' : 'far', 'fa-star mr-1.5')} />
+            Solo mis propiedades ({kpis.mias})
+          </button>
+        </div>
       </Card>
 
       {seleccionadas.size > 0 && (
@@ -232,6 +273,7 @@ export function PropiedadesPage() {
                 seleccionada={seleccionadas.has(p.id)}
                 onSeleccionar={(marcada) => toggleSeleccion(p.id, marcada)}
                 onTogglePublicada={() => togglePublicada.mutate({ id: p.id, publicada: !p.publicada })}
+                onToggleCaptacion={() => toggleCaptacion.mutate({ id: p.id, captacion_propia: !p.captacion_propia })}
                 onEditar={() => editar(p)}
                 onEliminar={() => eliminar(p)}
               />
@@ -251,6 +293,9 @@ export function PropiedadesPage() {
                       className="h-4 w-4 rounded border-slate-300 text-navy focus:ring-navy/30"
                       aria-label="Seleccionar todas las visibles"
                     />
+                  </th>
+                  <th className="w-10 px-2 py-3" title="Captación propia">
+                    <i className="fas fa-star text-gold" />
                   </th>
                   <th className="px-4 py-3">Foto</th>
                   <th className="px-4 py-3">Título / Ubicación</th>
@@ -272,6 +317,21 @@ export function PropiedadesPage() {
                         className="h-4 w-4 rounded border-slate-300 text-navy focus:ring-navy/30"
                         aria-label={`Seleccionar ${p.titulo}`}
                       />
+                    </td>
+                    <td className="px-2 py-3">
+                      <button
+                        onClick={() => toggleCaptacion.mutate({ id: p.id, captacion_propia: !p.captacion_propia })}
+                        title={p.captacion_propia ? 'Es tu captación — clic para desmarcarla' : 'Marcarla como captación propia'}
+                        aria-label={p.captacion_propia ? 'Quitar de mis propiedades' : 'Agregar a mis propiedades'}
+                        className={cx(
+                          'rounded p-1.5 transition',
+                          p.captacion_propia
+                            ? 'text-gold hover:bg-gold/10'
+                            : 'text-slate-300 hover:bg-slate-100 hover:text-slate-400',
+                        )}
+                      >
+                        <i className={cx(p.captacion_propia ? 'fas' : 'far', 'fa-star')} />
+                      </button>
                     </td>
                     <td className="px-4 py-3">
                       <div className="h-16 w-24 overflow-hidden rounded-md bg-slate-100">
@@ -324,6 +384,7 @@ function PropiedadCard({
   seleccionada,
   onSeleccionar,
   onTogglePublicada,
+  onToggleCaptacion,
   onEditar,
   onEliminar,
 }: {
@@ -331,6 +392,7 @@ function PropiedadCard({
   seleccionada: boolean;
   onSeleccionar: (marcada: boolean) => void;
   onTogglePublicada: () => void;
+  onToggleCaptacion: () => void;
   onEditar: () => void;
   onEliminar: () => void;
 }) {
@@ -352,6 +414,12 @@ function PropiedadCard({
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
           <Badge>{p.categoria}</Badge>
           <Badge className="bg-slate-100 text-slate-600">{TIPO_CONTRATO_LABEL[p.tipo_contrato]}</Badge>
+          {p.captacion_propia && (
+            <Badge className="bg-gold/15 text-navy">
+              <i className="fas fa-star mr-1" />
+              Mi captación
+            </Badge>
+          )}
         </div>
         <div className="mt-1.5 flex items-center justify-between gap-2">
           <span className="font-semibold text-navy">{p.precio}</span>
@@ -368,6 +436,16 @@ function PropiedadCard({
             className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100"
           >
             <i className="fas fa-pen" /> Editar
+          </button>
+          <button
+            onClick={onToggleCaptacion}
+            className={cx(
+              'flex items-center justify-center rounded-lg px-2.5 py-1.5 text-xs font-medium',
+              p.captacion_propia ? 'text-gold hover:bg-gold/10' : 'text-slate-400 hover:bg-slate-100',
+            )}
+            aria-label={p.captacion_propia ? 'Quitar de mis propiedades' : 'Agregar a mis propiedades'}
+          >
+            <i className={cx(p.captacion_propia ? 'fas' : 'far', 'fa-star')} />
           </button>
           <button
             onClick={onEliminar}

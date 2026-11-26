@@ -29,7 +29,7 @@ const PANEL = join(ROOT, 'panel');
 // funciones serverless -las maneja Vercel aparte-, etc.)
 const EXCLUIR = new Set([
   'node_modules', '.git', '.github', '.claude', '.vercel',
-  'panel', 'api', 'supabase', 'dist_site',
+  'panel', 'api', 'supabase', 'dist_site', 'lib',
 ]);
 
 function log(msg) {

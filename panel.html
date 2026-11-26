@@ -307,6 +307,7 @@
         <div class="admin-nav">
             <div class="tab-switch">
                 <button class="tab-btn active" id="btn-tab-propiedades" onclick="cambiarTab('propiedades')">🏠 Propiedades</button>
+                <button class="tab-btn" id="btn-tab-mias" onclick="cambiarTab('mias')">🏡 Mis Propiedades</button>
                 <button class="tab-btn" id="btn-tab-franquicias" onclick="cambiarTab('franquicias')">🏪 Franquicias</button>
                 <button class="tab-btn" id="btn-tab-leads" onclick="cambiarTab('leads')">📋 Leads</button>
                 <button class="tab-btn" id="btn-tab-kyc" onclick="cambiarTab('kyc')">🛡️ KYC</button>
@@ -379,6 +380,25 @@
                 <h2>Propiedades publicadas</h2>
                 <div id="added-list" class="added-grid"></div>
                 <div id="empty-hint" class="empty-hint">Cargando...</div>
+            </div>
+        </div>
+
+        <!-- ===== MIS PROPIEDADES (captaciones propias) ===== -->
+        <div class="tab-panel" id="tab-mias">
+            <div class="panel" style="border: 2px dashed var(--gold);">
+                <h2>🏡 Mis Propiedades</h2>
+                <label>Son las que captaste vos, con contrato de corretaje firmado directamente con el propietario.
+                    El sitio las trata como destacadas: aparecen primero en la portada y arriba en la página de propiedades.</label>
+                <p style="margin:10px 0 0; font-size:0.85rem; color:var(--text-light);">
+                    Para marcar o desmarcar una propiedad, usá la estrella en
+                    <a href="propiedades-admin.html" style="color:var(--primary); font-weight:600;">Administrar Publicaciones</a>.
+                </p>
+            </div>
+
+            <div class="panel">
+                <h2>Tus captaciones</h2>
+                <div id="mias-list" class="added-grid"></div>
+                <div id="mias-hint" class="empty-hint">Cargando...</div>
             </div>
         </div>
 
@@ -1354,16 +1374,66 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.4/heic2any.min.js"></script>
     <script src="config.js?v=2"></script>
+    <script src="formato.js?v=1"></script>
     <script src="login.js?v=6"></script>
     <script>
         const SUPA_URL = window.SITE_CONFIG.SUPABASE_URL;
 
         function cambiarTab(nombre) {
-            ['propiedades', 'franquicias', 'leads', 'kyc', 'contratos', 'metricas', 'testimonios'].forEach(t => {
+            ['propiedades', 'mias', 'franquicias', 'leads', 'kyc', 'contratos', 'metricas', 'testimonios'].forEach(t => {
                 document.getElementById('tab-' + t).classList.toggle('active', t === nombre);
                 document.getElementById('btn-tab-' + t).classList.toggle('active', t === nombre);
             });
             if (nombre === 'metricas' && !metricasCargadas) cargarMetricas();
+            if (nombre === 'mias') cargarMisPropiedades();
+        }
+
+        // ---------- Mis Propiedades (captaciones propias) ----------
+        // Mismo listado que el tab de Propiedades pero filtrado por
+        // captacion_propia. No se cachea: se recarga cada vez que se entra al
+        // apartado, porque la estrella se marca en propiedades-admin.html (otra
+        // página) y si no, volver acá mostraría la lista vieja.
+        async function cargarMisPropiedades() {
+            const cont = document.getElementById("mias-list");
+            const hint = document.getElementById("mias-hint");
+            hint.style.display = "block";
+            hint.textContent = "Cargando...";
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?select=id,titulo,precio,categoria,fotos,publicada,slug,tipo_contrato&captacion_propia=eq.true&order=orden.asc.nullslast,created_at.desc`, { headers });
+                if (res.status === 400) throw new Error("falta aplicar la migración de \"Mis Propiedades\" en Supabase (20261126000000_propiedades_captacion_propia.sql)");
+                if (!res.ok) throw new Error("no se pudieron cargar (" + res.status + ")");
+                const propiedades = await res.json();
+                cont.innerHTML = "";
+                if (!propiedades.length) {
+                    hint.innerHTML = 'Todavía no marcaste ninguna propiedad como tuya. Entrá a <a href="propiedades-admin.html" style="color:var(--primary);font-weight:600;">Administrar Publicaciones</a> y tocá la estrella ☆ de las que captaste vos.';
+                    return;
+                }
+                hint.style.display = "none";
+                propiedades.forEach(p => {
+                    const foto = (p.fotos && p.fotos[0]) || "";
+                    const precio = window.precioFmt ? window.precioFmt(p.precio, p.tipo_contrato) : p.precio;
+                    const card = document.createElement("div");
+                    card.className = "mini-card";
+                    card.innerHTML = `
+                        ${foto ? `<img class="mini-foto" src="${foto}" onerror="this.style.display='none'">` : ""}
+                        <div class="mini-body">
+                            <span class="mini-tag">${p.categoria}</span>
+                            <div class="mini-title">${p.titulo}</div>
+                            <div class="mini-price">${precio}</div>
+                            <div class="mini-desc${p.publicada ? "" : " vacia"}">${p.publicada ? "✓ Publicada en el sitio" : "⚠️ Oculta — no la está viendo nadie"}</div>
+                            <div class="mini-actions">
+                                <a class="mini-editar" style="flex:1;" href="propiedades-admin.html?editar=${p.id}"><i class="fas fa-pen"></i> Editar</a>
+                                ${p.slug ? `<a class="mini-editar" style="flex:1;" href="/propiedad/${encodeURIComponent(p.slug)}" target="_blank" rel="noopener"><i class="fas fa-up-right-from-square"></i> Ver</a>` : ""}
+                            </div>
+                        </div>
+                    `;
+                    cont.appendChild(card);
+                });
+            } catch (ex) {
+                hint.textContent = "No se pudo cargar: " + ex.message;
+                hint.style.display = "block";
+            }
         }
 
         // ---------- Propiedades ----------
@@ -1786,7 +1856,7 @@
             const hint = document.getElementById('empty-hint');
             try {
                 const headers = await CostoSVAuth.authHeaders();
-                const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?select=id,titulo,precio,categoria,fotos,copy_venta,descripcion_original&order=created_at.desc`, { headers });
+                const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?select=id,titulo,precio,categoria,fotos,copy_venta,descripcion_original,tipo_contrato&order=created_at.desc`, { headers });
                 const propiedades = await res.json();
                 cont.innerHTML = '';
                 hint.style.display = propiedades.length ? 'none' : 'block';
@@ -1801,7 +1871,7 @@
                         <div class="mini-body">
                             <span class="mini-tag">${p.categoria}</span>
                             <div class="mini-title">${p.titulo}</div>
-                            <div class="mini-price">${p.precio}</div>
+                            <div class="mini-price">${window.precioFmt ? window.precioFmt(p.precio, p.tipo_contrato) : p.precio}</div>
                             <div class="mini-desc${descripcion ? '' : ' vacia'}">${descripcion || 'Sin descripción'}</div>
                             <a class="mini-editar" href="propiedades-admin.html?editar=${p.id}"><i class="fas fa-pen"></i> Editar</a>
                         </div>

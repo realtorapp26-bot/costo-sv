@@ -10,6 +10,7 @@ import { ImageUploader } from '../components/ImageUploader';
 const VACIO: PropiedadCampos = {
   orden: null,
   publicada: true,
+  captacion_propia: false,
   titulo: '',
   precio: '',
   ubicacion: '',
@@ -247,6 +248,21 @@ export function PropiedadFormModal({
             className={checkboxClass}
           />
           Publicada (visible en el sitio web)
+        </label>
+
+        <label className="flex items-start gap-2 text-sm font-medium text-slate-700">
+          <input
+            type="checkbox"
+            checked={form.captacion_propia}
+            onChange={(e) => set('captacion_propia', e.target.checked)}
+            className={checkboxClass + ' mt-0.5'}
+          />
+          <span>
+            Es mi captación (contrato directo)
+            <span className="block text-xs font-normal text-slate-500">
+              Aparece en &quot;Mis propiedades&quot; y el sitio la muestra destacada.
+            </span>
+          </span>
         </label>
       </div>
 

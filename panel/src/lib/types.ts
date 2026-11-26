@@ -185,6 +185,9 @@ export interface Propiedad {
   updated_at: string;
   orden: number | null;
   publicada: boolean;
+  // "Mis Propiedades": true = la captó Walter con contrato directo. Son las
+  // que el sitio público destaca (portada y grupo de arriba en propiedades).
+  captacion_propia: boolean;
   titulo: string;
   precio: string;
   ubicacion: string | null;

@@ -208,6 +208,7 @@
 
     <!-- Scripts -->
     <script src="config.js?v=2"></script>
+    <script src="formato.js?v=1"></script>
     <script src="app.js?v=3"></script>
     <script>
         (function () {
@@ -231,13 +232,13 @@
                 const meta = [
                     p.habitaciones ? `<span><i class="fas fa-bed"></i> ${p.habitaciones} Hab</span>` : '',
                     p.banos ? `<span><i class="fas fa-bath"></i> ${p.banos} Baños</span>` : '',
-                    p.m2 ? `<span><i class="fas fa-vector-square"></i> ${p.m2} m²</span>` : '',
+                    p.m2 ? `<span><i class="fas fa-vector-square"></i> ${window.areaFmt(p.m2)}</span>` : '',
                 ].filter(Boolean).join('');
                 const cta = CTA_POR_CATEGORIA[p.categoria] || 'Preguntar Disponibilidad';
                 // Texto crudo (sin encodeURIComponent): app.js arma el link wa.me con
                 // esto vía data-wa, así el botón queda cubierto por el mismo sistema
                 // que ya maneja el target correcto en celular y registra el lead.
-                const mensaje = `Hola Walter, me interesa "${p.titulo}" (${p.precio}). ¿Me das más información?`.replace(/"/g, '&quot;');
+                const mensaje = `Hola Walter, me interesa "${p.titulo}" (${window.precioFmt(p.precio, p.tipo_contrato)}). ¿Me das más información?`.replace(/"/g, '&quot;');
                 const carruselId = `prop-carrusel-${idx}`;
 
                 const controlesCarrusel = fotos.length > 1 ? `
@@ -252,10 +253,11 @@
                             <span class="prop-badge">${p.categoria}</span>
                             ${p.tipo_contrato ? `<span class="prop-badge-estado">${p.tipo_contrato}</span>` : ''}
                             ${p.video_url ? `<span class="prop-badge-video"><i class="fas fa-play"></i> Video</span>` : ''}
+                            ${p.captacion_propia ? `<span class="prop-badge-directo" title="Walter representa directamente al propietario"><i class="fas fa-star"></i> Trato directo</span>` : ''}
                             <img loading="lazy" decoding="async" src="${window.imgOpt ? window.imgOpt(fotos[0], 600, 70) : fotos[0]}" alt="${p.titulo}" onerror="this.src='${FOTO_RESPALDO}'"
                                  data-share-titulo="${p.titulo.replace(/"/g, '&quot;')}" data-share-id="${p.id}"
                                  data-share-slug="${slug}"
-                                 data-share-precio="${String(p.precio || '').replace(/"/g, '&quot;')}"
+                                 data-share-precio="${String(window.precioFmt(p.precio, p.tipo_contrato) || '').replace(/"/g, '&quot;')}"
                                  onclick="abrirLightboxImg(this, 'propiedad', 'propiedades.html')">
                             ${controlesCarrusel}
                         </div>
@@ -265,7 +267,7 @@
                             <div class="prop-meta">${meta}</div>
                             <div class="prop-footer">
                                 <div class="prop-price-label">Precio</div>
-                                <div class="prop-price">${p.precio}</div>
+                                <div class="prop-price">${window.precioFmt(p.precio, p.tipo_contrato)}</div>
                             </div>
                             <a href="${fichaUrl}" class="btn btn-gold" style="width: 100%;">Ver ficha completa</a>
                             <a data-whatsapp data-wa="${mensaje}" href="#" class="btn btn-whatsapp" style="width: 100%; margin-top: 10px;"><i class="fab fa-whatsapp"></i> ${cta}</a>
@@ -318,9 +320,19 @@
 
             async function cargarPropiedadesPublicas() {
                 try {
-                    const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?select=*&publicada=eq.true&order=orden.asc.nullslast,created_at.desc`, {
-                        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
-                    });
+                    // captacion_propia.desc primero: las que Walter captó con
+                    // contrato directo quedan agrupadas arriba de la lista, y
+                    // dentro de cada grupo se respeta el orden manual del panel.
+                    const traer = (orden) =>
+                        fetch(`${SUPA_URL}/rest/v1/propiedades?select=*&publicada=eq.true&order=${orden}`, {
+                            headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
+                        });
+
+                    // Mismo resguardo que en la portada: si la migración de
+                    // captacion_propia todavía no corrió, PostgREST responde 400 y
+                    // el listado quedaría vacío, así que se reintenta sin ella.
+                    let res = await traer('captacion_propia.desc,orden.asc.nullslast,created_at.desc');
+                    if (!res.ok) res = await traer('orden.asc.nullslast,created_at.desc');
                     if (!res.ok) return;
                     todasLasPropiedades = await res.json();
                     renderGrid();

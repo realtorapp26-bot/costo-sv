@@ -44,6 +44,20 @@
         .prop-empty { text-align: center; padding: 30px; color: var(--text-light); background: var(--bg-alt); border-radius: var(--radius-md); }
         .prop-card { background: var(--bg-alt); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; border-left: 4px solid transparent; }
         .prop-card-destacada { border-left-color: var(--gold); }
+        /* Botón de la estrella: marca la propiedad como captación propia */
+        .prop-estrella {
+            width: 32px; height: 32px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            border: 1px solid var(--border); border-radius: 8px; background: white; cursor: pointer;
+            color: #cbd5e1; font-size: 0.95rem; transition: color .15s, background .15s, border-color .15s;
+        }
+        .prop-estrella:hover { background: var(--bg-main); color: #94a3b8; }
+        .prop-estrella.mia { color: var(--gold); border-color: #f3d98b; background: #fff8e6; }
+        .prop-filtro-mias {
+            display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: 20px;
+            border: 1px solid var(--border); background: white; cursor: pointer; font-family: inherit;
+            font-size: 0.85rem; font-weight: 600; color: var(--text-main);
+        }
+        .prop-filtro-mias.activo { border-color: #f3d98b; background: #fff8e6; color: #92650a; }
         .chip-destacada {
             display: inline-flex; align-items: center; gap: 4px; background: #fff8e6; color: #92650a;
             border: 1px solid #f3d98b; font-size: 0.72rem; font-weight: 700; padding: 4px 10px;
@@ -200,6 +214,14 @@
                 <span id="prop-seleccion-contador" style="font-size:0.85rem; color:#7f1d1d; font-weight:600;"></span>
                 <button type="button" class="prop-btn prop-btn-eliminar" onclick="eliminarSeleccionadas()"><i class="fas fa-trash"></i> Eliminar seleccionadas</button>
                 <button type="button" class="prop-btn" style="background:none; border:1px solid var(--border);" onclick="vaciarSeleccionProp()">Cancelar selección</button>
+            </div>
+            <div style="margin-bottom:12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <button type="button" class="prop-filtro-mias" id="btn-filtro-mias" onclick="alternarSoloMias()">
+                    <i class="far fa-star"></i> <span id="txt-filtro-mias">Solo mis propiedades</span>
+                </button>
+                <span style="font-size:0.8rem; color:var(--text-light);">
+                    La estrella marca las que captaste vos con contrato directo — el sitio las muestra destacadas.
+                </span>
             </div>
             <div style="margin-bottom:10px;">
                 <label style="display:inline-flex; align-items:center; gap:6px; font-size:0.85rem; color:var(--text-light); cursor:pointer;">
@@ -425,6 +447,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/heic2any/0.0.4/heic2any.min.js"></script>
     <script src="config.js?v=2"></script>
+    <script src="formato.js?v=1"></script>
     <script src="login.js?v=6"></script>
     <script>
         const SUPA_URL = window.SITE_CONFIG.SUPABASE_URL;
@@ -432,6 +455,8 @@
         let franquicias = [];
         let propiedadesSeleccionadas = new Set();
         let filtroPropAdmin = '';
+        // Filtro "Mis Propiedades": muestra solo las captaciones propias.
+        let soloMisPropiedades = new URLSearchParams(location.search).get('mias') === '1';
         const DIACRITICOS_ADMIN = new RegExp('[' + String.fromCharCode(0x0300) + '-' + String.fromCharCode(0x036f) + ']', 'g');
         const normalizarAdmin = (s) => String(s || '').toLowerCase().normalize('NFD').replace(DIACRITICOS_ADMIN, '');
 
@@ -528,10 +553,13 @@
             // no de dónde cae la tarjeta dentro de los resultados de la búsqueda.
             const visibles = propiedades
                 .map((p, idxReal) => ({ p, idxReal }))
+                .filter(({ p }) => !soloMisPropiedades || p.captacion_propia)
                 .filter(({ p }) => !textoFiltro || [p.titulo, p.ubicacion, p.categoria].some(c => normalizarAdmin(c).includes(textoFiltro)));
 
             if (!visibles.length) {
-                body.innerHTML = `<div class="prop-empty">No encontramos propiedades que coincidan con "${filtroPropAdmin.trim()}".</div>`;
+                body.innerHTML = soloMisPropiedades && !hayFiltro
+                    ? '<div class="prop-empty">Todavía no marcaste ninguna propiedad como tuya. Apagá el filtro y tocá la estrella ☆ de las que captaste vos.</div>'
+                    : `<div class="prop-empty">No encontramos propiedades que coincidan con "${filtroPropAdmin.trim()}"${soloMisPropiedades ? ' entre tus captaciones' : ''}.</div>`;
                 return;
             }
 
@@ -546,8 +574,12 @@
                 const respuestaUrl = `carta-respuesta.html?tipo=${tipoOp}&direccion=${direccionEnc}`;
                 const propiedadDesc = encodeURIComponent(p.titulo + (p.ubicacion ? ' — ' + p.ubicacion : ''));
                 return `
-                    <div class="prop-card${idx === 0 ? ' prop-card-destacada' : ''}" data-id="${p.id}">
+                    <div class="prop-card${p.captacion_propia ? ' prop-card-destacada' : ''}" data-id="${p.id}">
                         <div class="prop-card-main">
+                            <button type="button" class="prop-estrella${p.captacion_propia ? ' mia' : ''}"
+                                    title="${p.captacion_propia ? 'Es tu captación — tocá para desmarcarla' : 'Marcarla como tu captación (contrato directo)'}"
+                                    aria-label="${p.captacion_propia ? 'Quitar de mis propiedades' : 'Agregar a mis propiedades'}"
+                                    onclick="alternarCaptacionPropia('${p.id}')"><i class="fa${p.captacion_propia ? 's' : 'r'} fa-star"></i></button>
                             <input type="checkbox" class="prop-check" title="Seleccionar" onchange="toggleSeleccionProp('${p.id}', this.checked)" ${propiedadesSeleccionadas.has(p.id) ? 'checked' : ''} style="width:auto; margin-right:2px;">
                             <button type="button" class="prop-drag-handle" title="${hayFiltro ? 'Borrá la búsqueda para reordenar' : 'Arrastrar para reordenar'}" aria-label="Arrastrar para reordenar" ${hayFiltro ? 'disabled style="opacity:0.35;cursor:not-allowed;"' : `onpointerdown="iniciarArrastre(event, '${p.id}')"`}><i class="fas fa-grip-lines"></i></button>
                             <div class="prop-card-orden">
@@ -560,18 +592,18 @@
                             <div class="prop-card-info">
                                 <div class="prop-card-titulo">${p.titulo}</div>
                                 <div class="prop-card-meta">
-                                    <span class="prop-precio">${p.precio}</span>
+                                    <span class="prop-precio">${window.precioFmt ? window.precioFmt(p.precio, p.tipo_contrato) : p.precio}</span>
                                     <span>${p.categoria}</span>
                                     <span>${fecha}</span>
                                 </div>
                             </div>
                             <div class="prop-card-estado">
-                                ${idx === 0 ? '<span class="chip-destacada">★ Destacada</span>' : ''}
+                                ${p.captacion_propia ? '<span class="chip-destacada">★ Mi captación</span>' : ''}
                                 <button class="estado-chip ${p.publicada ? 'publicada' : 'oculta'}" onclick="cambiarEstado('${p.id}', ${!p.publicada})">${p.publicada ? '✓ Publicada' : 'Oculta'}</button>
                             </div>
                         </div>
                         <div class="prop-card-actions">
-                            <button class="prop-btn prop-btn-estrella" title="${idx === 0 ? 'Ya aparece primero' : 'Llevarla a la primera posición'}" onclick="destacarPropiedad('${p.id}')" ${idx === 0 ? 'disabled' : ''}><i class="fa${idx === 0 ? 's' : 'r'} fa-star"></i> ${idx === 0 ? 'Primera' : 'Destacar'}</button>
+                            <button class="prop-btn prop-btn-estrella" title="${idx === 0 ? 'Ya aparece primero en el sitio' : 'Llevarla a la primera posición del sitio'}" onclick="destacarPropiedad('${p.id}')" ${idx === 0 || hayFiltro || soloMisPropiedades ? 'disabled' : ''}><i class="fas fa-arrow-up"></i> ${idx === 0 ? 'Primera' : 'Poner primera'}</button>
                             <button class="prop-btn prop-btn-primary" onclick="abrirEdicionProp('${p.id}')"><i class="fas fa-pen"></i> Editar</button>
                             <div class="prop-actions-divisor"></div>
                             <div class="prop-actions-grupo">
@@ -634,6 +666,38 @@
             } catch (ex) {
                 alert('No se pudo guardar el nuevo orden: ' + ex.message);
             }
+        }
+
+        // Marca o desmarca la propiedad como captación propia. Se escribe en la
+        // base y se refleja en el momento (sin recargar la lista completa).
+        async function alternarCaptacionPropia(id) {
+            const p = propiedades.find(x => x.id === id);
+            if (!p) return;
+            const nuevoValor = !p.captacion_propia;
+            p.captacion_propia = nuevoValor;   // optimista: la estrella responde al toque
+            render();
+            try {
+                const headers = await CostoSVAuth.authHeaders();
+                const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?id=eq.${id}`, {
+                    method: 'PATCH', headers: { ...headers, Prefer: 'return=minimal' },
+                    body: JSON.stringify({ captacion_propia: nuevoValor }),
+                });
+                if (!res.ok) throw new Error('no se pudo guardar (' + res.status + ')');
+            } catch (ex) {
+                p.captacion_propia = !nuevoValor;   // se revierte: la base manda
+                render();
+                alert('No se pudo guardar el cambio: ' + ex.message);
+            }
+        }
+
+        function alternarSoloMias() {
+            soloMisPropiedades = !soloMisPropiedades;
+            const btn = document.getElementById('btn-filtro-mias');
+            btn.classList.toggle('activo', soloMisPropiedades);
+            btn.querySelector('i').className = soloMisPropiedades ? 'fas fa-star' : 'far fa-star';
+            document.getElementById('txt-filtro-mias').textContent =
+                soloMisPropiedades ? 'Mostrando solo mis propiedades' : 'Solo mis propiedades';
+            render();
         }
 
         async function destacarPropiedad(id) {
@@ -1280,7 +1344,19 @@
             }
         }
 
+        // Si se entro con ?mias=1 (desde "Mis Propiedades" del panel), el filtro
+        // arranca puesto y el boton tiene que verse puesto tambien.
+        function sincronizarBotonMias() {
+            if (!soloMisPropiedades) return;
+            const btn = document.getElementById("btn-filtro-mias");
+            if (!btn) return;
+            btn.classList.add("activo");
+            btn.querySelector("i").className = "fas fa-star";
+            document.getElementById("txt-filtro-mias").textContent = "Mostrando solo mis propiedades";
+        }
+
         CostoSVAuth.requireLogin(async () => {
+            sincronizarBotonMias();
             await cargarTodas();
             await cargarTodasFr();
             await cargarProyectoGL();

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { nombreDe } from '../lib/usuarios';
-import { useCartas, useContratos, useKyc, useLeads } from '../lib/queries';
+import { useCartas, useContratos, useKyc, useLeads, usePropiedades } from '../lib/queries';
 import { ESTADOS, ESTADO_LABEL } from '../lib/enums';
 import { esHoy, diasDesde } from '../lib/format';
 import { Badge, Button, Card, StatCard } from '../components/ui';
@@ -14,6 +14,7 @@ export function DashboardPage() {
   const { data: casosKyc = [], isLoading: cargandoKyc } = useKyc();
   const { data: contratos = [], isLoading: cargandoContratos } = useContratos();
   const { data: cartas = [], isLoading: cargandoCartas } = useCartas();
+  const { data: propiedades = [], isLoading: cargandoPropiedades } = usePropiedades();
 
   const nuevosHoy = leads.filter((l) => esHoy(l.created_at)).length;
   const seguimiento = leads.filter((l) => ['nuevo', 'contactado'].includes(l.estado)).length;
@@ -23,6 +24,11 @@ export function DashboardPage() {
   ).length;
   const kycPendientes = casosKyc.filter((k) => k.estado === 'pendiente').length;
   const contratosPendientes = contratos.filter((c) => c.estado === 'pendiente').length;
+  // "Mis propiedades" = captaciones propias. Lo que importa de un vistazo es
+  // cuántas de esas están efectivamente visibles en el sitio: una captación
+  // propia oculta es trabajo hecho que no está trayendo clientes.
+  const miasPublicadas = propiedades.filter((p) => p.captacion_propia && p.publicada).length;
+  const miasOcultas = propiedades.filter((p) => p.captacion_propia && !p.publicada).length;
 
   return (
     <div className="space-y-6">
@@ -107,6 +113,15 @@ export function DashboardPage() {
               value={cargandoCartas ? '…' : cartas.length}
               icon="fas fa-envelope-open-text"
               tono="navy"
+            />
+          </Link>
+          <Link to="/propiedades?mias=1">
+            <StatCard
+              label="Mis propiedades publicadas"
+              value={cargandoPropiedades ? '…' : miasPublicadas}
+              hint={miasOcultas > 0 ? miasOcultas + ' tuya' + (miasOcultas === 1 ? '' : 's') + ' sin publicar' : undefined}
+              icon="fas fa-star"
+              tono={miasOcultas > 0 ? 'amber' : 'navy'}
             />
           </Link>
         </div>
