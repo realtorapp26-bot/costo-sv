@@ -162,9 +162,18 @@ function parecidas(lista, pistas, cuantas) {
   const elegidas = conAlgo.slice(0, cuantas);
   if (elegidas.length < cuantas) {
     const yaEstan = new Set(elegidas.map((x) => x.p.id));
-    for (const x of puntuadas) {
-      if (elegidas.length >= cuantas) break;
-      if (!yaEstan.has(x.p.id)) { elegidas.push(x); yaEstan.add(x.p.id); }
+    // El relleno no puede ser cualquiera: a quien buscaba un rancho de playa
+    // no le sirve un local comercial. Se completa primero con la misma
+    // categoría que la mejor coincidencia (o el mismo tipo de contrato si no
+    // hubo ninguna), y solo después con el resto.
+    const refCat = elegidas.length ? elegidas[0].p.categoria : null;
+    const afin = (x) => (refCat ? x.p.categoria === refCat
+      : (pistas.contrato ? x.p.tipo_contrato === pistas.contrato : false));
+    for (const grupo of [puntuadas.filter(afin), puntuadas]) {
+      for (const x of grupo) {
+        if (elegidas.length >= cuantas) break;
+        if (!yaEstan.has(x.p.id)) { elegidas.push(x); yaEstan.add(x.p.id); }
+      }
     }
   }
   return { items: elegidas.map((x) => x.p), huboCoincidencia: conAlgo.length > 0 };
