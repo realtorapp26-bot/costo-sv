@@ -1571,6 +1571,31 @@
             return null;
         }
 
+        // Busca si ya hay una propiedad cargada con este mismo link de RE/MAX
+        // o con el id que trae el link (los links de RE/MAX terminan en el id:
+        // .../show/3093/002522473070 o .../house-for-002523093005). Devuelve la
+        // propiedad repetida, o null. Si la consulta falla devuelve null: el
+        // aviso es una ayuda, no una traba — nunca debe impedir importar.
+        async function buscarPropiedadRepetida(url) {
+            try {
+                const headers = CostoSVAuth.authHeaders();
+                const idEnLink = (String(url).match(/(\d{12})(?:\D|$)/) || [])[1] || null;
+                const condiciones = ['link_referencia.eq.' + encodeURIComponent(url)];
+                if (idEnLink) condiciones.push('id_externo.eq.' + idEnLink);
+                const res = await fetch(
+                    `${SUPA_URL}/rest/v1/propiedades?select=titulo,slug,id_externo,publicada`
+                    + `&or=(${condiciones.join(',')})&limit=1`,
+                    { headers }
+                );
+                if (!res.ok) return null;
+                const filas = await res.json();
+                return filas.length ? filas[0] : null;
+            } catch (e) {
+                console.error('buscarPropiedadRepetida:', e);
+                return null;
+            }
+        }
+
         async function traerDatosDesdeLink() {
             const btn = document.getElementById('btn-traer-link');
             const url = document.getElementById('f-link-traer').value.trim();
@@ -1586,6 +1611,23 @@
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'No se pudo traer el listado');
+
+                // Antes de gastar una llamada a la IA y abrir el formulario,
+                // se pregunta a la base si esta propiedad ya está cargada. Se
+                // consulta a la base y no una lista en memoria porque esa puede
+                // estar vieja: así se subió el terreno de Lourdes dos veces.
+                const repetida = await buscarPropiedadRepetida(url);
+                if (repetida) {
+                    const seguir = confirm(
+                        'Esta propiedad ya está cargada:\n\n'
+                        + '"' + repetida.titulo + '"\n'
+                        + 'ID de RE/MAX: ' + (repetida.id_externo || '—') + '\n'
+                        + (repetida.publicada ? 'Está publicada en el sitio.\n' : 'Está oculta.\n')
+                        + '\nSi la guardás de nuevo vas a tener la misma propiedad dos veces.'
+                        + '\n\n¿Seguir igual?'
+                    );
+                    if (!seguir) return;
+                }
 
                 document.getElementById('f-pegado').value = data.html;
                 if (!document.getElementById('f-link').value.trim()) {

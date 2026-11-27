@@ -36,6 +36,30 @@ export function ImportarPropiedad({
       const html = await traerHtml(url);
       const borrador = await armarBorradorDesdeTexto(html);
       if (!borrador.link_referencia) borrador.link_referencia = url;
+
+      // El importador de lote ya salteaba los repetidos; este no revisaba
+      // nada, y así el terreno de Lourdes quedó subido dos veces. Se avisa
+      // ANTES de abrir el formulario, cuando todavía no se guardó nada.
+      const repetida = propiedadesExistentes.find(
+        (p) =>
+          (borrador.id_externo && p.id_externo === borrador.id_externo) ||
+          (p.link_referencia && p.link_referencia === borrador.link_referencia),
+      );
+      if (repetida) {
+        const seguir = window.confirm(
+          'Esta propiedad ya está cargada:\n\n' +
+            `"${repetida.titulo}"\n` +
+            `ID de RE/MAX: ${repetida.id_externo || '—'}\n` +
+            (repetida.publicada ? 'Está publicada en el sitio.\n' : 'Está oculta.\n') +
+            '\nSi la guardás de nuevo vas a tener la misma propiedad dos veces.' +
+            '\n\n¿Abrir el formulario igual?',
+        );
+        if (!seguir) {
+          setLinkUno('');
+          return;
+        }
+      }
+
       onBorrador(borrador);
       setLinkUno('');
     } catch (ex) {

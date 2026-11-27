@@ -139,6 +139,16 @@ export function useCreatePropiedad() {
   return useMutation({
     mutationFn: async (v: PropiedadCampos) => {
       const { error } = await supabase.from('propiedades').insert(v);
+      // 23505 = unique_violation. El único índice único con el que se puede
+      // chocar acá es propiedades_id_externo_publicada_idx, o sea: esta
+      // propiedad de RE/MAX ya está publicada. Sin este mensaje el panel
+      // mostraba el error crudo de Postgres, que no le dice nada a Walter.
+      if (error?.code === '23505') {
+        throw new Error(
+          'Esta propiedad ya está publicada en el sitio (mismo ID de RE/MAX). ' +
+            'Buscala en Propiedades y editá la que ya existe, en vez de subirla de nuevo.',
+        );
+      }
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['propiedades'] }),

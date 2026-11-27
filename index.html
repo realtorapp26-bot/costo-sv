@@ -237,6 +237,23 @@
         </div>
     </section>
 
+    <!--
+      Recién agregadas. El bloque de arriba muestra solo 3 tarjetas y las
+      ocupan las captaciones propias, así que una propiedad nueva nunca
+      llegaba a la portada: se subía, no se veía, y se volvía a subir. Esta
+      fila garantiza que lo último cargado se vea el mismo día sin quitarle
+      el lugar de privilegio a las destacadas.
+      Arranca oculta y el script la muestra solo si hay algo que poner.
+    -->
+    <section class="section" id="recien-section" style="display: none;">
+        <div class="container">
+            <h2 class="section-title">Recién agregadas</h2>
+            <p class="section-subtitle">Lo último que sumamos al inventario.</p>
+
+            <div class="card-grid" id="grid-recien"></div>
+        </div>
+    </section>
+
     <!-- Testimonios -->
     <section class="section" id="testimonios-section" style="display: none;">
         <div class="container">
@@ -374,6 +391,32 @@
             // todavía no corrió, PostgREST responde 400 por la columna inexistente
             // y la portada quedaría SIN propiedades -- por eso se reintenta con el
             // orden de siempre en vez de dejar el bloque vacío.
+            // Las más nuevas, para la fila "Recién agregadas". Se piden 6 y no 3
+            // porque algunas pueden estar ya arriba entre las destacadas: después
+            // se descartan esas y se toman las 3 primeras que queden.
+            const traerRecientes = () =>
+                fetch(`${SUPA_URL}/rest/v1/propiedades?select=*&publicada=eq.true&order=created_at.desc&limit=6`, {
+                    headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
+                });
+
+            function pintarRecientes(yaArriba) {
+                const gridR = document.getElementById('grid-recien');
+                const seccionR = document.getElementById('recien-section');
+                if (!gridR || !seccionR) return;
+                traerRecientes()
+                    .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+                    .then((lista) => {
+                        const nuevas = lista.filter((p) => !yaArriba.has(p.id)).slice(0, 3);
+                        // Sin nada que mostrar la sección se queda oculta, en vez de
+                        // dejar un título con un hueco debajo.
+                        if (!nuevas.length) return;
+                        gridR.innerHTML = nuevas.map(tarjetaHome).join('');
+                        seccionR.style.display = '';
+                        if (window.CostoSVWhatsApp) window.CostoSVWhatsApp.procesarEnlacesWhatsapp(gridR);
+                    })
+                    .catch((err) => console.error('No se pudieron cargar las recién agregadas:', err));
+            }
+
             traerPortada(ORDEN_CON_CAPTACION)
                 .then((res) => (res.ok ? res : traerPortada(ORDEN_BASE)))
                 .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
@@ -383,10 +426,15 @@
                         return;
                     }
                     grid.innerHTML = propiedades.map(tarjetaHome).join('');
+                    pintarRecientes(new Set(propiedades.map((p) => p.id)));
                 })
                 .catch((err) => {
                     console.error('No se pudieron cargar las propiedades de portada:', err);
                     grid.innerHTML = '';
+                    // Si el bloque de destacadas falló, la fila de recién
+                    // agregadas se intenta igual: son dos consultas distintas y
+                    // no hay razón para perder las dos por una.
+                    pintarRecientes(new Set());
                 });
 
             // Testimonios: la sección arranca oculta (display:none en el HTML)
