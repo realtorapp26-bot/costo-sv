@@ -77,6 +77,30 @@
         .filtro-categoria { background: none; border: 1px solid var(--border); color: var(--text-main); transition: var(--transition); }
         .filtro-categoria.activo { background: var(--primary); color: white; border-color: var(--primary); }
 
+        /* Tarjetas fantasma mientras llegan los datos.
+           Sin esto la grilla nacía vacía y, al llegar las propiedades (unos 2
+           segundos después), empujaba todo lo de abajo: un salto de maquetado
+           de 0.381 cuando Google exige 0.10 o menos. Ocupan el mismo alto que
+           una tarjeta real, así que cuando llegan los datos nada se mueve. */
+        /* El alto sale de medir una tarjeta real: 730px con la grilla en 3
+           columnas y ~718px en una sola (el título ocupa distinta cantidad de
+           líneas según el ancho). Si el fantasma no mide lo mismo, el salto no
+           desaparece: solo se corre de lugar. */
+        .prop-skel { pointer-events: none; height: 718px; overflow: hidden; }
+        @media (min-width: 760px) { .prop-skel { height: 730px; } }
+        .prop-skel .prop-img { background: var(--bg-alt); }
+        .skel-barra {
+            background: var(--bg-alt);
+            border-radius: 6px;
+            height: 14px;
+            margin-bottom: 10px;
+        }
+        .prop-skel .prop-content > * { opacity: 1; }
+        @media (prefers-reduced-motion: no-preference) {
+            .prop-skel .prop-img, .skel-barra { animation: skel-latido 1.4s ease-in-out infinite; }
+            @keyframes skel-latido { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+        }
+
         /* Paginado */
         .paginador { margin-top: 48px; text-align: center; }
         .paginador-conteo { color: var(--text-light); font-size: 0.95rem; margin: 0 0 16px; }
@@ -122,7 +146,7 @@
                 <img decoding="async" src="assets/logo-remax.png" alt="RE/MAX Logo" style="height: 35px; object-fit: contain;">
                 <span style="color: white; font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 500; letter-spacing: 0.5px; opacity: 0.9;">Walter Guerrero</span>
             </a>
-            <button class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+            <button class="mobile-menu-btn" aria-label="Abrir el menú"><i class="fas fa-bars" aria-hidden="true"></i></button>
             <nav class="nav-links">
                 <a href="index.html">Inicio</a>
                 <a href="vender.html">Vender</a>
@@ -138,7 +162,7 @@
     </header>
 
     <!-- Header Propiedades -->
-    <section class="landing-header" style="background-image: url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80'); background-size: cover; background-position: center; position: relative;">
+    <section class="landing-header" style="background-image: url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=65'); background-size: cover; background-position: center; position: relative;">
         <div style="position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(10,15,28,0.85); z-index: 1;"></div>
         <div class="container" style="position: relative; z-index: 2;">
             <h1 class="hero-title hero-title-sm">Propiedades Destacadas</h1>
@@ -227,7 +251,7 @@
     </footer>
 
     <!-- Botón Flotante WA -->
-    <a data-whatsapp href="#" class="floating-whatsapp"><i class="fab fa-whatsapp"></i></a>
+    <a data-whatsapp href="#" class="floating-whatsapp" aria-label="Escribir por WhatsApp a Walter Guerrero"><i class="fab fa-whatsapp" aria-hidden="true"></i></a>
 
     <!-- Visor de fotos ampliado (lightbox) -->
     <div class="lightbox-overlay" id="lightbox-overlay" onclick="if(event.target===this) cerrarLightbox()">
@@ -335,6 +359,50 @@
 
             const DIACRITICOS = new RegExp('[' + String.fromCharCode(0x0300) + '-' + String.fromCharCode(0x036f) + ']', 'g');
             const normalizar = (s) => String(s || '').toLowerCase().normalize('NFD').replace(DIACRITICOS, '');
+
+            // Una tarjeta fantasma con la MISMA estructura que la real, para
+            // que el navegador le dé exactamente el mismo alto. Las medidas de
+            // las barras salen de lo que ocupa cada línea en la tarjeta de
+            // verdad (título de 2 líneas, ubicación, metadatos, precio, botón).
+            function tarjetaFantasma() {
+                return `
+                    <div class="prop-card prop-skel" aria-hidden="true">
+                        <div class="prop-img"></div>
+                        <div class="prop-content">
+                            <h3 class="prop-title"><span class="skel-barra" style="display:block;width:92%;height:22px;"></span><span class="skel-barra" style="display:block;width:64%;height:22px;"></span></h3>
+                            <p class="prop-ubicacion"><span class="skel-barra" style="display:block;width:70%;"></span></p>
+                            <div class="prop-meta"><span class="skel-barra" style="display:block;width:55%;"></span></div>
+                            <div class="prop-footer">
+                                <div class="prop-price-label"><span class="skel-barra" style="display:block;width:40px;height:11px;"></span></div>
+                                <div class="prop-price"><span class="skel-barra" style="display:block;width:130px;height:26px;"></span></div>
+                            </div>
+                            <span class="skel-barra" style="display:block;width:100%;height:46px;margin-bottom:12px;"></span>
+                            <span class="skel-barra" style="display:block;width:100%;height:46px;margin-bottom:0;"></span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Se pintan antes de pedir nada, así el espacio ya está reservado
+            // cuando el navegador hace el primer dibujo.
+            function pintarFantasmas() {
+                const grid = document.getElementById('grid-todas');
+                if (grid && !grid.children.length) {
+                    grid.innerHTML = Array.from({ length: POR_PAGINA }, tarjetaFantasma).join('');
+                }
+            }
+
+            // Si la carga falla, los fantasmas tienen que irse y hay que decir
+            // qué pasó: un bloque parpadeando sin fin parece que sigue cargando.
+            function quitarFantasmas() {
+                const grid = document.getElementById('grid-todas');
+                const vacioMsg = document.getElementById('grid-vacio-msg');
+                if (grid) grid.innerHTML = '';
+                if (vacioMsg) {
+                    vacioMsg.textContent = 'No pudimos cargar las propiedades en este momento. Recargá la página o escribinos por WhatsApp.';
+                    vacioMsg.style.display = 'block';
+                }
+            }
 
             // Arma la fila de botones. Con muchas páginas no se listan todas:
             // siempre la primera, la última, la actual y sus vecinas, y "…" en
@@ -448,12 +516,15 @@
                     // el listado quedaría vacío, así que se reintenta sin ella.
                     let res = await traer('captacion_propia.desc,orden.asc.nullslast,created_at.desc');
                     if (!res.ok) res = await traer('orden.asc.nullslast,created_at.desc');
-                    if (!res.ok) return;
+                    if (!res.ok) throw new Error('propiedades: HTTP ' + res.status);
                     todasLasPropiedades = await res.json();
                     renderGrid();
                     enfocarPropiedadDesdeUrl();
                 } catch (err) {
                     console.error('No se pudieron cargar las propiedades:', err);
+                    // Sin esto los fantasmas se quedaban parpadeando para
+                    // siempre y el visitante no entendía que había fallado.
+                    quitarFantasmas();
                 }
             }
 
@@ -517,6 +588,7 @@
             }
 
             document.addEventListener('DOMContentLoaded', () => {
+                pintarFantasmas();
                 cargarPropiedadesPublicas();
                 document.querySelectorAll('.filtro-categoria').forEach(btn => {
                     btn.addEventListener('click', () => {

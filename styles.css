@@ -177,16 +177,21 @@ img {
     color: white;
 }
 
+/* El verde de marca de WhatsApp (#25D366) con texto blanco da un contraste de
+   1.98:1, y WCAG 2.1 AA exige 4.5:1 -- o sea que el texto del botón no se lee
+   con poca visión ni con sol en la pantalla. #0B7D46 da 5.20:1 y sigue siendo
+   inconfundiblemente el verde de WhatsApp. El tono claro queda solo para el
+   ícono y los bordes, donde no hay texto que leer. */
 .btn-whatsapp {
-    background-color: #25D366;
+    background-color: #0B7D46;
     color: white;
     font-weight: 600;
 }
 
 .btn-whatsapp:hover {
-    background-color: #20bd5a;
+    background-color: #096237;
     transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(37, 211, 102, 0.3);
+    box-shadow: 0 10px 20px rgba(11, 125, 70, 0.3);
 }
 
 /* Navbar */
@@ -1043,7 +1048,9 @@ footer {
     text-align: center;
     padding-top: 30px;
     border-top: 1px solid rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.4);
+    /* 0.4 daba 3.80:1 sobre el azul del pie y WCAG AA pide 4.5:1.
+       0.55 da 6.22:1 con el mismo gris apagado de siempre. */
+    color: rgba(255,255,255,0.55);
     font-size: 0.95rem;
 }
 
@@ -1083,7 +1090,7 @@ footer {
     position: fixed;
     bottom: 30px;
     right: 30px;
-    background-color: #25D366;
+    background-color: #0B7D46;
     color: white;
     width: 65px;
     height: 65px;
