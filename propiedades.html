@@ -162,11 +162,22 @@
     </header>
 
     <!-- Header Propiedades -->
-    <section class="landing-header" style="background-image: url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=65'); background-size: cover; background-position: center; position: relative;">
-        <div style="position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(10,15,28,0.85); z-index: 1;"></div>
-        <div class="container" style="position: relative; z-index: 2;">
-            <h1 class="hero-title hero-title-sm">Propiedades Destacadas</h1>
-            <p class="section-subtitle" style="color: #f3e5ab; margin-bottom: 0;">Propiedades validadas técnica y legalmente en el mercado central salvadoreño.</p>
+    <!--
+      Cabecera compacta, distinta a la del resto de las páginas a propósito.
+      Esta página existe para mostrar el inventario, y con la cabecera grande
+      la primera propiedad empezaba recién a los 565 px: media pantalla de
+      relleno antes de ver lo que la persona vino a ver.
+      Tampoco lleva foto de fondo. Llevaba una de 288 KB tapada por una capa
+      al 85% del MISMO color que el fondo (#0a0f1c): se veía el 15%, y encima
+      era el elemento que más tardaba en cargar de toda la página.
+      El H1 decía "Propiedades Destacadas", que ya no era cierto (acá están
+      las 57, las destacadas son las de la estrella) y que además no es nada
+      que alguien escriba en Google.
+    -->
+    <section class="landing-header landing-header--compacto">
+        <div class="container">
+            <h1 class="hero-title hero-title-sm">Casas, apartamentos y terrenos en El Salvador</h1>
+            <p class="section-subtitle" style="color: #f3e5ab; margin-bottom: 0;">En venta y alquiler, validadas técnica y legalmente.</p>
         </div>
     </section>
 

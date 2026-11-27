@@ -290,8 +290,8 @@
         .wrap{max-width:1240px;margin:0 auto;padding-inline:20px;padding-block:28px 40px;display:flex;flex-direction:column;gap:22px}
         .gl-plano header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
         .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-        .gl-plano h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,5vw,46px);line-height:1.05;margin:4px 0 6px;text-wrap:balance;color:var(--ink)}
-        .gl-plano h1 span{color:var(--gold)}
+        .gl-plano .gl-plano-titulo{font-family:var(--display);font-weight:700;font-size:clamp(30px,5vw,46px);line-height:1.05;margin:4px 0 6px;text-wrap:balance;color:var(--ink)}
+        .gl-plano .gl-plano-titulo span{color:var(--gold)}
         .sub{color:var(--muted);max-width:60ch;margin:0}
         .facts{display:flex;flex-wrap:wrap;gap:8px 20px;font-family:var(--mono);font-size:13px;color:var(--muted)}
         .facts b{display:block;font-family:var(--display);font-size:22px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
@@ -412,7 +412,7 @@
         
         .brand{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
         .brand::before{content:"";width:28px;height:1px;background:var(--gold)}
-        .gl-plano h1{font-size:clamp(40px,7vw,76px)!important;letter-spacing:-.02em}
+        .gl-plano .gl-plano-titulo{font-size:clamp(40px,7vw,76px)!important;letter-spacing:-.02em}
         .mapcard{box-shadow:0 30px 80px -30px rgba(0,0,0,.7), 0 0 0 1px rgba(217,174,85,.08)}
         .mapscroll{background:radial-gradient(900px 500px at 50% 40%, #12302A 0%, var(--surface) 70%)}
         .lothatch{display:none}
@@ -580,7 +580,7 @@
     <div>
       <div class="brand">Guerrero Properties · RE/MAX Elite</div>
       <div class="eyebrow" style="margin-top:10px">Lotificación turística · Costa del Sol, La Herradura, La Paz</div>
-      <h1>Golden <span>Lake</span></h1>
+      <h2 class="gl-plano-titulo">Golden <span>Lake</span></h2>
       <p class="sub">Casas y lotes junto a tres lagunas privadas, con acceso controlado sobre el Bulevar Costa del Sol. Toca una propiedad en el plano para ver su ubicación, su precio y agendar tu visita.</p>
     </div>
     <div class="facts">

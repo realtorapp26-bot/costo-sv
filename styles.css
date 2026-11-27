@@ -899,6 +899,27 @@ textarea.form-control {
     pointer-events: none;
 }
 
+/* Variante para una página que es un catálogo, no una landing: ahí la
+   cabecera solo tiene que presentar, no ocupar media pantalla antes del
+   contenido. Es su propia clase para no tocar las otras nueve páginas que
+   usan .landing-header, donde la cabecera grande sí tiene sentido. */
+.landing-header--compacto {
+    padding: 48px 0 32px 0;
+}
+
+.landing-header--compacto .hero-title-sm {
+    margin-bottom: 10px;
+}
+
+/* En celular el título se parte en tres líneas y se come lo que ahorró el
+   relleno. En un catálogo el título no necesita el tamaño de una landing:
+   lo que la persona vino a ver son las propiedades. */
+@media (max-width: 560px) {
+    .landing-header--compacto { padding: 36px 0 24px 0; }
+    .landing-header--compacto .hero-title-sm { font-size: 1.55rem; line-height: 1.25; }
+    .landing-header--compacto .section-subtitle { font-size: 0.95rem; }
+}
+
 .landing-header h1 {
     color: white;
     font-size: 3.5rem;
