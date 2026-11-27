@@ -381,7 +381,7 @@ function render(p) {
                 <img decoding="async" src="/assets/logo-remax.png" alt="RE/MAX Logo" style="height: 35px; object-fit: contain;">
                 <span style="color: white; font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 500; letter-spacing: 0.5px; opacity: 0.9;">Walter Guerrero</span>
             </a>
-            <button class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+            <button class="mobile-menu-btn" aria-label="Abrir el menú"><i class="fas fa-bars" aria-hidden="true"></i></button>
             <nav class="nav-links">
                 <a href="/index.html">Inicio</a>
                 <a href="/vender.html">Vender</a>
@@ -509,7 +509,7 @@ function render(p) {
         </div>
     </footer>
 
-    <a data-whatsapp data-wa="${esc(waMsg)}" href="${esc(waHref)}" class="floating-whatsapp"><i class="fab fa-whatsapp"></i></a>
+    <a data-whatsapp data-wa="${esc(waMsg)}" href="${esc(waHref)}" class="floating-whatsapp" aria-label="Escribir por WhatsApp a Walter Guerrero"><i class="fab fa-whatsapp" aria-hidden="true"></i></a>
 
     <div class="lightbox-overlay" id="lightbox-overlay" onclick="if(event.target===this) cerrarLightbox()">
         <button class="lightbox-cerrar" onclick="cerrarLightbox()" aria-label="Cerrar"><i class="fas fa-times"></i></button>

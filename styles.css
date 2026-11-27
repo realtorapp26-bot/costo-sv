@@ -188,6 +188,15 @@ img {
     font-weight: 600;
 }
 
+/* El "Contactar" del menú es un .btn-whatsapp dentro de .nav-links, y la regla
+   ".nav-links a { color: rgba(255,255,255,0.7) }" le gana por especificidad
+   (clase + elemento). Resultado: texto al 70% sobre el verde, 3.38:1, por
+   debajo del 4.5:1 de WCAG AA. Acá se le devuelve el blanco entero. */
+.nav-links a.btn-whatsapp,
+.nav-links a.btn-whatsapp:hover {
+    color: #fff;
+}
+
 .btn-whatsapp:hover {
     background-color: #096237;
     transform: translateY(-3px);

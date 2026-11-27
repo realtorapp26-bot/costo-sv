@@ -192,7 +192,35 @@
     <section class="section pt-0" style="background-color: var(--bg-main);">
         <div class="container">
 
-            <div class="card-grid" id="grid-todas"></div>
+            <div class="card-grid" id="grid-todas" data-por-pagina="12"></div>
+            <script>
+                // Las tarjetas fantasma se insertan ACÁ, en línea, y no al
+                // DOMContentLoaded: así entran mientras el navegador todavía
+                // está leyendo la página, antes del primer dibujo. Haciéndolo
+                // después, la propia inserción empujaba el contenido de abajo y
+                // provocaba el salto de maquetado que se quería evitar (0.264).
+                // El 12 vive en data-por-pagina para que el paginado y esto no
+                // se puedan desincronizar.
+                (function () {
+                    var grid = document.getElementById('grid-todas');
+                    if (!grid) return;
+                    var cuantas = parseInt(grid.getAttribute('data-por-pagina'), 10) || 12;
+                    var barra = function (ancho, alto, abajo) {
+                        return '<span class="skel-barra" style="display:block;width:' + ancho
+                            + ';height:' + alto + 'px;margin-bottom:' + abajo + 'px;"></span>';
+                    };
+                    var una = '<div class="prop-card prop-skel" aria-hidden="true">'
+                        + '<div class="prop-img"></div>'
+                        + '<div class="prop-content">'
+                        + '<h3 class="prop-title">' + barra('92%', 22, 8) + barra('64%', 22, 8) + '</h3>'
+                        + '<p class="prop-ubicacion">' + barra('70%', 14, 10) + '</p>'
+                        + '<div class="prop-meta">' + barra('55%', 14, 10) + '</div>'
+                        + '<div class="prop-footer">' + barra('40px', 11, 8) + barra('130px', 26, 0) + '</div>'
+                        + barra('100%', 46, 12) + barra('100%', 46, 0)
+                        + '</div></div>';
+                    grid.innerHTML = new Array(cuantas + 1).join(una);
+                })();
+            </script>
             <p id="grid-vacio-msg" style="display:none; color: var(--text-light); text-align:center; padding: 60px 0; font-size: 1.1rem;">Todavía no hay propiedades cargadas en esta categoría.</p>
 
             <!-- Paginado. Sin esto la página medía 44,905 px de alto en celular,
@@ -245,7 +273,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 Walter Guerrero - Agente Inmobiliario RE/MAX Elite. Todos los derechos reservados. · <a href="privacidad.html" style="color: #cbd5e1;">Política de Privacidad</a></p>
+                <p>&copy; 2026 Walter Guerrero - Agente Inmobiliario RE/MAX Elite. Todos los derechos reservados. · <a href="privacidad.html" style="color: #cbd5e1; text-decoration: underline;">Política de Privacidad</a></p>
             </div>
         </div>
     </footer>
@@ -353,44 +381,15 @@
             // y en 2 en tablet). `filtradas` guarda el resultado del filtro
             // actual, que es sobre lo que se pagina y lo que se usa para saber
             // en qué página cae una propiedad enlazada por #slug.
-            const POR_PAGINA = 12;
+            // Mismo número que usa el bloque de tarjetas fantasma, leído del
+            // mismo lugar para que no se puedan desincronizar.
+            const POR_PAGINA = parseInt(
+                (document.getElementById('grid-todas') || {}).dataset?.porPagina, 10) || 12;
             let pagina = 1;
             let filtradas = [];
 
             const DIACRITICOS = new RegExp('[' + String.fromCharCode(0x0300) + '-' + String.fromCharCode(0x036f) + ']', 'g');
             const normalizar = (s) => String(s || '').toLowerCase().normalize('NFD').replace(DIACRITICOS, '');
-
-            // Una tarjeta fantasma con la MISMA estructura que la real, para
-            // que el navegador le dé exactamente el mismo alto. Las medidas de
-            // las barras salen de lo que ocupa cada línea en la tarjeta de
-            // verdad (título de 2 líneas, ubicación, metadatos, precio, botón).
-            function tarjetaFantasma() {
-                return `
-                    <div class="prop-card prop-skel" aria-hidden="true">
-                        <div class="prop-img"></div>
-                        <div class="prop-content">
-                            <h3 class="prop-title"><span class="skel-barra" style="display:block;width:92%;height:22px;"></span><span class="skel-barra" style="display:block;width:64%;height:22px;"></span></h3>
-                            <p class="prop-ubicacion"><span class="skel-barra" style="display:block;width:70%;"></span></p>
-                            <div class="prop-meta"><span class="skel-barra" style="display:block;width:55%;"></span></div>
-                            <div class="prop-footer">
-                                <div class="prop-price-label"><span class="skel-barra" style="display:block;width:40px;height:11px;"></span></div>
-                                <div class="prop-price"><span class="skel-barra" style="display:block;width:130px;height:26px;"></span></div>
-                            </div>
-                            <span class="skel-barra" style="display:block;width:100%;height:46px;margin-bottom:12px;"></span>
-                            <span class="skel-barra" style="display:block;width:100%;height:46px;margin-bottom:0;"></span>
-                        </div>
-                    </div>
-                `;
-            }
-
-            // Se pintan antes de pedir nada, así el espacio ya está reservado
-            // cuando el navegador hace el primer dibujo.
-            function pintarFantasmas() {
-                const grid = document.getElementById('grid-todas');
-                if (grid && !grid.children.length) {
-                    grid.innerHTML = Array.from({ length: POR_PAGINA }, tarjetaFantasma).join('');
-                }
-            }
 
             // Si la carga falla, los fantasmas tienen que irse y hay que decir
             // qué pasó: un bloque parpadeando sin fin parece que sigue cargando.
@@ -588,7 +587,6 @@
             }
 
             document.addEventListener('DOMContentLoaded', () => {
-                pintarFantasmas();
                 cargarPropiedadesPublicas();
                 document.querySelectorAll('.filtro-categoria').forEach(btn => {
                     btn.addEventListener('click', () => {
