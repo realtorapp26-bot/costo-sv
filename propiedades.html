@@ -76,6 +76,32 @@
         .prop-card--destacada.prop-card--apagar { outline-color: transparent; box-shadow: none; transition: outline-color 1.6s ease, box-shadow 1.6s ease; }
         .filtro-categoria { background: none; border: 1px solid var(--border); color: var(--text-main); transition: var(--transition); }
         .filtro-categoria.activo { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* Paginado */
+        .paginador { margin-top: 48px; text-align: center; }
+        .paginador-conteo { color: var(--text-light); font-size: 0.95rem; margin: 0 0 16px; }
+        .paginador-botones { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+        .pag-btn {
+            min-width: 44px;            /* 44px: el mínimo cómodo para el dedo */
+            height: 44px;
+            padding: 0 12px;
+            border: 1px solid var(--border);
+            background: none;
+            color: var(--text-main);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-variant-numeric: tabular-nums;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .pag-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+        .pag-btn[aria-current="page"] { background: var(--primary); color: white; border-color: var(--primary); font-weight: 700; }
+        .pag-btn:disabled { opacity: 0.35; cursor: default; }
+        .pag-puntos { align-self: center; color: var(--text-light); padding: 0 2px; }
+        @media (max-width: 480px) {
+            .pag-btn { min-width: 40px; height: 40px; padding: 0 8px; font-size: 0.9rem; }
+            .paginador-botones { gap: 6px; }
+        }
         .category-header {
             font-family: 'Playfair Display', serif;
             font-size: 2rem;
@@ -144,6 +170,14 @@
 
             <div class="card-grid" id="grid-todas"></div>
             <p id="grid-vacio-msg" style="display:none; color: var(--text-light); text-align:center; padding: 60px 0; font-size: 1.1rem;">Todavía no hay propiedades cargadas en esta categoría.</p>
+
+            <!-- Paginado. Sin esto la página medía 44,905 px de alto en celular,
+                 unas 53 pantallas de scroll. El script lo arma y lo oculta solo
+                 cuando todo entra en una página. -->
+            <nav id="paginador" class="paginador" aria-label="Páginas de propiedades" style="display:none;">
+                <p class="paginador-conteo" id="paginador-conteo"></p>
+                <div class="paginador-botones" id="paginador-botones"></div>
+            </nav>
 
             <!-- CTA Final -->
             <div style="background-color: var(--primary); color: white; border-radius: 16px; padding: 50px 30px; text-align: center; margin-top: 80px;">
@@ -291,8 +325,66 @@
             let filtroActivo = 'todas';
             let filtroTexto = '';
 
+            // Paginado: 12 por página (entra justo en 3 columnas en escritorio
+            // y en 2 en tablet). `filtradas` guarda el resultado del filtro
+            // actual, que es sobre lo que se pagina y lo que se usa para saber
+            // en qué página cae una propiedad enlazada por #slug.
+            const POR_PAGINA = 12;
+            let pagina = 1;
+            let filtradas = [];
+
             const DIACRITICOS = new RegExp('[' + String.fromCharCode(0x0300) + '-' + String.fromCharCode(0x036f) + ']', 'g');
             const normalizar = (s) => String(s || '').toLowerCase().normalize('NFD').replace(DIACRITICOS, '');
+
+            // Arma la fila de botones. Con muchas páginas no se listan todas:
+            // siempre la primera, la última, la actual y sus vecinas, y "…" en
+            // el medio -- si no, en celular la fila ocupa media pantalla.
+            function renderPaginador(totalPaginas, cuantas, desde, enPagina) {
+                const nav = document.getElementById('paginador');
+                const conteo = document.getElementById('paginador-conteo');
+                const botones = document.getElementById('paginador-botones');
+                if (!nav || !conteo || !botones) return;
+
+                if (totalPaginas <= 1) {
+                    nav.style.display = 'none';
+                    botones.innerHTML = '';
+                    conteo.textContent = '';
+                    return;
+                }
+                nav.style.display = '';
+                conteo.textContent = `Mostrando ${desde + 1}–${desde + enPagina} de ${cuantas} propiedades`;
+
+                const numeros = [];
+                for (let n = 1; n <= totalPaginas; n++) {
+                    if (n === 1 || n === totalPaginas || Math.abs(n - pagina) <= 1) numeros.push(n);
+                    else if (numeros[numeros.length - 1] !== '…') numeros.push('…');
+                }
+
+                const btn = (etiqueta, destino, extra) =>
+                    destino === null
+                        ? `<span class="pag-puntos">…</span>`
+                        : `<button type="button" class="pag-btn" onclick="irAPagina(${destino})" ${extra || ''}>${etiqueta}</button>`;
+
+                botones.innerHTML = [
+                    `<button type="button" class="pag-btn" onclick="irAPagina(${pagina - 1})" ${pagina === 1 ? 'disabled' : ''} aria-label="Página anterior">‹</button>`,
+                    ...numeros.map((n) => (n === '…'
+                        ? btn('…', null)
+                        : btn(n, n, n === pagina ? 'aria-current="page"' : `aria-label="Página ${n}"`))),
+                    `<button type="button" class="pag-btn" onclick="irAPagina(${pagina + 1})" ${pagina === totalPaginas ? 'disabled' : ''} aria-label="Página siguiente">›</button>`,
+                ].join('');
+            }
+
+            // Cambiar de página sin subir el scroll deja al visitante mirando
+            // el pie de la página con tarjetas nuevas arriba que no vio.
+            window.irAPagina = function (n) {
+                const totalPaginas = Math.max(1, Math.ceil(filtradas.length / POR_PAGINA));
+                const destino = Math.min(Math.max(1, n), totalPaginas);
+                if (destino === pagina) return;
+                pagina = destino;
+                renderGrid();
+                const grid = document.getElementById('grid-todas');
+                if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            };
 
             function renderGrid() {
                 const grid = document.getElementById('grid-todas');
@@ -301,12 +393,25 @@
                     ? todasLasPropiedades
                     : todasLasPropiedades.filter(p => p.categoria === filtroActivo);
                 const texto = normalizar(filtroTexto.trim());
-                const filtradas = !texto ? porCategoria : porCategoria.filter(p =>
+                filtradas = !texto ? porCategoria : porCategoria.filter(p =>
                     [p.titulo, p.ubicacion, p.tipo_propiedad_detalle, p.categoria, p.precio]
                         .some(campo => normalizar(campo).includes(texto))
                 );
 
-                grid.innerHTML = filtradas.map((p, idx) => tarjeta(p, idx)).join('');
+                // El filtro puede dejar menos páginas de las que había; si se
+                // estaba parado en la 5 y ahora hay 2, se cae a la última real
+                // en vez de mostrar una página vacía.
+                const totalPaginas = Math.max(1, Math.ceil(filtradas.length / POR_PAGINA));
+                if (pagina > totalPaginas) pagina = totalPaginas;
+                const desde = (pagina - 1) * POR_PAGINA;
+                const visibles = filtradas.slice(desde, desde + POR_PAGINA);
+
+                // El índice que se le pasa a tarjeta() es el ABSOLUTO dentro de
+                // la lista filtrada, no el de la página: lo usa para el id del
+                // carrusel, y dos tarjetas de páginas distintas no pueden
+                // compartirlo.
+                grid.innerHTML = visibles.map((p, i) => tarjeta(p, desde + i)).join('');
+                renderPaginador(totalPaginas, filtradas.length, desde, visibles.length);
                 vacioMsg.style.display = filtradas.length ? 'none' : 'block';
                 vacioMsg.textContent = texto
                     ? `No encontramos propiedades que coincidan con "${filtroTexto.trim()}".`
@@ -323,8 +428,18 @@
                     // captacion_propia.desc primero: las que Walter captó con
                     // contrato directo quedan agrupadas arriba de la lista, y
                     // dentro de cada grupo se respeta el orden manual del panel.
+                    // Solo las columnas que la tarjeta y el buscador usan de
+                    // verdad. Con select=* bajaban 231 KB por visita, de los
+                    // cuales 80 KB eran la descripción larga y el texto de
+                    // venta -- que no se muestran en ninguna tarjeta.
+                    // Si se agrega un dato a la tarjeta, hay que sumarlo acá.
+                    const CAMPOS = [
+                        'id', 'slug', 'titulo', 'precio', 'tipo_contrato', 'categoria',
+                        'ubicacion', 'habitaciones', 'banos', 'm2', 'fotos', 'video_url',
+                        'captacion_propia', 'tipo_propiedad_detalle',
+                    ].join(',');
                     const traer = (orden) =>
-                        fetch(`${SUPA_URL}/rest/v1/propiedades?select=*&publicada=eq.true&order=${orden}`, {
+                        fetch(`${SUPA_URL}/rest/v1/propiedades?select=${CAMPOS}&publicada=eq.true&order=${orden}`, {
                             headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
                         });
 
@@ -346,7 +461,21 @@
                 if (filtroActivo === 'todas') return;
                 document.querySelectorAll('.filtro-categoria').forEach(b => b.classList.toggle('activo', b.getAttribute('data-categoria') === 'todas'));
                 filtroActivo = 'todas';
+                pagina = 1;
                 renderGrid();
+            }
+
+            // Un link con #slug tiene que seguir llevando a su tarjeta aunque
+            // esa propiedad haya quedado en la página 4. Devuelve true si tuvo
+            // que cambiar de página (y por lo tanto ya redibujó).
+            function irAPaginaDe(prop) {
+                const i = filtradas.findIndex(p => p.id === prop.id);
+                if (i < 0) return false;
+                const destino = Math.floor(i / POR_PAGINA) + 1;
+                if (destino === pagina) return false;
+                pagina = destino;
+                renderGrid();
+                return true;
             }
 
             function destacarTarjeta(card) {
@@ -362,8 +491,10 @@
             // Para pauta / preview propio se usa /propiedad/<slug> (página aparte).
             function enfocarPropiedadDesdeUrl() {
                 const id = new URLSearchParams(window.location.search).get('propiedad');
-                if (id && todasLasPropiedades.some(p => p.id === id)) {
+                const buscada = id ? todasLasPropiedades.find(p => p.id === id) : null;
+                if (buscada) {
                     resetearFiltroATodas();
+                    irAPaginaDe(buscada);
                     setTimeout(() => {
                         const img = document.querySelector(`[data-share-id="${id}"]`);
                         if (!img) return;
@@ -378,6 +509,7 @@
                 const prop = todasLasPropiedades.find(p => (p.slug || p.id) === slug);
                 if (!prop) return;
                 if (filtroActivo !== 'todas' && prop.categoria !== filtroActivo) resetearFiltroATodas();
+                irAPaginaDe(prop);
                 setTimeout(() => {
                     const card = document.getElementById(slug);
                     if (card) destacarTarjeta(card);
@@ -391,12 +523,14 @@
                         document.querySelectorAll('.filtro-categoria').forEach(b => b.classList.remove('activo'));
                         btn.classList.add('activo');
                         filtroActivo = btn.getAttribute('data-categoria');
+                        pagina = 1;   // otra categoría, otra lista: se arranca del principio
                         renderGrid();
                     });
                 });
                 const buscador = document.getElementById('buscador-propiedades');
                 buscador.addEventListener('input', () => {
                     filtroTexto = buscador.value;
+                    pagina = 1;   // cada letra cambia la lista: siempre desde la primera página
                     renderGrid();
                 });
             });

@@ -2,7 +2,11 @@
   "images": {
     "domains": [
       "remaxcaribbeanandcentralamerica.azureedge.net",
-      "iseoyfiteeobzvtfjhoe.supabase.co"
+      "iseoyfiteeobzvtfjhoe.supabase.co",
+      "images.remax-ccamls.com",
+      "remax-central.com.sv",
+      "remaxaltius.com",
+      "remaxcentrum.com"
     ],
     "sizes": [160, 280, 400, 600, 800, 1080, 1600, 1920],
     "minimumCacheTTL": 604800,

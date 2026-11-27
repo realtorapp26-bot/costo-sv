@@ -17,6 +17,16 @@
 // Por eso acá se redondea siempre hacia arriba al tamaño permitido más
 // cercano, en vez de pasar el ancho pedido tal cual.
 var IMG_OPT_TAMANOS = [160, 280, 400, 600, 800, 1080, 1600, 1920];
+
+// Esta lista tiene que ser IDÉNTICA a "images.domains" de vercel.json. Si acá
+// hay un dominio que allá no está, el optimizador responde 400 y la foto no
+// carga (se cae al onerror y el visitante ve la foto de respaldo en vez de la
+// propiedad). Al revés solo se pierde la optimización.
+// Las fotos de RE/MAX llegan por seis dominios distintos según la oficina que
+// cargó el anuncio. Durante un tiempo solo estaban los dos primeros, y las
+// otras 26 portadas se bajaban a tamaño de cámara: 1.5 MB de promedio, con
+// una de 5.2 MB, para mostrarse en una tarjeta de 600 px.
+var IMG_OPT_DOMINIOS = /(^|\.)(remaxcaribbeanandcentralamerica\.azureedge\.net|iseoyfiteeobzvtfjhoe\.supabase\.co|images\.remax-ccamls\.com|remax-central\.com\.sv|remaxaltius\.com|remaxcentrum\.com)$/i;
 function imgOptTamano(w) {
   var deseado = w || 800;
   for (var i = 0; i < IMG_OPT_TAMANOS.length; i++) {
@@ -27,7 +37,16 @@ function imgOptTamano(w) {
 window.imgOpt = function (url, w, q) {
   if (!url || typeof url !== 'string') return url;
   if (!/^https?:\/\//i.test(url)) return url;
-  if (!/remaxcaribbeanandcentralamerica\.azureedge\.net|iseoyfiteeobzvtfjhoe\.supabase\.co/i.test(url)) return url;
+  // Se compara el HOST, no la URL entera: con una búsqueda suelta, una foto
+  // de cualquier otro lado que llevara el nombre de un dominio permitido en
+  // la ruta pasaría el filtro y el optimizador la rechazaría con 400.
+  var host;
+  try {
+    host = new URL(url).hostname;
+  } catch (e) {
+    return url;
+  }
+  if (!IMG_OPT_DOMINIOS.test(host)) return url;
   return '/_vercel/image?url=' + encodeURIComponent(url) + '&w=' + imgOptTamano(w) + '&q=' + (q || 75);
 };
 

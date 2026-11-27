@@ -68,6 +68,39 @@ try {
   errores.push('No se pudo comparar formato.js con lib/formato.js: ' + e.message);
 }
 
+// 4. Los dominios del optimizador de imágenes, en app.js y en vercel.json,
+//    tienen que ser EXACTAMENTE los mismos. Si app.js manda al optimizador un
+//    dominio que vercel.json no autoriza, Vercel responde 400 y el visitante
+//    ve la foto de respaldo en vez de la propiedad — un fallo silencioso, sin
+//    error en consola, porque el <img> se cae por su propio onerror.
+try {
+  const appSrc = readFileSync(new URL('./app.js', import.meta.url), 'utf8');
+  const m = appSrc.match(/var IMG_OPT_DOMINIOS = \/\(\^\|\\\.\)\(([^)]+)\)\$\/i;/);
+  if (!m) {
+    errores.push('No se encontró IMG_OPT_DOMINIOS en app.js (¿cambió el nombre o la forma?).');
+  } else {
+    const enApp = m[1].split('|').map((d) => d.replace(/\\\./g, '.')).sort();
+    const vercel = JSON.parse(readFileSync(new URL('./vercel.json', import.meta.url), 'utf8'));
+    const enVercel = [...(vercel.images?.domains || [])].sort();
+    const soloApp = enApp.filter((d) => !enVercel.includes(d));
+    const soloVercel = enVercel.filter((d) => !enApp.includes(d));
+    if (soloApp.length) {
+      errores.push(
+        `app.js manda al optimizador dominios que vercel.json NO autoriza: ${soloApp.join(', ')}. ` +
+        'Vercel va a responder 400 y esas fotos no van a cargar — agregalos a "images.domains".',
+      );
+    }
+    if (soloVercel.length) {
+      errores.push(
+        `vercel.json autoriza dominios que app.js no usa: ${soloVercel.join(', ')}. ` +
+        'Esas fotos se bajan a tamaño original — agregalos a IMG_OPT_DOMINIOS en app.js.',
+      );
+    }
+  }
+} catch (e) {
+  errores.push('No se pudieron comparar los dominios de imágenes: ' + e.message);
+}
+
 // Resultado
 if (errores.length) {
   console.error('\n❌ PRE-DEPLOY BLOQUEADO — no publicar:\n' + errores.map(e => '  - ' + e).join('\n') + '\n');
