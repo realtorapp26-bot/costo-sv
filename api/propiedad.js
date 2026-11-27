@@ -110,17 +110,152 @@ async function buscarPropiedad(valor) {
   return null;
 }
 
-function paginaNoEncontrada() {
+// Palabras que aparecen en casi todos los slugs y no dicen nada de lo que la
+// persona buscaba. Sin sacarlas, "casa-en-venta-en-zaragoza" haría coincidir
+// con media base por culpa de "casa" y "venta".
+const VACIAS = new Set([
+  'en', 'de', 'del', 'la', 'el', 'los', 'las', 'y', 'con', 'por', 'para', 'a',
+  'venta', 'vende', 'alquiler', 'alquila', 'renta', 'se', 'un', 'una', 'su',
+  'sale', 'for', 'rent', 'the', 'in', 'of', 'and',
+]);
+
+// Lo que la persona buscaba está en la propia dirección: /propiedad/
+// rancho-santorini le llegó a alguien que buscaba un rancho. Esto saca de ahí
+// las palabras útiles y si venía por un alquiler o por una compra.
+function pistasDelSlug(slug) {
+  const limpio = String(slug || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+  const todas = limpio.split(' ').filter(Boolean);
+  const contrato = /\b(alquiler|alquila|renta|rent)\b/.test(limpio)
+    ? 'alquiler'
+    : (/\b(venta|vende|sale)\b/.test(limpio) ? 'venta' : null);
+  // Se descartan las de una o dos letras: suelen ser restos de medidas ("v", "m2").
+  const claves = todas.filter((p) => !VACIAS.has(p) && p.length > 2 && !/^\d+$/.test(p));
+  return { claves, contrato, frase: claves.join(' ') };
+}
+
+// Puntúa cada propiedad publicada por cuántas de esas palabras aparecen en su
+// título o ubicación. Las de ubicación valen doble: que coincida la zona es
+// mucho mejor señal que que coincida "apartamento".
+function parecidas(lista, pistas, cuantas) {
+  const norm = (s) => String(s || '').toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const puntuadas = lista.map((p) => {
+    const titulo = norm(p.titulo);
+    const lugar = norm(p.ubicacion) + ' ' + norm(p.tipo_propiedad_detalle);
+    let puntos = 0;
+    for (const k of pistas.claves) {
+      if (lugar.includes(k)) puntos += 2;
+      else if (titulo.includes(k)) puntos += 1;
+    }
+    if (pistas.contrato && p.tipo_contrato === pistas.contrato) puntos += 1;
+    return { p, puntos };
+  });
+  const conAlgo = puntuadas.filter((x) => x.puntos > 0).sort((a, b) => b.puntos - a.puntos);
+  // Primero las que coinciden, y si no llegan a tres se completa con el resto:
+  // una sola tarjeta se ve peor que tres, y "rancho santorini" solo coincide
+  // con una. El resto ya viene ordenado por captación propia y por más
+  // reciente, así que rellenar con las primeras es rellenar con lo mejor.
+  const elegidas = conAlgo.slice(0, cuantas);
+  if (elegidas.length < cuantas) {
+    const yaEstan = new Set(elegidas.map((x) => x.p.id));
+    for (const x of puntuadas) {
+      if (elegidas.length >= cuantas) break;
+      if (!yaEstan.has(x.p.id)) { elegidas.push(x); yaEstan.add(x.p.id); }
+    }
+  }
+  return { items: elegidas.map((x) => x.p), huboCoincidencia: conAlgo.length > 0 };
+}
+
+async function traerPublicadas() {
+  try {
+    const q = 'select=id,slug,titulo,precio,tipo_contrato,categoria,ubicacion,'
+      + 'habitaciones,banos,m2,fotos,tipo_propiedad_detalle'
+      + '&publicada=eq.true&order=captacion_propia.desc,created_at.desc&limit=80';
+    const res = await fetch(`${SUPA_URL}/rest/v1/propiedades?${q}`, {
+      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (_) {
+    return [];
+  }
+}
+
+// Página de propiedad dada de baja. Sigue devolviendo 404 a propósito: así
+// Google la va sacando de su índice en vez de tratarla como un "404
+// encubierto", que es lo que pasaría si se redirigiera al catálogo. Lo que
+// cambia es lo que ve la PERSONA: antes era un enlace suelto y un callejón sin
+// salida. Search Console mostró que 5 de 16 clics del sitio caían acá.
+function paginaNoEncontrada(slug, sugeridas, pistas) {
+  const lista = sugeridas || [];
+  const buscaba = pistas && pistas.claves.length
+    ? pistas.claves.slice(0, 4).join(' ')
+    : '';
+
+  const tarjetas = lista.map((p) => {
+    const foto = (p.fotos && p.fotos[0]) || '';
+    const ficha = `/propiedad/${encodeURIComponent(p.slug || p.id)}`;
+    const meta = [
+      p.habitaciones ? `${esc(p.habitaciones)} hab` : '',
+      p.banos ? `${esc(p.banos)} baños` : '',
+      p.m2 ? esc(areaFmt(p.m2)) : '',
+    ].filter(Boolean).join(' · ');
+    return `<a href="${ficha}" class="nd-card">
+      ${foto ? `<img src="${esc(imgOpt(foto, 400, 65))}" alt="${esc(p.titulo)}" loading="lazy" decoding="async">` : '<div class="nd-sinfoto"></div>'}
+      <div class="nd-card-txt">
+        <h3>${esc(p.titulo)}</h3>
+        ${p.ubicacion ? `<p class="nd-lugar">${esc(p.ubicacion)}</p>` : ''}
+        ${meta ? `<p class="nd-meta">${meta}</p>` : ''}
+        <p class="nd-precio">${esc(precioLegible(p.precio, p.tipo_contrato))}</p>
+      </div>
+    </a>`;
+  }).join('');
+
+  const waTxt = buscaba
+    ? `Hola Walter, estaba viendo "${buscaba}" en tu sitio y ya no está disponible. ¿Tenés algo parecido?`
+    : 'Hola Walter, vi una propiedad en tu sitio que ya no está disponible. ¿Tenés algo parecido?';
+
   return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
 <title>Propiedad no disponible | Walter Guerrero RE/MAX Elite</title>
 <link rel="stylesheet" href="/styles.css"><link rel="icon" href="/favicon.svg" type="image/svg+xml">
-</head><body><div class="container" style="text-align:center;padding:120px 20px;">
-<h1 class="hero-title-sm">Esta propiedad ya no está disponible</h1>
-<p class="section-subtitle">Puede que se haya vendido o retirado del inventario público.</p>
-<a href="/propiedades.html" class="btn btn-gold" style="margin-top:20px;">Ver propiedades disponibles</a>
-</div></body></html>`;
+<style>
+  .nd-wrap { max-width: 1100px; margin: 0 auto; padding: 90px 20px 70px; }
+  .nd-head { text-align: center; max-width: 640px; margin: 0 auto 50px; }
+  .nd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+  .nd-card { display: block; background: #fff; border: 1px solid var(--border); border-radius: 12px;
+             overflow: hidden; text-decoration: none; color: inherit; transition: var(--transition); }
+  .nd-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+  .nd-card img, .nd-sinfoto { width: 100%; height: 170px; object-fit: cover; display: block; background: var(--bg-alt); }
+  .nd-card-txt { padding: 16px 18px 20px; }
+  .nd-card-txt h3 { font-size: 1rem; line-height: 1.35; margin: 0 0 8px; }
+  .nd-lugar, .nd-meta { margin: 0 0 6px; font-size: 0.85rem; color: var(--text-light); }
+  .nd-precio { margin: 10px 0 0; font-weight: 700; color: var(--primary); font-size: 1.1rem; }
+  .nd-acciones { text-align: center; margin-top: 46px; display: flex; flex-wrap: wrap;
+                 gap: 14px; justify-content: center; }
+</style>
+</head><body>
+<div class="nd-wrap">
+  <div class="nd-head">
+    <h1 class="hero-title-sm">Esta propiedad ya no está disponible</h1>
+    <p class="section-subtitle">Puede que se haya vendido o retirado del inventario. ${lista.length ? 'Estas sí están disponibles ahora:' : ''}</p>
+  </div>
+  ${lista.length ? `<div class="nd-grid">${tarjetas}</div>` : ''}
+  <div class="nd-acciones">
+    <a href="/propiedades.html" class="btn btn-gold">Ver todas las propiedades</a>
+    <a data-whatsapp data-wa="${esc(waTxt)}" href="#" class="btn btn-whatsapp">
+      <i class="fab fa-whatsapp" aria-hidden="true"></i> Decime qué buscás
+    </a>
+  </div>
+</div>
+<script src="/config.js"></script>
+<script src="/app.js"></script>
+</body></html>`;
 }
 
 function render(p) {
@@ -603,8 +738,19 @@ export default async function handler(req, res) {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
 
   if (!propiedad) {
+    // Se buscan alternativas con lo que dice la propia dirección. Si la
+    // consulta falla, la página se arma igual, solo que sin tarjetas: el
+    // visitante nunca ve un error por esto.
+    const pistas = pistasDelSlug(valor);
+    let sugeridas = [];
+    try {
+      const publicadas = await traerPublicadas();
+      if (publicadas.length) sugeridas = parecidas(publicadas, pistas, 3).items;
+    } catch (err) {
+      console.error('No se pudieron buscar propiedades parecidas:', err);
+    }
     res.setHeader('Cache-Control', 'public, s-maxage=60');
-    res.status(404).send(paginaNoEncontrada());
+    res.status(404).send(paginaNoEncontrada(valor, sugeridas, pistas));
     return;
   }
 
